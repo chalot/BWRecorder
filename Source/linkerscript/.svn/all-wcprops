@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/235/trunk/wCortex_STM32F2xx_Template/Source/linkerscript
+END
+stm32f207flash.ld
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/235/trunk/wCortex_STM32F2xx_Template/Source/linkerscript/stm32f207flash.ld
+END

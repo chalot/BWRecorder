@@ -1,0 +1,2823 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model version="2.3.2">
+ <framework name="qpc"/>
+ <package name="AOs" stereotype="0x02">
+  <class name="QExtSignals" superclass="qpc::QActive">
+   <documentation>外部信号检测状态机</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="4,6,5,0,24,6">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="serving">
+     <state_glyph node="6,12,67,30"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QLCD" superclass="qpc::QActive">
+   <documentation>UI显示状态机</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="4,5,5,0,18,6">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="serving">
+     <state_glyph node="12,11,52,25"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QSensors" superclass="qpc::QActive">
+   <documentation>传感器状态机</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="7,5,5,0,23,8">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="9,13,61,28"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QVideo" superclass="qpc::QActive">
+   <documentation>摄像头状态机</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="7,6,5,0,25,7">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="14,13,47,24"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QSystick" superclass="qpc::QActive">
+   <documentation>系统滴答状态机</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="9,5,5,0,21,5">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="14,10,55,28"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QAudio" superclass="qpc::QActive">
+   <documentation>音频状态机</documentation>
+   <statechart>
+    <initial target="../1">
+     <action>TTS_Init();</action>
+     <initial_glyph conn="4,4,5,0,8,3">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="idle">
+     <tran trig="AUDIO_RECORD_START" target="../../2">
+      <tran_glyph conn="8,15,3,1,42,13,-2">
+       <action box="0,-2,20,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="8,7,40,12"/>
+    </state>
+    <state name="busy">
+     <tran trig="AUDIO_RECORD_STOP" target="../../1">
+      <tran_glyph conn="8,39,3,1,48,-28,-8">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="8,26,40,17"/>
+    </state>
+    <state_diagram size="122,87"/>
+   </statechart>
+  </class>
+  <class name="QTTS" superclass="qpc::QActive">
+   <documentation>TTS状态机</documentation>
+   <statechart>
+    <initial target="../3">
+     <initial_glyph conn="6,8,5,3,13">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="normal">
+     <tran trig="TTS_READMSG">
+      <tran_glyph conn="16,34,3,-1,12">
+       <action box="0,-2,12,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="ACC_OFF">
+      <tran_glyph conn="16,29,3,-1,12">
+       <action box="0,-2,6,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="idle">
+      <tran trig="TTS_READMSG" target="../../3">
+       <tran_glyph conn="22,51,3,0,22,9">
+        <action box="0,-2,13,2"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="ACC_OFF">
+       <choice target="../../../../2">
+        <guard>1</guard>
+        <choice_glyph conn="36,44,5,2,46,-21">
+         <action box="1,-2,6,2"/>
+        </choice_glyph>
+       </choice>
+       <choice>
+        <guard>0</guard>
+        <choice_glyph conn="36,44,4,-1,4,15">
+         <action box="1,1,6,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="22,44,3,-1,14">
+        <action box="0,-2,6,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="22,37,39,18"/>
+     </state>
+     <state name="busy">
+      <tran trig="TTS_OK" target="../../2">
+       <tran_glyph conn="22,68,3,1,42,-16,-3">
+        <action box="0,-2,6,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="22,60,26,11"/>
+     </state>
+     <state_glyph node="16,23,55,54"/>
+    </state>
+    <state name="sleep">
+     <tran trig="TTS_READMSG" target="../../1">
+      <tran_glyph conn="77,17,3,1,22,38,-28">
+       <action box="0,-2,12,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="77,5,19,18"/>
+    </state>
+    <state name="poweroff">
+     <tran trig="Q_TIMEOUT" target="../../1">
+      <tran_glyph conn="19,14,3,0,29,9">
+       <action box="0,-2,11,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="19,6,22,13"/>
+    </state>
+    <state_diagram size="112,121"/>
+   </statechart>
+  </class>
+  <class name="QCAN" superclass="qpc::QActive">
+   <documentation>CAN状态机</documentation>
+   <attribute name="m_rptTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>定时读取VMS数据流定时器</documentation>
+   </attribute>
+   <attribute name="m_tickTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>秒定时器</documentation>
+   </attribute>
+   <attribute name="m_hangTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>诊断冲突挂起定时器</documentation>
+   </attribute>
+   <attribute name="m_bRecvFrame" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>帧接收标志</documentation>
+   </attribute>
+   <attribute name="m_canfreeTicks" type="uint32_t" visibility="0x02" properties="0x00">
+    <documentation>帧接收空闲时长</documentation>
+   </attribute>
+   <attribute name="m_ledFlashCnt" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>LED闪烁控制计数器</documentation>
+   </attribute>
+   <statechart>
+    <initial target="../1">
+     <action>QActive_subscribe(&amp;me-&gt;super, ACC_ON_SIG);
+QActive_subscribe(&amp;me-&gt;super, ACC_OFF_SIG);
+QActive_subscribe(&amp;me-&gt;super, WAKEUP_REQ_SIG);
+QActive_subscribe(&amp;me-&gt;super, SLEEP_REQ_SIG);
+
+CAN_MemInit(); //初始化
+
+</action>
+     <initial_glyph conn="6,2,5,0,18,4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="Normal_Mode">
+     <entry>CAN1_PWR_ON();//模块开电
+CAN_RECIEVE_ENABLE();//使能接收
+
+me-&gt;m_bRecvFrame = 0;
+me-&gt;m_canfreeTicks = 0;
+me-&gt;m_ledFlashCnt = 0;
+
+/* 使能秒定时器 */
+QTimeEvt_postEvery(&amp;me-&gt;m_tickTimer, &amp;me-&gt;super, (BSP_TICKS_PER_SEC));</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_tickTimer);</exit>
+     <initial target="../3">
+      <initial_glyph conn="66,16,5,0,-3,7">
+       <action box="0,-2,6,2"/>
+      </initial_glyph>
+     </initial>
+     <tran trig="PER_SECOND">
+      <action>if(1 == me-&gt;m_bRecvFrame)
+{
+    if(me-&gt;m_ledFlashCnt++ % 3 == 0)  //控制等闪烁，3s
+    {
+        CAN_FLASH_LED();
+    }
+    me-&gt;m_bRecvFrame = 0;
+    me-&gt;m_canfreeTicks = 0;
+}
+else
+{
+    me-&gt;m_canfreeTicks ++;
+
+//    if(me-&gt;m_canfreeTicks &gt; TIMEOUT_CAN_FREE_SECONDS)
+//    {
+        //请求CAN模块休眠
+//        static const QEvent sleep_Evt = {CAN_RXIDLE_TIMEOUT_SIG, 0};
+//        QACTIVE_POST(AO_Can, (QEvt*)&amp;sleep_Evt, (void*)0);
+        CAN_LED_OFF();
+//    }
+}
+</action>
+      <tran_glyph conn="14,20,3,-1,17">
+       <action box="0,-2,19,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="CAN_NEWRECVMSG">
+      <action>DATANODE *pNode = CAN_TakeRxMsg();
+MP_FreeNode(pNode);</action>
+      <tran_glyph conn="14,16,3,-1,17">
+       <action box="0,-2,17,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="non_conflicting">
+      <documentation>无诊断冲突</documentation>
+      <initial target="../2">
+       <initial_glyph conn="61,30,5,0,-2,4">
+        <action box="0,-2,6,2"/>
+       </initial_glyph>
+      </initial>
+      <tran trig="CAN_NEWRECVMSG">
+       <action>//提取CAN帧并处理
+DATANODE *pNode = CAN_TakeRxMsg();
+if(pNode)
+{
+    ///doDispatchMsg(pNode);
+}
+
+me-&gt;m_bRecvFrame = 1;</action>
+       <tran_glyph conn="20,31,3,-1,18">
+        <action box="0,-2,13,2"/>
+       </tran_glyph>
+      </tran>
+      <state name="ACC_Off">
+       <documentation>ACC关电态</documentation>
+       <tran trig="ACC_ON" target="../../3">
+        <tran_glyph conn="24,46,3,0,11,6">
+         <action box="0,-2,6,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="PER_SECOND">
+        <action>if(1 == me-&gt;m_bRecvFrame)
+{
+    if(me-&gt;m_ledFlashCnt++ % 3 == 0)  //控制等闪烁，3s
+    {
+        CAN_FLASH_LED();
+    }
+    me-&gt;m_bRecvFrame = 0;
+    me-&gt;m_canfreeTicks = 0;
+}
+else
+{
+    me-&gt;m_canfreeTicks ++;
+
+//    if(me-&gt;m_canfreeTicks &gt; TIMEOUT_CAN_FREE_SECONDS)
+//    {
+        //请求CAN模块休眠
+//        static const QEvent sleep_Evt = {CAN_RXIDLE_TIMEOUT_SIG, 0};
+//        QACTIVE_POST(AO_Can, (QEvt*)&amp;sleep_Evt, (void*)0);
+        CAN_LED_OFF();
+//    }
+}
+
+</action>
+        <choice target="../../../../../2">
+         <guard>me-&gt;m_canfreeTicks &gt; TIMEOUT_CAN_FREE_SECONDS</guard>
+         <action>//系统休眠条件：ACC OFF，CAN总线无数据时长超过指定时长
+static const QEvent sleep_Evt = {SLEEP_REQ_SIG, 0};
+QF_publish(&amp;sleep_Evt, me); //广播睡眠请求消息，通知各个模块进入休眠态
+
+TRACE_(QS_USER, NULL, &quot;[CAN] ----- PowerMgr: SLEEP -----&quot;);</action>
+         <choice_glyph conn="37,40,5,3,47,-21,7">
+          <action box="2,-2,40,2"/>
+         </choice_glyph>
+        </choice>
+        <choice>
+         <guard>else</guard>
+         <choice_glyph conn="37,40,4,-1,3,11">
+          <action box="1,1,6,2"/>
+         </choice_glyph>
+        </choice>
+        <tran_glyph conn="24,40,3,-1,13">
+         <action box="0,-2,11,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="24,34,40,15"/>
+      </state>
+      <state name="ACC_On">
+       <documentation>ACC开电态，使能定时上传VMS数据流</documentation>
+       <entry>/* 使能数据流定时上传定时器 */
+///QTimeEvt_postEvery(&amp;me-&gt;m_rptTimer, &amp;me-&gt;super, (BSP_TICKS_PER_SEC * ptWorkParam-&gt;u16AutoReportCycle));</entry>
+       <exit>///QTimeEvt_disarm(&amp;me-&gt;m_rptTimer);</exit>
+       <tran trig="ACC_OFF" target="../../2">
+        <tran_glyph conn="24,61,3,2,29,-12">
+         <action box="0,-2,6,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="24,52,40,16">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state_glyph node="20,23,48,49"/>
+     </state>
+     <state_glyph node="14,6,64,69">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state name="Sleep_Mode">
+     <documentation>休眠态，CAN关电</documentation>
+     <entry>CAN1_PWR_OFF();//模块关电
+SetSysSleepState(MODULE_SLEEP_STATE_CAN);//设置模块睡眠态标志</entry>
+     <tran trig="WAKEUP_REQ" target="../../1">
+      <action>TRACE_(QS_USER, NULL, &quot;[CAN] ----- PowerMgr: WAKEUP -----&quot;);
+ClearSysSleepState(MODULE_SLEEP_STATE_CAN);//清除模块休眠态</action>
+      <tran_glyph conn="91,26,3,1,27,27,-40">
+       <action box="1,-2,13,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="91,10,23,23">
+      <entry box="1,2,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="147,103"/>
+   </statechart>
+  </class>
+  <class name="QGprs" superclass="qpc::QActive">
+   <documentation>GPRS状态机</documentation>
+   <attribute name="m_ACCState" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>ACC状态</documentation>
+   </attribute>
+   <attribute name="m_LEDTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>LED灯定时器</documentation>
+   </attribute>
+   <attribute name="m_ATStep" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>AT序列当前执行位置</documentation>
+   </attribute>
+   <attribute name="m_Timer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>通用定时器</documentation>
+   </attribute>
+   <attribute name="m_retrieveTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>提取数据定时器</documentation>
+   </attribute>
+   <attribute name="m_requestQueue" type="QEQueue" visibility="0x02" properties="0x00">
+    <documentation>发送任务池</documentation>
+   </attribute>
+   <attribute name="m_requestQSto[TASK_QUEUE_SIZE]" type="QEvt const *" visibility="0x02" properties="0x00">
+    <documentation>发送任务队列</documentation>
+   </attribute>
+   <attribute name="m_cmd" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>命令字</documentation>
+   </attribute>
+   <attribute name="m_sequence" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>序列号</documentation>
+   </attribute>
+   <attribute name="m_address" type="void*" visibility="0x02" properties="0x00">
+    <documentation>数据地址</documentation>
+   </attribute>
+   <attribute name="m_dataSize" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>数据长度</documentation>
+   </attribute>
+   <attribute name="m_offset" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>当前读位置</documentation>
+   </attribute>
+   <attribute name="m_pSendBuf" type="u8*" visibility="0x02" properties="0x00">
+    <documentation>发送缓区</documentation>
+   </attribute>
+   <attribute name="m_SendDataLen" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>发送数据长度</documentation>
+   </attribute>
+   <attribute name="m_initStep" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>当前初始化序列</documentation>
+   </attribute>
+   <attribute name="m_connectStep" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>当前连接序列</documentation>
+   </attribute>
+   <attribute name="m_TryTimes" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>AT序列重复执行次数</documentation>
+   </attribute>
+   <attribute name="m_NetState" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>网络状态</documentation>
+   </attribute>
+   <attribute name="m_ATErrorTimes" type="uint8_t" visibility="0x00" properties="0x00">
+    <documentation>AT响应错误计数</documentation>
+   </attribute>
+   <attribute name="m_sendBuf[FRAME_BUF_SIZE]" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>临时发送缓区</documentation>
+   </attribute>
+   <attribute name="m_PingTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>PING连接定时器</documentation>
+   </attribute>
+   <attribute name="m_deferedDataReady" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>网络数据查询延迟计数器</documentation>
+   </attribute>
+   <attribute name="m_bSleepReq" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>模块休眠请求</documentation>
+   </attribute>
+   <statechart>
+    <initial target="../1">
+     <action>/* 状态消息 */
+QS_FUN_DICTIONARY(&amp;QGprs_initialing);
+QS_FUN_DICTIONARY(&amp;QGprs_initialing_stepinto);
+QS_FUN_DICTIONARY(&amp;QGprs_polling);
+QS_FUN_DICTIONARY(&amp;QGprs_startup);
+QS_FUN_DICTIONARY(&amp;QGprs_power_on);
+QS_FUN_DICTIONARY(&amp;QGprs_start_delay);
+QS_FUN_DICTIONARY(&amp;QGprs_start_finished);
+QS_FUN_DICTIONARY(&amp;QGprs_reseting);
+QS_FUN_DICTIONARY(&amp;QGprs_initialing);
+QS_FUN_DICTIONARY(&amp;QGprs_registering);
+QS_FUN_DICTIONARY(&amp;QGprs_powerNormalMode);
+QS_FUN_DICTIONARY(&amp;QGprs_connected);
+QS_FUN_DICTIONARY(&amp;QGprs_TcpSending);
+QS_FUN_DICTIONARY(&amp;QGprs_WaitFillData);
+QS_FUN_DICTIONARY(&amp;QGprs_WaitRet);
+QS_FUN_DICTIONARY(&amp;QGprs_Idle);
+QS_FUN_DICTIONARY(&amp;QGprs_PhoneCalling);
+QS_FUN_DICTIONARY(&amp;QGprs_SMSHandling);
+QS_FUN_DICTIONARY(&amp;QGprs_connecting);
+QS_FUN_DICTIONARY(&amp;QGprs_powerSaveMode);
+QS_FUN_DICTIONARY(&amp;QGprs_sleepRequest);
+QS_FUN_DICTIONARY(&amp;QGprs_sleep);
+QS_FUN_DICTIONARY(&amp;QGprs_registering);
+
+
+QS_SIG_DICTIONARY(AT_OK_SIG, me);
+QS_SIG_DICTIONARY(AT_REGGED_SIG, me);
+QS_SIG_DICTIONARY(AT_PINREADY_SIG, me);
+QS_SIG_DICTIONARY(AT_NETREGGED_SIG, me);
+QS_SIG_DICTIONARY(AT_NETDISREG_SIG, me);
+QS_SIG_DICTIONARY(AT_CSQ_SIG, me);
+QS_SIG_DICTIONARY(AT_CONNECTED_SIG, me);
+QS_SIG_DICTIONARY(AT_DISCONNECTED_SIG, me);
+//QS_SIG_DICTIONARY(AT_DATAREADY_SIG, me);
+QS_SIG_DICTIONARY(AT_SENDREADY_SIG, me);
+QS_SIG_DICTIONARY(AT_SENDFILLDATA_SIG, me);
+QS_SIG_DICTIONARY(AT_ERROR_SIG, me);
+QS_SIG_DICTIONARY(AT_CMSERROR_SIG, me);
+QS_SIG_DICTIONARY(AT_CMEERROR_SIG, me);
+QS_SIG_DICTIONARY(AT_SENDERROR_SIG, me);
+QS_SIG_DICTIONARY(AT_FILLDATATIP_SIG, me);
+QS_SIG_DICTIONARY(AT_SENDOK_SIG, me);
+QS_SIG_DICTIONARY(GPRS_COMMINGMSG_SIG, me);
+
+/* AO内部消息 */
+QS_SIG_DICTIONARY(Q_TIMEOUT_SIG, me);
+QS_SIG_DICTIONARY(GPRS_SENDREQ_SIG, me);
+//QS_SIG_DICTIONARY(GPRS_LED_TIMEOUT_SIG, me);
+//QS_SIG_DICTIONARY(GPRS_RETRIEVE_TIMEOUT_SIG, me);
+QS_SIG_DICTIONARY(NEW_TASKSENDREQ_SIG, me);
+QS_SIG_DICTIONARY(GPRS_SLEEPREQ_TIMEOUT_SIG, me);
+QS_SIG_DICTIONARY(GPRS_PHONECALL_HANDLED_SIG, me);
+QS_SIG_DICTIONARY(GPRS_SMS_HANDLED_SIG, me);
+QS_SIG_DICTIONARY(GPRS_COMMINGCALL_SIG, me);
+QS_SIG_DICTIONARY(GPRS_COMMINGSMS_SIG, me);
+
+QActive_subscribe((QActive *)me, ACC_ON_SIG);
+QActive_subscribe((QActive *)me, ACC_OFF_SIG);
+QActive_subscribe(&amp;me-&gt;super, WAKEUP_REQ_SIG);
+QActive_subscribe(&amp;me-&gt;super, SLEEP_REQ_SIG);
+
+//模块内部初始化
+GPRS_Init();
+
+me-&gt;m_ACCState = POWEROFF;
+me-&gt;m_NetState = NET_STATE_UNKOWN;
+GPRS_SetNetState(NET_STATE_UNKOWN);
+
+//网络指示灯关闭
+GPRS_LED_OFF();
+</action>
+     <initial_glyph conn="3,2,5,0,54,7">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="serving">
+     <initial target="../6">
+      <initial_glyph conn="87,27,4,1,10,-4">
+       <action box="0,-2,6,2"/>
+      </initial_glyph>
+     </initial>
+     <tran trig="ACC_ON">
+      <action>me-&gt;m_ACCState = POWERON;</action>
+      <tran_glyph conn="4,16,3,-1,26">
+       <action box="0,-2,13,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="ACC_OFF">
+      <action>me-&gt;m_ACCState = POWEROFF;</action>
+      <tran_glyph conn="4,20,3,-1,26">
+       <action box="0,-2,6,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="NEW_TASKSENDREQ">
+      <action brief="请求发送数据">if (QEQueue_getNFree(&amp;me-&gt;m_requestQueue) &gt; 0) {
+    /* defer the request */
+    QActive_defer((QActive *)me, &amp;me-&gt;m_requestQueue, e);
+    TRACE_(GPRS_STAT, &amp;me-&gt;super, &quot;Request cmd: %x deferred;\n&quot;,
+           (int)((TaskEvt const *)e)-&gt;cmd);
+}
+else {
+    TRACE_(GPRS_STAT, &amp;me-&gt;super, &quot;Request #%d IGNORED;\n&quot;, (int)((TaskEvt const *)e)-&gt;cmd);
+}</action>
+      <tran_glyph conn="4,28,3,-1,26">
+       <action box="0,-2,27,3"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="SIMCARD_ONCHANGE">
+      <action>#if 0
+//SIM卡检测
+if(0 == GPIO_ReadInputDataBit(GPIOC,GPIOC_SIM_DET_))
+{
+    ClearErrType(NET_CLASS, NET_FAULT_SIMCARD);    //SIM卡插入
+}
+else
+{
+    SetErrType(NET_CLASS, NET_FAULT_SIMCARD);    //SIM卡拔出
+}
+#endif</action>
+      <tran_glyph conn="4,24,3,-1,26">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="SLEEP_REQ">
+      <action>TRACE_(QS_USER, NULL, &quot;[GPRS] ----- PowerMgr: SLEEP, but defered. -----&quot;);
+me-&gt;m_bSleepReq = 1;</action>
+      <tran_glyph conn="4,31,3,-1,26">
+       <action box="0,-2,15,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="startup">
+      <initial target="../1">
+       <initial_glyph conn="12,40,4,3,2,3">
+        <action box="0,-2,6,2"/>
+       </initial_glyph>
+      </initial>
+      <state name="power_on">
+       <entry>//模块上电
+GPIO_SetBits(GPIOA,GPIOA_CDMA_CTRL_);
+/* TERMON 高电平 */
+GPIO_ResetBits(GPIOA, GPIOA_GPRS_PWRKEY_);
+
+//保持1S
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_PWRON_TICKS);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="Q_TIMEOUT" target="../../3">
+        <tran_glyph conn="15,48,3,3,20,-4,3">
+         <action box="0,-2,11,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="15,40,17,11">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="start_finished">
+       <entry>/* TERMON 高电平 */
+GPIO_ResetBits(GPIOA, GPIOA_GPRS_PWRKEY_);
+/* 已开机，稍延时待稳定后执行AT */
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_PWRONAFTER_TICKS);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="Q_TIMEOUT" target="../../../7">
+        <action>//串口IO重新初始化
+GPRS_UartReconfigure();</action>
+        <tran_glyph conn="61,48,3,0,12,10">
+         <action box="0,-2,18,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="61,40,17,11">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="start_delay">
+       <entry>//先管脚拉低
+GPIO_SetBits(GPIOA, GPIOA_GPRS_PWRKEY_);
+//低电平拉低1000ms
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_PWRONBEFORE_TICKS);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="Q_TIMEOUT" target="../../2">
+        <tran_glyph conn="38,48,3,3,20,-4,3">
+         <action box="0,-2,17,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="38,40,17,11">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state_glyph node="9,35,74,19"/>
+     </state>
+     <state name="polling">
+      <entry>QTimeEvt_postEvery(&amp;me-&gt;m_retrieveTimer, &amp;me-&gt;super, TIMEOUT_RETRIEVE);</entry>
+      <exit>QTimeEvt_disarm(&amp;me-&gt;m_retrieveTimer);</exit>
+      <initial target="../4">
+       <initial_glyph conn="69,67,5,0,-4,6">
+        <action box="0,-2,6,2"/>
+       </initial_glyph>
+      </initial>
+      <tran trig="GPRS_RETRIEVE_TIMEOUT">
+       <action>//接收串口提取
+GPRS_doRetrieveFrame(0, 0);</action>
+       <tran_glyph conn="9,71,3,-1,29">
+        <action box="0,-2,23,3"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="AT_DATAREADY">
+       <action>//延迟消息到达提取
+me-&gt;m_deferedDataReady ++;
+
+#if 0
+ATMsgEvt* pe = (ATMsgEvt*)e;
+
+//接收串口提取
+GPRS_doRetrieveFrame(pe-&gt;begin, pe-&gt;end);
+
+#endif
+
+//接收串口提取
+//GPRS_doRetrieveFrame(0, 0);
+</action>
+       <tran_glyph conn="9,67,3,-1,29">
+        <action box="0,-2,16,2"/>
+       </tran_glyph>
+      </tran>
+      <state name="registering">
+       <entry>//执行注册网络AT指令
+GPRS_doRegister();
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_ATREG);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="AT_OK">
+        <action>if(GPRS_GetRegState())
+{
+    me-&gt;m_NetState = NET_STATE_REGISTED;
+    GPRS_SetNetState(NET_STATE_REGISTED);
+}</action>
+        <choice>
+         <guard>GPRS_GetRegState() == 0</guard>
+         <choice_glyph conn="32,134,5,-1,21">
+          <action box="1,-2,22,2"/>
+         </choice_glyph>
+        </choice>
+        <choice target="../../../5">
+         <guard>else</guard>
+         <choice_glyph conn="32,134,4,0,4,12,6">
+          <action box="0,2,6,2"/>
+         </choice_glyph>
+        </choice>
+        <tran_glyph conn="14,134,3,-1,18">
+         <action box="0,-2,13,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="Q_TIMEOUT">
+        <action>me-&gt;m_TryTimes++;</action>
+        <choice target="../..">
+         <guard>me-&gt;m_TryTimes &lt; REGISTER_TRY_MAXTIMES</guard>
+         <choice_glyph conn="26,126,5,1,42,-2,-3">
+          <action box="1,-2,37,2"/>
+         </choice_glyph>
+        </choice>
+        <choice target="../../../../8">
+         <guard>else</guard>
+         <action>TRACE_(QS_USER, NULL, &quot;*** [GPRS] Regging timeout, repower gprs&quot;);</action>
+         <choice_glyph conn="26,126,4,2,4,53,-61,22,-17">
+          <action box="1,1,6,2"/>
+         </choice_glyph>
+        </choice>
+        <tran_glyph conn="14,126,3,-1,12">
+         <action box="0,-2,13,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="14,117,51,24">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="initialing">
+       <entry>me-&gt;m_ATStep = 0;
+me-&gt;m_TryTimes = 0;</entry>
+       <initial target="../1">
+        <initial_glyph conn="66,78,4,1,2,-2">
+         <action box="0,-2,6,2"/>
+        </initial_glyph>
+       </initial>
+       <state name="initialing_stepinto">
+        <entry brief="/*doSendATCmd*/">//执行初始化序列
+GPRS_doInit(me-&gt;m_ATStep);
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_ATACK);</entry>
+        <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+        <tran trig="Q_TIMEOUT">
+         <action>me-&gt;m_TryTimes ++;</action>
+         <choice target="../..">
+          <guard>me-&gt;m_TryTimes &lt; INIT_TRY_MAXTIMES</guard>
+          <choice_glyph conn="33,88,5,1,33,-2,-2">
+           <action box="2,-2,28,2"/>
+          </choice_glyph>
+         </choice>
+         <choice target="../../../../../8">
+          <guard>else</guard>
+          <action>TRACE_(QS_USER, NULL, &quot;*** [GPRS] init failed, repower gprs&quot;);</action>
+          <choice_glyph conn="33,88,4,2,3,43,-26,22,-13">
+           <action box="1,1,6,2"/>
+          </choice_glyph>
+         </choice>
+         <tran_glyph conn="18,88,3,-1,15">
+          <action box="0,-2,12,2"/>
+         </tran_glyph>
+        </tran>
+        <tran trig="AT_OK">
+         <choice>
+          <guard>0 == GPRS_CheckCmd_IsAttaching(me-&gt;m_ATStep)</guard>
+          <action>me-&gt;m_ATStep ++;</action>
+          <choice target="../../..">
+           <guard>me-&gt;m_ATStep &lt; INIT_STEPS_AMOUNT</guard>
+           <choice_glyph conn="39,100,5,1,27,-3,-2">
+            <action box="2,-3,37,3"/>
+           </choice_glyph>
+          </choice>
+          <choice target="../../../../../3">
+           <guard>else</guard>
+           <action>me-&gt;m_TryTimes = 0;</action>
+           <choice_glyph conn="39,100,4,1,3,34,17,-8">
+            <action box="1,0,6,2"/>
+           </choice_glyph>
+          </choice>
+          <choice_glyph conn="28,97,5,-1,11,3">
+           <action box="1,-3,26,2"/>
+          </choice_glyph>
+         </choice>
+         <choice>
+          <guard>else</guard>
+          <choice target="../../..">
+           <guard>1 == GPRS_GetAttachState()</guard>
+           <action>me-&gt;m_ATStep ++;</action>
+           <choice_glyph conn="33,107,5,1,33,-2,-2">
+            <action box="2,-2,20,2"/>
+           </choice_glyph>
+          </choice>
+          <choice>
+           <guard>else</guard>
+           <choice_glyph conn="33,107,4,-1,3,10">
+            <action box="1,1,6,2"/>
+           </choice_glyph>
+          </choice>
+          <choice_glyph conn="28,97,4,-1,10,5">
+           <action box="2,1,6,2"/>
+          </choice_glyph>
+         </choice>
+         <tran_glyph conn="18,97,3,-1,10">
+          <action box="0,-2,6,2"/>
+         </tran_glyph>
+        </tran>
+        <state_glyph node="18,78,46,34">
+         <entry box="1,2,21,2"/>
+         <exit box="1,4,5,2"/>
+        </state_glyph>
+       </state>
+       <state_glyph node="14,73,56,41">
+        <entry box="1,2,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="powerNormalMode">
+       <documentation>正常工作模式</documentation>
+       <entry>//复位AT执行序列
+me-&gt;m_ATStep = 0;
+//启动LED闪烁定时器
+QTimeEvt_postEvery(&amp;me-&gt;m_LEDTimer, &amp;me-&gt;super, TIMEOUT_LED_CONNECTING);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);
+QTimeEvt_disarm(&amp;me-&gt;m_LEDTimer);
+//关闭状态灯
+GPRS_LED_OFF();</exit>
+       <initial target="../4">
+        <initial_glyph conn="92,168,4,1,3,-4">
+         <action box="0,-2,6,2"/>
+        </initial_glyph>
+       </initial>
+       <tran trig="ACC_OFF">
+        <action>me-&gt;m_ACCState = POWEROFF;</action>
+        <tran_glyph conn="14,156,3,-1,20">
+         <action box="0,-2,6,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="GPRS_LED_TIMEOUT">
+        <action>//static QEvt const query_Evt = {AT_DATAQUERY_SIG, 0, 0};
+//QACTIVE_POST(me, (QEvt*)&amp;query_Evt, NULL);
+//QACTIVE_POST(me, (QEvt*)Q_NEW(QEvt, AT_DATAQUERY_SIG), (void*)0);
+//LED指示灯闪烁
+GPRS_FLASH_LED();
+</action>
+        <tran_glyph conn="14,153,3,-1,20">
+         <action box="0,-2,15,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="GPRS_PING_TIMEOUT">
+        <tran_glyph conn="14,162,3,-1,20">
+         <action box="0,-2,18,2"/>
+        </tran_glyph>
+       </tran>
+       <state name="disconnected">
+        <entry>me-&gt;m_ATErrorTimes = 0;
+me-&gt;m_ATStep = 0;</entry>
+        <initial target="../1">
+         <initial_glyph conn="81,174,4,1,2,-3">
+          <action box="0,-2,6,2"/>
+         </initial_glyph>
+        </initial>
+        <state name="connecting">
+         <entry brief="/*doSendATCmd*/">//执行连接AT序列
+GPRS_doConnect(me-&gt;m_ATStep);
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_ATCONNECT);</entry>
+         <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);
+QTimeEvt_disarm(&amp;me-&gt;m_LEDTimer);</exit>
+         <tran trig="AT_OK">
+          <action>me-&gt;m_ATStep ++;</action>
+          <choice target="../..">
+           <guard>me-&gt;m_ATStep &lt; (CONNECT_STEPS_AMOUNT)</guard>
+           <choice_glyph conn="38,199,5,1,43,-2,-3">
+            <action box="1,-2,37,3"/>
+           </choice_glyph>
+          </choice>
+          <choice target="../../../../5">
+           <guard>else</guard>
+           <choice_glyph conn="38,199,4,0,8,1,2">
+            <action box="1,2,6,2"/>
+           </choice_glyph>
+          </choice>
+          <tran_glyph conn="25,199,3,-1,13">
+           <action box="0,-2,13,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="AT_ERROR">
+          <action>me-&gt;m_ATErrorTimes ++;
+me-&gt;m_ATStep ++;</action>
+          <choice target="../..">
+           <guard>me-&gt;m_ATStep &lt; (CONNECT_STEPS_AMOUNT)</guard>
+           <choice_glyph conn="41,182,5,1,39,-3,-2">
+            <action box="2,-2,34,2"/>
+           </choice_glyph>
+          </choice>
+          <choice>
+           <guard>else</guard>
+           <action>me-&gt;m_ATStep = 0;</action>
+           <choice_glyph conn="41,182,4,-1,4,11">
+            <action box="1,1,6,2"/>
+           </choice_glyph>
+          </choice>
+          <tran_glyph conn="25,182,3,-1,16">
+           <action box="0,-2,11,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="Q_TIMEOUT">
+          <action>me-&gt;m_ATErrorTimes ++;</action>
+          <choice target="../../../../../../8">
+           <guard>me-&gt;m_ATErrorTimes &gt;= CONNECT_ERROR_MAXTIMES</guard>
+           <action>//设置故障类型：网络不可达
+//SetErrType(NET_CLASS, NET_FAULT_UNREACHABLE);</action>
+           <choice_glyph conn="38,191,5,2,60,-118,9,-21">
+            <action box="1,-3,38,2"/>
+           </choice_glyph>
+          </choice>
+          <choice target="../..">
+           <guard>else</guard>
+           <choice_glyph conn="38,191,4,1,4,43,-2,-3">
+            <action box="1,1,6,2"/>
+           </choice_glyph>
+          </choice>
+          <tran_glyph conn="25,191,3,-1,13">
+           <action box="0,-2,12,2"/>
+          </tran_glyph>
+         </tran>
+         <state_glyph node="25,174,53,30">
+          <entry box="1,2,21,2"/>
+          <exit box="1,4,5,2"/>
+         </state_glyph>
+        </state>
+        <state_glyph node="18,169,70,37">
+         <entry box="1,2,5,2"/>
+        </state_glyph>
+       </state>
+       <state name="connected">
+        <entry>me-&gt;m_NetState = NET_STATE_CONNECTED;
+GPRS_SetNetState(NET_STATE_CONNECTED);
+QTimeEvt_postEvery(&amp;me-&gt;m_LEDTimer, &amp;me-&gt;super, TIMEOUT_LED_CONNECTED);
+QTimeEvt_postEvery(&amp;me-&gt;m_PingTimer, &amp;me-&gt;super, TIMEOUT_PING);
+//QTimeEvt_postEvery(&amp;me-&gt;m_QueryTimer, &amp;me-&gt;super, TIMEOUT_DATAQUERY);
+
+/*
+//首次连接网络，发送PING包
+TaskEvt *pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
+pe-&gt;cmd = EVS15_CMD_LOGIN; //命令字=登录
+pe-&gt;sequence = GeneratePacketSequenceNumber();
+QACTIVE_POST(me, (QEvt*)pe, (void*)0);
+*/</entry>
+        <exit>QTimeEvt_disarm(&amp;me-&gt;m_LEDTimer); 
+QTimeEvt_disarm(&amp;me-&gt;m_PingTimer);
+//QTimeEvt_disarm(&amp;me-&gt;m_QueryTimer);</exit>
+        <initial target="../4">
+         <initial_glyph conn="58,219,4,0,2,-4,2">
+          <action box="0,-2,6,2"/>
+         </initial_glyph>
+        </initial>
+        <tran trig="AT_ERROR" target="../../4/1">
+         <tran_glyph conn="18,217,3,2,35,-13">
+          <action box="0,-2,10,2"/>
+         </tran_glyph>
+        </tran>
+        <tran trig="GPRS_SERVER_CONNECTED">
+         <action>//连接状态 = 连接上服务器
+me-&gt;m_NetState = NET_STATE_SERVERCONNECTED;
+GPRS_SetNetState(NET_STATE_SERVERCONNECTED);
+
+//清除“网络不可达”故障
+//ClearErrType(NET_CLASS, NET_FAULT_UNREACHABLE);</action>
+         <tran_glyph conn="18,221,3,-1,26">
+          <action box="0,-2,24,2"/>
+         </tran_glyph>
+        </tran>
+        <state name="TcpSending">
+         <initial target="../3">
+          <initial_glyph conn="44,271,4,1,5,-2">
+           <action box="0,-2,6,2"/>
+          </initial_glyph>
+         </initial>
+         <tran trig="Q_TIMEOUT" target="../../4">
+          <tran_glyph conn="23,268,3,2,10,-11">
+           <action box="0,-2,11,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="AT_SENDERROR" target="../../4">
+          <tran_glyph conn="23,271,3,2,12,-14">
+           <action box="0,-2,13,2"/>
+          </tran_glyph>
+         </tran>
+         <state name="WaitFillData">
+          <entry>/* 发送TCPIP前缀字符串[AT^SISC=...] */
+GPRS_SendTCPIPPrefix(me-&gt;m_SendDataLen);
+
+/* 启动应答计时器 */
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, (QActive *)me, TIMEOUT_ATTIPS);</entry>
+          <exit> QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+          <tran trig="AT_FILLDATATIP" target="../../4">
+           <tran_glyph conn="27,283,3,3,19,-5,5">
+            <action box="1,-2,18,2"/>
+           </tran_glyph>
+          </tran>
+          <state_glyph node="27,274,15,12">
+           <entry box="1,2,5,2"/>
+           <exit box="1,4,5,2"/>
+          </state_glyph>
+         </state>
+         <state name="WaitRet">
+          <entry>/* 填充待发送数据内容 */
+GPRS_FillinTCPIPData(me-&gt;m_sendBuf, me-&gt;m_SendDataLen);
+
+/* 启动应答计时器 */
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, (QActive *)me, TIMEOUT_ATSENDRET);</entry>
+          <exit> QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+          <tran trig="AT_SENDOK" target="../../../4">
+           <tran_glyph conn="51,283,3,1,19,-30,-7">
+            <action box="0,-2,15,2"/>
+           </tran_glyph>
+          </tran>
+          <state_glyph node="51,273,13,13">
+           <entry box="1,2,5,2"/>
+           <exit box="1,4,5,2"/>
+          </state_glyph>
+         </state>
+         <state_glyph node="23,261,44,28"/>
+        </state>
+        <state name="Idle">
+         <entry>
+
+if(me-&gt;m_deferedDataReady &gt; 0)
+{
+// static const QEvent query_Evt = {AT_DATAQUERY_SIG, 0};
+//   QACTIVE_POST(me, (QEvt*)&amp;query_Evt, (void*)0);
+    me-&gt;m_deferedDataReady --;
+}
+else
+{
+/* 空闲时检索任务并处理 */
+if (QActive_recall((QActive *)me, &amp;me-&gt;m_requestQueue)) {
+    TRACE_(GPRS_STAT, &amp;me-&gt;super, &quot;Send Request recalled\n&quot;);
+}
+else {
+    TRACE_(GPRS_STAT, &amp;me-&gt;super, &quot;No deferred send requests\n&quot;);
+    if(me-&gt;m_bSleepReq) //先响应休眠请求，
+    {
+//        static const QEvent sleep_Evt = {SLEEP_REQ_SIG, 0};
+//        QACTIVE_POST(me, (QEvt*)&amp;sleep_Evt, (void*)0);
+    }
+
+}
+}
+</entry>
+         <tran trig="NEW_TASKSENDREQ" target="../../3">
+          <action brief="/* UDP发送 */">/* 组织待发送数据内容，推入发送缓区，准备发送 */
+//me-&gt;m_SendDataLen = Protocol_FormRawFrame((TaskEvt*)e, me-&gt;m_sendBuf, FRAME_BUF_SIZE);
+me-&gt;m_SendDataLen = Protocol_FormRawFrame(Q_EVT_CAST(TaskEvt), me-&gt;m_sendBuf, FRAME_BUF_SIZE);</action>
+          <tran_glyph conn="22,254,3,0,33,7">
+           <action box="0,-2,21,3"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="GPRS_COMMINGCALL" target="../../5">
+          <action brief="来电呼叫"/>
+          <tran_glyph conn="22,245,3,3,54,9,3">
+           <action box="0,-2,18,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="GPRS_COMMINGSMS" target="../../6">
+          <action brief="来短信"/>
+          <tran_glyph conn="22,249,3,3,51,24,7">
+           <action box="0,-2,23,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="GPRS_PING_TIMEOUT">
+          <action>#if 0
+if(me-&gt;m_NetState != NET_STATE_SERVERCONNECTED)
+{
+    //登录连接超时到，发送登录包
+    TaskEvt *pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
+    pe-&gt;cmd = EVS15_CMD_LOGIN; //命令字=登录
+    pe-&gt;sequence = GeneratePacketSequenceNumber();
+    QACTIVE_POST(me, (QEvt*)pe, (void*)0);
+}
+else
+{
+    TaskEvt *pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
+    pe-&gt;cmd = EVS15_CMD_LINKMAINTAIN; //命令字=链路维护
+    pe-&gt;sequence = GeneratePacketSequenceNumber();
+    QACTIVE_POST(me, (QEvt*)pe, (void*)0);
+}
+#endif</action>
+          <tran_glyph conn="22,238,3,-1,20">
+           <action box="0,-2,20,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="AT_DATAQUERY" target="../../7">
+          <tran_glyph conn="22,233,3,3,53,-4,3">
+           <action box="0,-2,16,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="SLEEP_REQ" target="../../../../6">
+          <action>TRACE_(QS_USER, NULL, &quot;[GPRS] ----- PowerMgr: SLEEP -----&quot;);
+me-&gt;m_bSleepReq = 0;</action>
+          <tran_glyph conn="22,229,3,3,48,-13,33,-120,9">
+           <action box="0,-2,18,2"/>
+          </tran_glyph>
+         </tran>
+         <state_glyph node="22,223,41,34">
+          <entry box="1,2,5,2"/>
+         </state_glyph>
+        </state>
+        <state name="PhoneCalling">
+         <tran trig="GPRS_PHONECALL_HANDLED" target="../../4">
+          <tran_glyph conn="79,258,3,1,23,-16,-39">
+           <action box="1,-2,26,2"/>
+          </tran_glyph>
+         </tran>
+         <state_glyph node="79,250,21,13"/>
+        </state>
+        <state name="SMSHandling">
+         <tran trig="GPRS_SMS_HANDLED" target="../../4">
+          <tran_glyph conn="80,278,3,1,25,-38,-42">
+           <action box="0,-2,21,2"/>
+          </tran_glyph>
+         </tran>
+         <state_glyph node="80,270,20,12"/>
+        </state>
+        <state name="DataQuering">
+         <documentation>网络数据查询</documentation>
+         <entry>//发送数据查询指令
+GPRS_doQueryData();
+/* 启动应答计时器 */
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, (QActive *)me, TIMEOUT_AT_DATAQUERYRET);</entry>
+         <exit> QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+         <tran trig="AT_OK" target="../../4">
+          <action>//逆向提取TCP包
+GPRS_doTakeTCPPacketData();</action>
+          <tran_glyph conn="78,232,3,1,13,6,-28">
+           <action box="0,-2,6,2"/>
+          </tran_glyph>
+         </tran>
+         <tran trig="Q_TIMEOUT" target="../../4">
+          <tran_glyph conn="78,228,3,1,18,11,-33">
+           <action box="0,-2,14,2"/>
+          </tran_glyph>
+         </tran>
+         <state_glyph node="78,220,23,16">
+          <entry box="1,2,5,2"/>
+          <exit box="1,4,5,2"/>
+         </state_glyph>
+        </state>
+        <state_glyph node="18,209,91,82">
+         <entry box="1,2,5,2"/>
+         <exit box="1,4,5,2"/>
+        </state_glyph>
+       </state>
+       <state_glyph node="14,144,99,149">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="sleepRequest">
+       <entry>//进入休眠命令
+TRACE_(QS_USER, NULL, &quot;[GPRS] Enable MG323 Module entering into Sleep mode...&quot;);
+GPRS_RequestSleep();
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_ATACK);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="AT_OK" target="../../../../2">
+        <action>TRACE_(QS_USER, NULL, &quot;[GPRS] Sleep mode is Done.&quot;);</action>
+        <tran_glyph conn="112,104,3,3,42,-8,2">
+         <action box="0,-2,6,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="Q_TIMEOUT" target="..">
+        <tran_glyph conn="112,98,3,1,24,-3,-3">
+         <action box="0,-2,9,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="AT_ERROR">
+        <tran_glyph conn="112,101,3,-1,11">
+         <action box="0,-2,10,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="112,89,21,19">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state_glyph node="9,58,134,238">
+       <entry box="1,2,5,2"/>
+       <exit box="1,4,5,2"/>
+      </state_glyph>
+     </state>
+     <state name="reseting">
+      <documentation>模块复位，实际上是断电再重新上电，断电保持需8秒以上</documentation>
+      <entry>//模块上电
+GPIO_ResetBits(GPIOA,GPIOA_CDMA_CTRL_);
+//先管脚拉低
+//GPIO_ResetBits(GPIOA, GPIOA_GPRS_PWRKEY_);
+//低电平拉低1000ms
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_RESETBEFORE_TICKS);</entry>
+      <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+      <tran trig="Q_TIMEOUT" target="../../6">
+       <tran_glyph conn="93,47,3,1,-10">
+        <action box="-8,-2,17,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="93,36,23,16">
+       <entry box="1,2,5,2"/>
+       <exit box="1,4,5,2"/>
+      </state_glyph>
+     </state>
+     <state_glyph node="4,9,145,290"/>
+    </state>
+    <state name="powerSaveMode">
+     <documentation>休眠模式</documentation>
+     <entry>SetSysSleepState(MODULE_SLEEP_STATE_GPRS);//设置模块睡眠态标志</entry>
+     <tran trig="WAKEUP_REQ" target="../../1/8">
+      <action>TRACE_(QS_USER, NULL, &quot;[GPRS] ----- PowerMgr: WAKEUP -----&quot;);
+ClearSysSleepState(MODULE_SLEEP_STATE_GPRS);//清除模块休眠态</action>
+      <tran_glyph conn="156,116,3,1,-4,-71,-36">
+       <action box="0,-2,13,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="sleep">
+      <tran trig="GPRS_COMMINGSMS" target="../../2">
+       <action brief="短信唤醒"/>
+       <tran_glyph conn="171,84,3,1,29,30,-3">
+        <action box="0,-2,22,2"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="GPRS_COMMINGCALL" target="../../3">
+       <action brief="来电唤醒"/>
+       <tran_glyph conn="171,90,3,1,18,11,-3">
+        <action box="0,-2,24,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="171,78,26,16"/>
+     </state>
+     <state name="sleep_SMSHandling">
+      <tran trig="GPRS_SMS_HANDLED">
+       <tran_glyph conn="176,120,3,-1,16">
+        <action box="0,-2,21,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="176,112,21,14"/>
+     </state>
+     <state name="sleep_PhoneCalling">
+      <tran trig="GPRS_PHONECALL_HANDLED">
+       <tran_glyph conn="160,105,3,-1,20">
+        <action box="1,-2,26,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="160,99,26,11"/>
+     </state>
+     <state_glyph node="156,72,47,56">
+      <entry box="1,2,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="212,307"/>
+   </statechart>
+  </class>
+  <class name="QACCDetector" superclass="qpc::QActive">
+   <documentation>ACC检测</documentation>
+   <attribute name="m_detectTimes" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>持续检测次数</documentation>
+   </attribute>
+   <attribute name="m_state" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>ACC状态，0=低电平；1=高电平</documentation>
+   </attribute>
+   <attribute name="m_Timer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>检测定时器</documentation>
+   </attribute>
+   <statechart>
+    <initial target="../1">
+     <action>u8 curState;
+static const QEvt acc_on_evt = {ACC_ON_SIG, 0};
+static const QEvt acc_off_evt = {ACC_OFF_SIG, 0};
+
+QS_SIG_DICTIONARY(ACC_ON_SIG, (void*)0);
+QS_SIG_DICTIONARY(ACC_OFF_SIG, (void*)0);
+
+QS_SIG_DICTIONARY(Q_TIMEOUT_SIG, me);
+QS_SIG_DICTIONARY(ACC_ONCHANGE_SIG, me);
+
+ //初始化时，先广播一次ACC状态
+curState = (u8)GET_ACC_STATE();
+if(0 == curState)
+{
+    TRACE_(QS_USER, NULL, &quot;[ACC] state = ACC_ON&quot;);
+     QF_publish(&amp;acc_on_evt, me);
+}
+else
+{
+    TRACE_(QS_USER, NULL, &quot;[ACC] state = ACC_OFF&quot;);
+     QF_publish(&amp;acc_off_evt, me);
+}</action>
+     <initial_glyph conn="6,5,5,0,38,3">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="idle">
+     <documentation>空闲态</documentation>
+     <tran trig="ADC_ONCHANGE" target="../../2">
+      <action>me-&gt;m_state = (u8)GET_ACC_STATE();</action>
+      <tran_glyph conn="6,17,3,1,59,8,-3">
+       <action box="0,-2,13,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="6,8,50,12"/>
+    </state>
+    <state name="busy">
+     <documentation>检测过程中态</documentation>
+     <entry>me-&gt;m_detectTimes = 0;
+
+//保持1S
+QTimeEvt_postEvery(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_DETECTING);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+     <tran trig="Q_TIMEOUT">
+      <action>u8 curState = (u8)GET_ACC_STATE();
+me-&gt;m_detectTimes++;</action>
+      <choice target="../..">
+       <guard>curState != me-&gt;m_state</guard>
+       <action>//状态发生变化，重新开始检测</action>
+       <choice_glyph conn="18,34,5,1,47,-4,-3">
+        <action box="2,-2,20,2"/>
+       </choice_glyph>
+      </choice>
+      <choice>
+       <guard>else</guard>
+       <action>me-&gt;m_state = curState;</action>
+       <choice target="../../../../1">
+        <guard>me-&gt;m_detectTimes &gt;= DETECTING_KEPT_AMOUNT</guard>
+        <action>static const QEvent acc_on_Evt = {ACC_ON_SIG, 0};
+static const QEvent acc_off_Evt = {ACC_OFF_SIG, 0};
+TaskEvt *pe;
+
+if(me-&gt;m_state == 0)
+{
+    TRACE_(QS_USER, NULL, &quot;[ACC] state = ACC ON&quot;);
+    SetACCState(ACC_ON);
+    //广播ACC开电消息
+    QF_publish(&amp;acc_on_Evt, me);
+}
+else
+{
+    TRACE_(QS_USER, NULL, &quot;[ACC] state = ACC OFF&quot;);
+    SetACCState(ACC_OFF);
+    //广播ACC关电消息
+    QF_publish(&amp;acc_off_Evt, me);
+}
+
+/*
+//上报服务器车辆状态
+//1.  00为停车，FE为充电启动；FF为钥匙启动；
+pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
+pe-&gt;cmd = EVS15_CMD_START_STOP_RPT; //命令字
+pe-&gt;sequence = GeneratePacketSequenceNumber();
+pe-&gt;ret = (me-&gt;m_state == 0) ? STATE_ACCON : STATE_STOP;
+QACTIVE_POST(AO_Gprs, (QEvt*)pe, (void*)0);
+*/</action>
+        <choice_glyph conn="25,39,5,1,44,-26,-13">
+         <action box="2,-2,35,2"/>
+        </choice_glyph>
+       </choice>
+       <choice>
+        <guard>else</guard>
+        <choice_glyph conn="25,39,4,-1,4,11">
+         <action box="1,2,6,2"/>
+        </choice_glyph>
+       </choice>
+       <choice_glyph conn="18,34,4,-1,5,7">
+        <action box="1,2,6,2"/>
+       </choice_glyph>
+      </choice>
+      <tran_glyph conn="6,34,3,-1,12">
+       <action box="0,-2,9,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="ACC_ONCHANGE" target="..">
+      <action>//检测过程中收到ACC变化，重新检测
+me-&gt;m_state = (u8)GET_ACC_STATE();</action>
+      <tran_glyph conn="6,46,3,1,59,3,-3">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="6,23,56,29">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="85,65"/>
+   </statechart>
+  </class>
+  <class name="QSystick" superclass="qpc::QActive">
+   <documentation>系统时钟</documentation>
+   <statechart>
+    <initial target="../1">
+     <action>//从FLASH读取起始时间
+SysTick_Init();</action>
+     <initial_glyph conn="8,5,5,0,21,7">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="serving">
+     <tran trig="PER_SECOND">
+      <action>//更新系统时间
+SysTimer_refreshPerSecond();</action>
+      <tran_glyph conn="12,22,3,-1,15">
+       <action box="0,-2,12,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="12,12,52,22"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QUpgrade" superclass="qpc::QActive">
+   <documentation>升级状态机</documentation>
+   <attribute name="m_State" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>SD卡存在标记，0=无卡，1=有卡</documentation>
+   </attribute>
+   <attribute name="m_bUpgFileExisted" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>升级文件存在标志</documentation>
+   </attribute>
+   <attribute name="m_CurBlockId" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>当前读次数</documentation>
+   </attribute>
+   <attribute name="m_BlocksAmount" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>总读取次数</documentation>
+   </attribute>
+   <attribute name="m_Timer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>定时器</documentation>
+   </attribute>
+   <attribute name="m_detectTimes" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>检测次数</documentation>
+   </attribute>
+   <statechart>
+    <initial target="../4">
+     <action>me-&gt;m_detectTimes = 0;
+me-&gt;m_bUpgFileExisted = 0;
+
+ //初始化时，先广播一次ACC状态
+me-&gt;m_State = UPG_SD_Detect();</action>
+     <initial_glyph conn="3,2,5,0,47,4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="Detecting">
+     <entry>QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, BSP_TICKS_PER_SEC &gt;&gt; 1);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+     <tran trig="Q_TIMEOUT">
+      <action>u8 curState = UPG_SD_Detect();
+me-&gt;m_detectTimes++;</action>
+      <choice target="../..">
+       <guard>curState != me-&gt;m_State</guard>
+       <action>//状态发生变化，重新开始检测
+me-&gt;m_detectTimes = 0;</action>
+       <choice_glyph conn="19,33,5,1,54,-3,-3">
+        <action box="2,-2,20,2"/>
+       </choice_glyph>
+      </choice>
+      <choice>
+       <guard>else</guard>
+       <action>me-&gt;m_State = curState;</action>
+       <choice>
+        <guard>me-&gt;m_detectTimes &gt;= DETECTING_KEPT_AMOUNT</guard>
+        <action>#if 0
+static const QEvent sdcard_on_Evt = {SDCARD_ON_SIG, 0};
+static const QEvent sdcard_off_Evt = {SDCARD_OFF_SIG, 0};
+
+if(me-&gt;m_State == 0)
+{
+    QACTIVE_POST(me, (QEvt*)&amp;sdcard_on_Evt, (void*)0);
+}
+else
+{
+    QACTIVE_POST(me, (QEvt*)&amp;sdcard_off_Evt, (void*)0);
+}
+#endif</action>
+        <choice target="../../../../../4">
+         <guard>0 == me-&gt;m_State</guard>
+         <choice_glyph conn="49,37,5,1,26,-22,-5">
+          <action box="2,-2,18,2"/>
+         </choice_glyph>
+        </choice>
+        <choice target="../../../../../2">
+         <guard>else</guard>
+         <choice_glyph conn="49,37,4,1,4,26,12,-5">
+          <action box="1,2,6,2"/>
+         </choice_glyph>
+        </choice>
+        <choice_glyph conn="30,37,5,-1,19">
+         <action box="2,-2,18,2"/>
+        </choice_glyph>
+       </choice>
+       <choice target="../../..">
+        <guard>else</guard>
+        <choice_glyph conn="30,37,4,1,8,43,-2,-3">
+         <action box="1,2,6,2"/>
+        </choice_glyph>
+       </choice>
+       <choice_glyph conn="19,33,4,-1,4,11">
+        <action box="1,2,6,2"/>
+       </choice_glyph>
+      </choice>
+      <tran_glyph conn="8,33,3,-1,11">
+       <action box="0,-2,9,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="8,23,62,25">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state name="checking">
+     <documentation>SD卡初始化</documentation>
+     <entry>static const QEvt upg_evt = {SYS_UPGRAGE_SIG, 0};
+
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, BSP_TICKS_PER_SEC &lt;&lt; 3);
+
+if(!UPG_SD_Init())
+{
+//    UPG_ReportSDCardState(SD_STATUS_INITFAIL);
+}
+else
+{
+    me-&gt;m_bUpgFileExisted = Upg_CheckUpgradeFileExisted();
+    if(1 == me-&gt;m_bUpgFileExisted)
+    {
+
+        if(UPG_CheckUpgFileValidation())
+        {
+            static const QEvt start_evt = {UPG_START_SIG, 0};
+
+            //广播开始升级消息，其他状态机收到此消息后必须停止所有工作
+//            QF_publish(&amp;start_evt, me);
+
+//            QACTIVE_POST(me, (QEvt*)&amp;start_evt, (void*)0);
+        }
+    }
+}
+
+</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+     <tran trig="UPG_START" target="../../3">
+      <action>me-&gt;m_BlocksAmount = UPG_GetBlocksAmount();
+me-&gt;m_CurBlockId = 0;
+CAN_RecieveDisable();</action>
+      <tran_glyph conn="8,63,3,1,65,9,-3">
+       <action box="0,-2,14,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="Q_TIMEOUT" target="../../4">
+      <tran_glyph conn="8,59,3,1,69,-46,-7">
+       <action box="0,-2,12,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="8,51,62,15">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state name="upgrading">
+     <entry>static const QEvent ok_Evt = {UPG_OK_SIG, 0};
+static const QEvent err_Evt = {UPG_ERR_SIG, 0};
+
+BOOL ret = UPG_TransferBlocks2Flash(me-&gt;m_CurBlockId);
+if(ret)
+{
+//    QACTIVE_POST(me, (QEvt*)&amp;ok_Evt, (void*)0);
+}
+else
+{
+ //   QACTIVE_POST(me, (QEvt*)&amp;err_Evt, (void*)0);
+}</entry>
+     <tran trig="UPG_OK">
+      <action>me-&gt;m_CurBlockId++;</action>
+      <choice target="../..">
+       <guard>me-&gt;m_CurBlockId &lt; me-&gt;m_BlocksAmount</guard>
+       <choice_glyph conn="22,79,5,1,50,-3,-2">
+        <action box="2,-3,33,2"/>
+       </choice_glyph>
+      </choice>
+      <choice>
+       <guard>else</guard>
+       <action>UPD_MarkFileReady();</action>
+       <choice_glyph conn="22,79,4,-1,4,16">
+        <action box="1,1,6,2"/>
+       </choice_glyph>
+      </choice>
+      <tran_glyph conn="8,79,3,-1,14">
+       <action box="0,-2,6,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="UPG_ERR" target="../../4">
+      <action>CAN_RECIEVE_ENABLE();///CAN中断使能接收</action>
+      <tran_glyph conn="8,88,3,1,72,-78,-10">
+       <action box="0,-2,13,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="8,70,62,22">
+      <entry box="1,2,5,2"/>
+     </state_glyph>
+    </state>
+    <state name="idle">
+     <documentation>检测空闲态，检测周期1Min</documentation>
+     <entry>QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, BSP_TICKS_PER_SEC * 10/* * 60*/);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+     <tran trig="Q_TIMEOUT" target="../../1">
+      <tran_glyph conn="8,16,3,0,14,7">
+       <action box="0,-2,16,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="8,6,62,13">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="130,94"/>
+   </statechart>
+  </class>
+  <class name="QGps" superclass="qpc::QActive">
+   <documentation>GPS模块</documentation>
+   <attribute name="m_Timer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>GPS通用定时器</documentation>
+   </attribute>
+   <attribute name="m_rptTimer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>定时上传定时器</documentation>
+   </attribute>
+   <attribute name="m_ticks" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>秒计数器</documentation>
+   </attribute>
+   <attribute name="m_disallocatedTicks" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>不定位计时</documentation>
+   </attribute>
+   <statechart>
+    <initial target="../1">
+     <action>QActive_subscribe(&amp;me-&gt;super, ACC_ON_SIG);
+QActive_subscribe(&amp;me-&gt;super, ACC_OFF_SIG);
+QActive_subscribe(&amp;me-&gt;super, WAKEUP_REQ_SIG);
+QActive_subscribe(&amp;me-&gt;super, SLEEP_REQ_SIG);
+
+GPS_Init();
+GPS_LED_OFF;
+
+me-&gt;m_ticks = 0;
+me-&gt;m_disallocatedTicks = 0;</action>
+     <initial_glyph conn="4,2,5,0,37,4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="servicing">
+     <initial target="../2">
+      <initial_glyph conn="50,14,5,0,-5,5">
+       <action box="0,-2,6,2"/>
+      </initial_glyph>
+     </initial>
+     <tran trig="GPS_ANTENA_ONCHANGE">
+      <action>//检测GPS天线
+u8 state = (u8)GPS_GETANTENASTATE();
+if(state == 0)
+{
+    //天线正常，清除天线故障类型
+    if(CheckSpecifiedErrTypeExisted(GPS_CLASS, GPS_FAULT_ANTENA))
+    {
+        ClearErrType(GPS_CLASS, GPS_FAULT_ANTENA);
+    }
+
+    GPS_SetAntenaState(ANTENA_OK);
+}
+else
+{
+    //设置故障类型
+    SetErrType(GPS_CLASS, GPS_FAULT_ANTENA);
+    GPS_SetAntenaState(ANTENA_ERR);
+}
+
+TRACE_(QS_USER, NULL, &quot;[GPS] antena state is %d&quot;, state);</action>
+      <tran_glyph conn="3,14,3,-1,27">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="activing">
+      <entry>GPS_POWER_ON; //开电
+GPS_RST_PULLUP;</entry>
+      <initial target="../3">
+       <initial_glyph conn="45,24,4,1,4,-2">
+        <action box="0,-2,6,2"/>
+       </initial_glyph>
+      </initial>
+      <tran trig="SLEEP_REQ" target="../../3">
+       <action>GPS_POWER_OFF;
+GPS_LED_OFF;
+TRACE_(QS_USER, NULL, &quot;[GPS] ----- PowerMgr: SLEEP -----&quot;);</action>
+       <tran_glyph conn="52,33,1,3,17">
+        <action box="0,-2,9,2"/>
+       </tran_glyph>
+      </tran>
+      <state name="handling">
+       <entry>QTimeEvt_postEvery(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_RETRIEVE);
+QTimeEvt_postEvery(&amp;me-&gt;m_rptTimer, &amp;me-&gt;super, TIMEOUT_GPS_RPT);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);
+QTimeEvt_disarm(&amp;me-&gt;m_rptTimer);</exit>
+       <tran trig="Q_TIMEOUT">
+        <action>if(me-&gt;m_ticks++ % 3 == 0)
+{
+    if(GPS_IsLocated())
+    {
+        GPS_FLASH_LED;
+        me-&gt;m_disallocatedTicks = 0;
+    }
+    else
+    {
+        GPS_LED_OFF;
+
+        me-&gt;m_disallocatedTicks ++;
+        if(me-&gt;m_disallocatedTicks &gt; TIMEOUT_DISALLOCATED)
+        {
+            SetErrType(GPS_CLASS, GPS_FAULT_INVALID);
+        }
+    }
+}
+
+GPS_HandleMsg(); //GPS信息解析处理
+
+GPS_DumpInfo(); //GPS信息存储到SD卡</action>
+        <tran_glyph conn="17,67,3,-1,13">
+         <action box="0,-2,10,2"/>
+        </tran_glyph>
+       </tran>
+       <tran trig="GPS_RPT_TIMEOUT">
+        <action>GPS_ReportGpsInfo(); //上报GPS点位信息</action>
+        <tran_glyph conn="17,71,3,-1,13">
+         <action box="0,-2,15,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="17,58,26,16">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="pwron_delay">
+       <entry>QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_PWR_ON_DELAY);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="Q_TIMEOUT" target="../../4">
+        <action>TRACE_(QS_USER, NULL, &quot;[GPS] poweron_delay timeout&quot;);</action>
+        <tran_glyph conn="17,36,3,1,29,8,-3">
+         <action box="0,-2,13,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="17,26,26,13">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state name="reset_delay">
+       <entry>GPS_RST_PULLDOWN;
+QTimeEvt_postIn(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_RST_DELAY);</entry>
+       <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+       <tran trig="Q_TIMEOUT" target="../../2">
+        <action>GPS_RST_PULLUP;
+TRACE_(QS_USER, NULL, &quot;[GPS] RST delay timeout&quot;);</action>
+        <tran_glyph conn="17,52,3,1,29,8,-3">
+         <action box="0,-2,12,2"/>
+        </tran_glyph>
+       </tran>
+       <state_glyph node="17,42,26,13">
+        <entry box="1,2,5,2"/>
+        <exit box="1,4,5,2"/>
+       </state_glyph>
+      </state>
+      <state_glyph node="11,19,41,59">
+       <entry box="1,2,5,2"/>
+      </state_glyph>
+     </state>
+     <state name="Sleep_Mode">
+      <documentation>GPS省电态</documentation>
+      <entry>GPS_POWER_OFF; //开电
+SetSysSleepState(MODULE_SLEEP_STATE_GPS);//设置模块睡眠态标志</entry>
+      <tran trig="WAKEUP_REQ" target="../../2">
+       <action>TRACE_(QS_USER, NULL, &quot;[GPS] ----- PowerMgr: WAKEUP -----&quot;);
+ClearSysSleepState(MODULE_SLEEP_STATE_GPS);//清除模块休眠态</action>
+       <tran_glyph conn="69,44,3,1,11,10,-28">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="69,23,23,27">
+       <entry box="1,2,5,2"/>
+      </state_glyph>
+     </state>
+     <state_glyph node="3,6,98,79"/>
+    </state>
+    <state_diagram size="111,109"/>
+   </statechart>
+  </class>
+  <class name="QRecorder" superclass="qpc::QActive">
+   <documentation>行驶记录仪通信模块</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="10,5,5,0,16,3">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="16,8,43,32"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QICcard" superclass="qpc::QActive">
+   <documentation>身份识别IC卡</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="9,5,5,0,17,4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="13,9,46,26"/>
+    </state>
+    <state_diagram size="80,47"/>
+   </statechart>
+  </class>
+  <class name="QPrinter" superclass="qpc::QActive">
+   <documentation>打印机</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="11,6,5,0,15,5">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="13,11,49,20"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QIR" superclass="qpc::QActive">
+   <documentation>红外遥控器</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="12,6,5,0,20,4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="16,10,47,23"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QDigital" superclass="qpc::QActive">
+   <documentation>输入信号</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="10,8,5,0,14,3">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="16,11,42,18"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QUSB" superclass="qpc::QActive">
+   <documentation>USB模块</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="13,5,5,0,10,5">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="17,10,36,21"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QSpeedPulse" superclass="qpc::QActive">
+   <documentation>速度脉冲</documentation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="18,5,5,0,9,6">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="state1">
+     <state_glyph node="15,11,46,21"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="QKey" superclass="qpc::QActive">
+   <documentation>ACC检测</documentation>
+   <attribute name="m_detectTimes" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>持续检测次数</documentation>
+   </attribute>
+   <attribute name="m_val" type="uint16_t" visibility="0x02" properties="0x00">
+    <documentation>采样值</documentation>
+   </attribute>
+   <attribute name="m_Timer" type="QTimeEvt" visibility="0x02" properties="0x00">
+    <documentation>检测定时器</documentation>
+   </attribute>
+   <statechart>
+    <initial target="../1">
+     <action>QS_SIG_DICTIONARY(KEY_OK_SIG, (void*)0);
+QS_SIG_DICTIONARY(KEY_UP_SIG, (void*)0);
+QS_SIG_DICTIONARY(KEY_DOWN_SIG, (void*)0);
+QS_SIG_DICTIONARY(KEY_MENU_SIG, (void*)0);
+
+QS_SIG_DICTIONARY(Q_TIMEOUT_SIG, me);</action>
+     <initial_glyph conn="6,5,5,0,38,3">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="idle">
+     <documentation>空闲态</documentation>
+     <tran trig="ACC_ONCHANGE" target="../../2">
+      <tran_glyph conn="6,17,3,1,59,8,-9">
+       <action box="0,-2,13,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="6,8,50,12"/>
+    </state>
+    <state name="busy">
+     <documentation>检测过程中态</documentation>
+     <entry>me-&gt;m_detectTimes = 0;
+
+//保持1S
+QTimeEvt_postEvery(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_DETECTING);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+     <tran trig="Q_TIMEOUT">
+      <action>me-&gt;m_val += Key_GetADCValue(); ///取当前采样值
+me-&gt;m_detectTimes++;
+me-&gt;m_val &gt;&gt;= 1; ///与新值取平均</action>
+      <choice target="../../../1">
+       <guard>me-&gt;m_detectTimes &gt;= DETECTING_KEPT_AMOUNT</guard>
+       <action>static const QEvent key_ok_Evt = {KEY_OK_SIG, 0};
+static const QEvent key_up_Evt = {KEY_UP_SIG, 0};
+static const QEvent key_down_Evt = {KEY_DOWN_SIG, 0};
+static const QEvent key_menu_Evt = {KEY_MENU_SIG, 0};
+
+//TaskEvt *pe;
+eKEY eKey;
+
+eKey = Key_GetCode(me-&gt;m_val);
+switch(eKey)
+{
+    case KEY_OK:
+        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_ok_Evt, me);    break;
+    case KEY_UP:
+        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_up_Evt, me);    break;
+    case KEY_DOWN:
+        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_down_Evt, me);    break;
+    case KEY_MENU:
+        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_menu_Evt, me);    break;
+    default:
+        TRACE_(QS_USER, NULL, &quot;unknown key msg.&quot;);    break;
+}
+
+/*
+//上报服务器车辆状态
+//1.  00为停车，FE为充电启动；FF为钥匙启动；
+pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
+pe-&gt;cmd = EVS15_CMD_START_STOP_RPT; //命令字
+pe-&gt;sequence = GeneratePacketSequenceNumber();
+pe-&gt;ret = (me-&gt;m_state == 0) ? STATE_ACCON : STATE_STOP;
+QACTIVE_POST(AO_Gprs, (QEvt*)pe, (void*)0);
+*/</action>
+       <choice_glyph conn="18,34,5,1,51,-21,-13">
+        <action box="2,-2,35,2"/>
+       </choice_glyph>
+      </choice>
+      <choice>
+       <guard>else</guard>
+       <choice_glyph conn="18,34,4,-1,4,12">
+        <action box="2,2,6,2"/>
+       </choice_glyph>
+      </choice>
+      <tran_glyph conn="6,34,3,-1,12">
+       <action box="0,-2,9,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="6,23,50,29">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="85,65"/>
+   </statechart>
+  </class>
+  <operation name="QGprs_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QGprs *me = &amp;l_Gprs;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QGprs_initial));</code>
+  </operation>
+  <operation name="QGps_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QGps *me = &amp;l_Gps;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QGps_initial));</code>
+  </operation>
+  <operation name="QExtSignals_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QExtSignals *me = &amp;l_ExtSignals;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QExtSignals_initial));</code>
+  </operation>
+  <operation name="QSensors_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QSensors *me = &amp;l_Sensors;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSensors_initial));</code>
+  </operation>
+  <operation name="QVideo_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QVideo *me = &amp;l_Video;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QVideo_initial));</code>
+  </operation>
+  <operation name="QUpgrade_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QUpgrade *me = &amp;l_Upgrade;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QUpgrade_initial));</code>
+  </operation>
+  <operation name="QSystick_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QSystick *me = &amp;l_Systick;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSystick_initial));</code>
+  </operation>
+  <operation name="QLCD_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QLCD *me = &amp;l_QLCD;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QLCD_initial));</code>
+  </operation>
+  <operation name="QAudio_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QAudio *me = &amp;l_Audio;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QAudio_initial));</code>
+  </operation>
+  <operation name="QTTS_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QTTS *me = &amp;l_tts;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QTTS_initial));</code>
+  </operation>
+  <operation name="QCAN_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>初始化状态机</documentation>
+   <code>QCAN *me = &amp;l_Can;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QCAN_initial));
+
+//QTimeEvt_ctor(&amp;me-&gt;m_rptTimer, VMS_DATAFLOW_TIMEOUT_SIG);
+//QTimeEvt_ctor(&amp;me-&gt;m_tickTimer, PER_SECOND_SIG);
+//QTimeEvt_ctor(&amp;me-&gt;m_hangTimer, CAN_CONFLICT_TIMEOUT_SIG);</code>
+  </operation>
+  <operation name="QACCDetector_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>ACC检测初始化</documentation>
+   <code>QACCDetector *me = &amp;l_ACCDetector;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QACCDetector_initial));
+
+QTimeEvt_ctor(&amp;me-&gt;m_Timer, Q_TIMEOUT_SIG);</code>
+  </operation>
+  <operation name="QSystick_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>系统时钟初始化函数</documentation>
+   <code>QSystick *me = &amp;l_Systick;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSystick_initial));</code>
+  </operation>
+  <operation name="QUpgrade_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>升级状态机初始化</documentation>
+   <code>QUpgrade *me = &amp;l_Upgrade;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QUpgrade_initial));
+QTimeEvt_ctor(&amp;me-&gt;m_Timer, Q_TIMEOUT_SIG);</code>
+  </operation>
+  <operation name="QRecorder_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QRecorder *me = &amp;l_Recorder;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QRecorder_initial));</code>
+  </operation>
+  <operation name="QICcard_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QICcard *me = &amp;l_ICCard;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QICcard_initial));</code>
+  </operation>
+  <operation name="QPrinter_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QPrinter *me = &amp;l_QPrinter;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QPrinter_initial));</code>
+  </operation>
+  <operation name="QKey_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>按键初始化</documentation>
+   <code>QKey *me = &amp;l_QKey;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QKey_initial));</code>
+  </operation>
+  <operation name="QIR_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>ACC检测初始化</documentation>
+   <code>QIR *me = &amp;l_QIR;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QIR_initial));
+
+//QTimeEvt_ctor(&amp;me-&gt;m_Timer, Q_TIMEOUT_SIG);</code>
+  </operation>
+  <operation name="QDigital_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QDigital *me = &amp;l_QDigital;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QDigital_initial));</code>
+  </operation>
+  <operation name="QUSB_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QUSB *me = &amp;l_QUSB;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QUSB_initial));</code>
+  </operation>
+  <operation name="QSpeedPulse_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QSpeedPulse *me = &amp;l_QSpeedPulse;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSpeedPulse_initial));</code>
+  </operation>
+ </package>
+ <package name="EVTs" stereotype="0x02">
+  <class name="TaskEvt" superclass="qpc::QEvt">
+   <documentation>任务事件</documentation>
+   <attribute name="cmd" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>命令字</documentation>
+   </attribute>
+   <attribute name="sequence" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>序列号</documentation>
+   </attribute>
+   <attribute name="address" type="u32" visibility="0x00" properties="0x00">
+    <documentation>数据地址</documentation>
+   </attribute>
+   <attribute name="dataSize" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>数据长度</documentation>
+   </attribute>
+   <attribute name="ret" type="int8_t" visibility="0x00" properties="0x00">
+    <documentation>执行结果，0=失败，1=成功</documentation>
+   </attribute>
+   <attribute name="resCmd" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>应答命令字</documentation>
+   </attribute>
+   <attribute name="resSeqence" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>应答流水号</documentation>
+   </attribute>
+   <attribute name="u" type="U" visibility="0x00" properties="0x00">
+    <documentation>任务内容联合体</documentation>
+   </attribute>
+  </class>
+  <class name="SAckEvt" superclass="qpc::QEvt">
+   <documentation>服务器应答事件</documentation>
+   <attribute name="u16RespSeqId" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>终端消息的流水号</documentation>
+   </attribute>
+   <attribute name="u16RespMsgId" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>终端消息ID</documentation>
+   </attribute>
+   <attribute name="ret" type="uint8_t" visibility="0x00" properties="0x00">
+    <documentation>结果</documentation>
+   </attribute>
+  </class>
+  <class name="TAck_ReqSpecialParamEvt" superclass="qpc::QEvt">
+   <documentation>查询指定终端参数</documentation>
+   <attribute name="au16Params[ePARAM_END]" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>指定参数列表，规范要求U32，但实际上U16即可，为节省空间
+</documentation>
+   </attribute>
+  </class>
+ </package>
+ <directory name="qmcode">
+  <file name="qactiveobjs.h">
+   <text>#ifndef AOS_H
+#define AOS_H
+
+#include &quot;qp_port.h&quot;
+#include &quot;stm32f2xx.h&quot;
+
+
+
+/** 状态机定义 =====================================================*/
+
+$declare(AOs::QGprs_ctor)
+$declare(AOs::QGps_ctor)
+$declare(AOs::QCAN_ctor)
+$declare(AOs::QExtSignals_ctor)
+$declare(AOs::QLCD_ctor)
+$declare(AOs::QSensors_ctor)
+$declare(AOs::QVideo_ctor)
+$declare(AOs::QSystick_ctor)
+$declare(AOs::QUpgrade_ctor)
+$declare(AOs::QTTS_ctor)
+$declare(AOs::QACCDetector_ctor)
+$declare(AOs::QUpgrade_ctor)
+$declare(AOs::QRecorder_ctor)
+$declare(AOs::QICcard_ctor)
+$declare(AOs::QPrinter_ctor)
+$declare(AOs::QIR_ctor)
+$declare(AOs::QDigital_ctor)
+$declare(AOs::QUSB_ctor)
+$declare(AOs::QAudio_ctor)
+
+
+/** 状态机声明 =====================================================*/
+
+extern QActive * const AO_Gprs;
+extern QActive * const AO_Gps;
+extern QActive * const AO_Can;
+extern QActive * const AO_ExtSignals;
+extern QActive * const AO_LCD;
+extern QActive * const AO_Sensors;
+extern QActive * const AO_Video;
+extern QActive * const AO_Upgrade;
+extern QActive * const AO_TTS;
+extern QActive * const AO_ACCDetector;
+extern QActive * const AO_Systick;
+extern QActive * const AO_Upgrade;
+extern QActive * const AO_Recorder;
+extern QActive * const AO_ICCard;
+extern QActive * const AO_Printer;
+extern QActive * const AO_IR;
+extern QActive * const AO_Digital;
+extern QActive * const AO_USB;
+extern QActive * const AO_Audio;
+
+#endif</text>
+  </file>
+  <file name="qextsignals.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qextsignals.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QExtSignals)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QExtSignals l_ExtSignals; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_ExtSignals = &amp;l_ExtSignals.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QExtSignals_ctor)
+$define(AOs::QExtSignals)</text>
+  </file>
+  <file name="qlcd.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qlcd.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QLCD)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QLCD l_QLCD; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_LCD = &amp;l_QLCD.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QLCD_ctor)
+$define(AOs::QLCD)</text>
+  </file>
+  <file name="qsensors.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qsensors.c&quot;)
+
+#define DETECTING_KEPT_AMOUNT  4 //检测累计次数：100次，共用时1S
+#define TIMEOUT_DETECTING      (BSP_TICKS_PER_SEC &gt;&gt; 1) //检测周期
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QSensors)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QSensors l_Sensors; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Sensors = &amp;l_Sensors.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QSensors_ctor)
+$define(AOs::QSensors)</text>
+  </file>
+  <file name="qvideo.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qvideo.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QVideo)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QVideo l_Video; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Video = &amp;l_Video.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QVideo_ctor)
+$define(AOs::QVideo)</text>
+  </file>
+  <file name="qsystick.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qsystick.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QSystick)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QSystick l_Systick; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Systick = &amp;l_Systick.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QSystick_ctor)
+$define(AOs::QSystick)</text>
+  </file>
+  <file name="qaudio.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qaudio.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QAudio)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QAudio l_Audio; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Audio = &amp;l_Audio.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QAudio_ctor)
+$define(AOs::QAudio)</text>
+  </file>
+  <file name="qtts.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qtts.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QTTS)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QTTS l_tts; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_tts = &amp;l_tts.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QTTS_ctor)
+$define(AOs::QTTS)</text>
+  </file>
+  <file name="qcan.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;stm32_gpio.h&quot;
+#include &quot;can.h&quot;
+#include &quot;parameter.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qcan.c&quot;)
+
+#define _test_can_free_ //测试CAN空闲休眠，短超时
+
+#define TIMEOUT_SERVICEHANGUP_TICKS   (BSP_TICKS_PER_SEC * 3600 * 2)  //服务挂起超时2H
+#ifndef _test_can_free_
+#define TIMEOUT_CAN_FREE_SECONDS  (30 * 60)  //CAN总线空闲休眠时长，30分
+#else
+#define TIMEOUT_CAN_FREE_SECONDS  (10)//CAN总线空闲休眠时长，10s，测试
+#endif
+#define TIMEOUT_RETRIEVE_TICKS  (BSP_TICKS_PER_SEC / 100)
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QCAN)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QCAN l_Can; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Can = &amp;l_Can.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QCAN_ctor)
+$define(AOs::QCAN)</text>
+  </file>
+  <file name="qgprs.c">
+   <text>#include &lt;qp_port.h&gt;
+#include &lt;qevents.h&gt;
+#include &lt;bsp.h&gt;
+#include &quot;type.h&quot;
+#include &lt;protocol.h&gt;
+#include &lt;utility.h&gt;
+#include &lt;error.h&gt;
+#include &lt;gprs.h&gt;
+#include &lt;stm32_gpio.h&gt;
+#include &lt;trace.h&gt;
+
+Q_DEFINE_THIS_MODULE(&quot;qgprs.c&quot;)
+
+
+#define TASK_QUEUE_SIZE  10  //任务队列大小
+#define TASK_AMOUNT_MAX  10  //待发送任务数
+
+
+/* 外部对象 ------------------------------------------------------------------*/
+
+//临时发送缓区
+#define FRAME_BUF_SIZE   1024
+
+//  外部函数 -------------------------------------------------------------------
+extern void GPRS_SendTCPIPPrefix(u16 dataLen);/* 发送TCPIP前缀 */
+extern void GPRS_FillinTCPIPData(u8 *pDataBuf, u16 dataLen);/* 填充待发送数据内容 */
+
+extern void GPRS_doInit(u8 initStep); //执行初始化序列
+extern void GPRS_doConnect(u8 connectStep);//执行连接序列
+extern void GPRS_doRegister();//执行网络注册序列
+/* 组织待发送数据内容 */
+extern u16 GPRS_FormRawFrame( u8 *pSendBuf,u16 m_cmd,u16 m_sequence, 
+                                void* m_address, u16 m_dataSize, u16 m_offset);
+
+extern void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen);
+extern u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize);
+extern void Protocol_ServerGeneralAckProc(tMsg_S_GeneralAck *pSAck);
+
+
+
+#define POWERON  1
+#define POWEROFF 0
+
+
+#define TIMEOUT_LEDFLASH       (BSP_TICKS_PER_SEC * 3) //LED指示灯闪烁周期
+#define TIMEOUT_ATACK          (BSP_TICKS_PER_SEC * 5) //普通AT指令响应超时:
+#define TIMEOUT_ATTIPS         (BSP_TICKS_PER_SEC * 10) //发送数据等待‘&gt;’超时
+#define TIMEOUT_ATSENDRET      (BSP_TICKS_PER_SEC * 5) //发送数据结果超时
+#define TIMEOUT_ATREG          (BSP_TICKS_PER_SEC * 5) //等待网络注册超时
+#define TIMEOUT_ATCONNECT      (BSP_TICKS_PER_SEC * 5) //等待网络注册超时
+
+
+#define TIMEOUT_PWRON_TICKS        BSP_TICKS_PER_SEC
+#define TIMEOUT_PWRONBEFORE_TICKS  BSP_TICKS_PER_SEC
+#define TIMEOUT_PWRONAFTER_TICKS   BSP_TICKS_PER_SEC
+#define TIMEOUT_RESETBEFORE_TICKS  (BSP_TICKS_PER_SEC &lt;&lt; 3) //复位关电时间，8s
+#define TIMEOUT_RESETAFTER_TICKS   BSP_TICKS_PER_SEC
+
+#define TIMEOUT_LED_CONNECTED      (BSP_TICKS_PER_SEC * 3) 
+#define TIMEOUT_LED_CONNECTING     (BSP_TICKS_PER_SEC) 
+#define TIMEOUT_PING               (BSP_TICKS_PER_SEC * 10)
+#define TIMEOUT_AT_DATAQUERYRET    (BSP_TICKS_PER_SEC * 5)
+
+
+#define TIMEOUT_RETRIEVE           (BSP_TICKS_PER_SEC &gt;&gt; 2)
+#define TIMEOUT_DATAQUERY          (BSP_TICKS_PER_SEC)
+
+#define INIT_TRY_MAXTIMES       20  //初始化尝试次数
+#define REGISTER_TRY_MAXTIMES   20  //初始化尝试次数
+#define CONNECT_ERROR_MAXTIMES  20  // 尝试连接失败累计重连次数
+
+
+
+/* local objects -----------------------------------------------------------*/
+$declare(AOs::QGprs)
+
+
+/* Global objects ----------------------------------------------------------*/
+static QGprs l_Gprs;     /* the single instance of the Gprs active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Gprs = &amp;l_Gprs.super; /* &quot;opaque&quot; AO pointer */
+
+
+/* Active object definition ================================================*/
+$define(AOs::QGprs_ctor)
+$define(AOs::QGprs)
+</text>
+  </file>
+  <file name="qaccdetector.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;bsp.h&quot;
+//#include &quot;stm32_gpio.h&quot;
+#include &quot;protocol.h&quot;
+#include &quot;acc.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;trace.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qaccdetector.c&quot;)
+
+
+
+#define DETECTING_KEPT_AMOUNT  4 //检测累计次数：100次，共用时1S
+#define TIMEOUT_DETECTING      (BSP_TICKS_PER_SEC &gt;&gt; 1) //检测周期
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QACCDetector)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QACCDetector l_ACCDetector; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_ACCDetector = &amp;l_ACCDetector.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QACCDetector_ctor)
+$define(AOs::QACCDetector)</text>
+  </file>
+  <file name="qsystick.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+#include &quot;protocol.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qsystick.c&quot;)
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QSystick)
+
+/* Local objects -----------------------------------------------------------*/
+static QSystick l_Systick; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Systick = &amp;l_Systick.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QSystick_ctor)
+$define(AOs::QSystick)
+</text>
+  </file>
+  <file name="qupgrade.c">
+   <text>#include &lt;qp_port.h&gt;
+#include &lt;qevents.h&gt;
+#include &lt;bsp.h&gt;
+#include &lt;upgrade.h&gt;
+#include &lt;protocol.h&gt;
+#include &lt;utility.h&gt;
+#include &lt;can.h&gt;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qupgrade.c&quot;)
+
+
+extern u8 g_bCANRecvCtrl; //控制CAN中断停止接收
+
+#define DETECTING_KEPT_AMOUNT  4 //检测累计次数：100次，共用时1S
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QUpgrade)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QUpgrade l_Upgrade; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Upgrade = &amp;l_Upgrade.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QUpgrade_ctor)
+$define(AOs::QUpgrade)</text>
+  </file>
+  <file name="qgps.c">
+   <text>#include &lt;qp_port.h&gt;
+#include &lt;qevents.h&gt;
+#include &lt;bsp.h&gt;
+#include &lt;gps.h&gt;
+#include &lt;protocol.h&gt;
+#include &lt;utility.h&gt;
+#include &lt;error.h&gt;
+#include &lt;exception.h&gt;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qgps.c&quot;)
+
+#define TIMEOUT_PWR_ON_DELAY   (BSP_TICKS_PER_SEC)  //开机延时，0.5s
+#define TIMEOUT_RST_DELAY      (BSP_TICKS_PER_SEC &gt;&gt; 5)  //复位延时，25ms
+#define TIMEOUT_GPS_RPT        (BSP_TICKS_PER_SEC * 30)  //GPS点位上报周期 
+#define TIMEOUT_RETRIEVE       (BSP_TICKS_PER_SEC)       //提取周期
+#define TIMEOUT_DISALLOCATED   (5 * 60) //不定位时长，5分钟
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QGps)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QGps l_Gps; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Gps = &amp;l_Gps.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QGps_ctor)
+$define(AOs::QGps)</text>
+  </file>
+  <file name="qrecorder.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+#include &quot;protocol.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+
+
+Q_DEFINE_THIS_MODULE(&quot;qrecorder.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QRecorder)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QRecorder l_Recorder; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Recorder = &amp;l_Recorder.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QRecorder_ctor)
+$define(AOs::QRecorder)</text>
+  </file>
+  <file name="qiccard.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+#include &quot;protocol.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+
+
+Q_DEFINE_THIS_MODULE(&quot;qiccard.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QICcard)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QICcard l_ICCard; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_ICCard = &amp;l_ICCard.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QICcard_ctor)
+$define(AOs::QICcard)</text>
+  </file>
+  <file name="qprinter.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+#include &quot;protocol.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+
+
+Q_DEFINE_THIS_MODULE(&quot;qprinter.c&quot;)
+
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QPrinter)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QPrinter l_QPrinter; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Printer = &amp;l_QPrinter.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QPrinter_ctor)
+$define(AOs::QPrinter)</text>
+  </file>
+  <file name="qkey.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;type.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+#include &quot;key.h&quot;
+#include &quot;qactiveobjs.h&quot;
+#include &quot;qevt.h&quot;
+
+
+Q_DEFINE_THIS_MODULE(&quot;qkey.c&quot;)
+
+#define DETECTING_KEPT_AMOUNT  5 //检测累计次数：5次，共用时50ms
+#define TIMEOUT_DETECTING      (BSP_TICKS_PER_SEC) //检测周期,10ms
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QKey)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QKey l_QKey; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Key = &amp;l_QKey.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QKey_ctor)
+$define(AOs::QKey)</text>
+  </file>
+  <file name="qIR.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qIR.c&quot;)
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QIR)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QIR l_QIR; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_IR = &amp;l_QIR.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QIR_ctor)
+$define(AOs::QIR)</text>
+  </file>
+  <file name="qdigital.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qdigital.c&quot;)
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QDigital)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QDigital l_QDigital; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_Digital = &amp;l_QDigital.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QDigital_ctor)
+$define(AOs::QDigital)</text>
+  </file>
+  <file name="qusb.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qusb.c&quot;)
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QUSB)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QUSB l_QUSB; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_USB = &amp;l_QUSB.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QUSB_ctor)
+$define(AOs::QUSB)</text>
+  </file>
+  <file name="qspeedpulse.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qspeedpulse.c&quot;)
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QSpeedPulse)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QSpeedPulse l_QSpeedPulse; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_SpeedPulse = &amp;l_QSpeedPulse.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QSpeedPulse_ctor)
+$define(AOs::QSpeedPulse)</text>
+  </file>
+ </directory>
+</model>
