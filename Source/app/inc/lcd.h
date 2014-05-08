@@ -10,5 +10,4 @@
 
 void LCD_Lowlevel_Init();
 
-
 #endif /* LCD_H_ */

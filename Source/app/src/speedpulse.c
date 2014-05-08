@@ -11,8 +11,7 @@
 /**
  * 速度脉冲IO口初始化
  */
-void Speed_Pulse_Lowlevel_Init()
-{
+void Speed_Pulse_Lowlevel_Init() {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);

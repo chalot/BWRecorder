@@ -5,8 +5,6 @@
  *      Author: ThinkPad User
  */
 
-
-void VIDEO_Lowlevel_Init()
-{
+void VIDEO_Lowlevel_Init() {
 
 }

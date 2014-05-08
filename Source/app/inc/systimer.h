@@ -1,11 +1,10 @@
 /**   
-* @Title: systimer.h  
-* @Description: TODO(用一句话描述该文件做什么) 
-* @author Zhengd.Gao zhengdgao@163.com   
-* @date 2013-7-5 下午8:42:38 
-* @version V1.0   
-*/ 
-
+ * @Title: systimer.h  
+ * @Description: TODO(用一句话描述该文件做什么) 
+ * @author Zhengd.Gao zhengdgao@163.com   
+ * @date 2013-7-5 下午8:42:38 
+ * @version V1.0   
+ */
 
 #ifndef SYSTIMER_H_
 #define SYSTIMER_H_
@@ -17,8 +16,7 @@
 #pragma pack(1)
 
 /*系统时间，BCD码表示*/
-typedef struct
-{
+typedef struct {
 	u8 year;
 	u8 month;
 	u8 day;
@@ -29,14 +27,13 @@ typedef struct
 } SYSTIMER;
 
 /*日期格式*/
-typedef struct _TIME
-{
+typedef struct _TIME {
 	u16 year;
-	u8 	month;
-	u8  day;
-	u8	hour;
-	u8	minute;
-	u8  second;
+	u8 month;
+	u8 day;
+	u8 hour;
+	u8 minute;
+	u8 second;
 } TIME, *PTIMER;
 
 /*系统时钟*/

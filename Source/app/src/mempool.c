@@ -33,7 +33,6 @@ static MEMPOOL mp;
 
 /*声明互斥量*/
 //DECLARE_MUTEX(mux)
-
 /*
  * 内存池初始化
  */
@@ -63,7 +62,8 @@ int MP_Create() {
 
 	//内存池创建失败，严重错误
 	if (ret < 0) {
-		TRACE_(QS_USER, NULL, "\nERROR! mempool create failed!  system should abort");
+		TRACE_(QS_USER, NULL,
+				"\nERROR! mempool create failed!  system should abort");
 		return -1;
 	}
 
@@ -218,7 +218,8 @@ int MP_FreeNode(DATANODE *node) {
 
 	if (mp.m_freeTail->next != NULL)	//致命错误，不应出现
 	{
-		TRACE_(QS_USER, NULL, "\n ERROR! Tail is not NULL! something has must been wrong!");
+		TRACE_(QS_USER, NULL,
+				"\n ERROR! Tail is not NULL! something has must been wrong!");
 		MUTEX_UNLOCK(mux)
 		return -1;
 	}

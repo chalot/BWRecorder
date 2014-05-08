@@ -1,11 +1,10 @@
 /**   
-* @Title: acc.h  
-* @Description: TODO(用一句话描述该文件做什么) 
-* @author Zhengd.Gao zhengdgao@163.com   
-* @date 2013-7-16 上午10:14:46 
-* @version V1.0   
-*/ 
-
+ * @Title: acc.h  
+ * @Description: TODO(用一句话描述该文件做什么) 
+ * @author Zhengd.Gao zhengdgao@163.com   
+ * @date 2013-7-16 上午10:14:46 
+ * @version V1.0   
+ */
 
 #ifndef ACC_H_
 #define ACC_H_

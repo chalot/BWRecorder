@@ -8,8 +8,6 @@
 /**
  * 传感器硬件初始化
  */
-void Sensor3D_Lowlevel_Init()
-{
-
+void Sensor3D_Lowlevel_Init() {
 
 }

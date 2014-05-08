@@ -45,8 +45,7 @@ Q_DEFINE_THIS_MODULE("can.c")
 //                            GPIO_WriteBit(GPIOC, GPIOC_CAN_LED,   \
 //                            (BitAction)(1-(GPIO_ReadOutputDataBit(GPIOC, GPIOC_CAN_LED))))
 
-#define NODE_MAX	100  //帧缓冲大小
-
+#define NODE_MAX	100  //帧缓冲大小
 typedef struct {
 	u16 read;	//读指针
 	u16 write;	//写指针
@@ -158,7 +157,7 @@ void ISR_CANRecvFrame() {
 
 		pNode->reference++; //增加存储引用计数
 //		SD_RequestDumpFrame(pNode);
-		QACTIVE_POST(AO_Can, (QEvt*) &msgEvt, (void*) 0); //发送新帧到达消息，使用静态事件，减少事件池容量
+		QACTIVE_POST(AO_Can, (QEvt* ) &msgEvt, (void*) 0); //发送新帧到达消息，使用静态事件，减少事件池容量
 	}
 }
 

@@ -15,7 +15,6 @@ Q_DEFINE_THIS_MODULE("lcd.c")
 /**
  * 显示屏硬件初始化
  */
-void LCD_Lowlevel_Init()
-{
+void LCD_Lowlevel_Init() {
 
 }

@@ -1,10 +1,10 @@
 /**   
-* @Title: upgrade.c  
-* @Description: TODO(用一句话描述该文件做什么) 
-* @author Zhengd.Gao zhengdgao@163.com   
-* @date 2013-6-25 上午11:00:57 
-* @version V1.0   
-*/ 
+ * @Title: upgrade.c  
+ * @Description: TODO(用一句话描述该文件做什么) 
+ * @author Zhengd.Gao zhengdgao@163.com   
+ * @date 2013-6-25 上午11:00:57 
+ * @version V1.0   
+ */
 #include "upgrade.h"
 //#include "ext_flash.h"
 //#include "ff.h"
@@ -25,14 +25,12 @@
 
 //static 	u8 pBuffer[_UPG_PACKLEN_]; //临时缓区
 
-
 /**
  * @Func	SD卡检测
  * @Param	无
  * @Ret		0=无卡，1=有卡
  */
-BOOL UPG_SD_Detect()
-{
+BOOL UPG_SD_Detect() {
 //	if(SD_PRESENT == SD_Detect())
 //		return TRUE;
 	return FALSE;
@@ -43,8 +41,7 @@ BOOL UPG_SD_Detect()
  * @Param	无
  * @Ret		0=失败，1=成功
  */
-BOOL UPG_SD_Init()
-{
+BOOL UPG_SD_Init() {
 //	if(SD_OK == SD_Init())
 //	{
 ////		SD_SetDeviceMode(SD_DMA_MODE);
@@ -60,10 +57,7 @@ BOOL UPG_SD_Init()
  * @Param	无
  * @Ret		0=失败，1=成功
  */
-void UPG_ReportSDCardState(u8 err)
-{
-
-
+void UPG_ReportSDCardState(u8 err) {
 
 }
 
@@ -72,8 +66,7 @@ void UPG_ReportSDCardState(u8 err)
  * @Param	无
  * @Ret		0=失败，1=成功
  */
-BOOL Upg_CheckUpgradeFileExisted()
-{
+BOOL Upg_CheckUpgradeFileExisted() {
 //	u8		au8Path[120];
 //	FRESULT	result = FR_OK;
 //
@@ -99,14 +92,12 @@ BOOL Upg_CheckUpgradeFileExisted()
  * @Param	无
  * @Ret		0=失败，1=成功
  */
-BOOL UPG_CheckUpgFileValidation()
-{
+BOOL UPG_CheckUpgFileValidation() {
 #if 0
-	FRESULT	result = FR_OK;
+	FRESULT result = FR_OK;
 	u32 u32Read = 0;
-	PUPGRADE_FILE_FORMATE_HEADER	pFileHeadInfo;
-	PUPGRADE_FILE_VERSION_FORMATE	pFileVersionInfo;
-
+	PUPGRADE_FILE_FORMATE_HEADER pFileHeadInfo;
+	PUPGRADE_FILE_VERSION_FORMATE pFileVersionInfo;
 
 	//1）先读取文件头和版本信息，判断升级信息是否正确
 	result = f_read(&fsrc, pBuffer,_UPG_HEAD_VERSION_INFO_LEN_ , &u32Read);
@@ -170,8 +161,7 @@ BOOL UPG_CheckUpgFileValidation()
  * @Param	无
  * @Ret		0=失败，1=成功
  */
-BOOL UPG_TransferBlocks2Flash(u16 curBlockId)
-{
+BOOL UPG_TransferBlocks2Flash(u16 curBlockId) {
 //	FRESULT	result = FR_OK;
 //	u32 u32Read = 0;
 //	BLOCKINFO *pBlock = NULL;
@@ -231,8 +221,7 @@ BOOL UPG_TransferBlocks2Flash(u16 curBlockId)
  * @Param	无
  * @Ret
  */
-u32 UPG_GetBlocksAmount()
-{
+u32 UPG_GetBlocksAmount() {
 //	return tUpdInfo.u32BlockAmount;
 }
 
@@ -241,14 +230,13 @@ u32 UPG_GetBlocksAmount()
  * @Param	无
  * @Ret
  */
-void	UPD_MarkFileReady()
-{
+void UPD_MarkFileReady() {
 #if 0
 //升级完成后，在第2块最后一页写入连续的3个32位的升级有效标志，下次开机的时候检测升级标志是否有效，
 //如果有效的话，则从片外FLASH中把升级程序导入到片内FLASH固定的位置，然后软复位系统
 //重新启动后，系统中运行的就是升级后的程序代码了
-	BOOL	bSrcUpgFlag ;
-	BOOL	bBakUpgFlag ;
+	BOOL bSrcUpgFlag;
+	BOOL bBakUpgFlag;
 
 	//填充升级标志信息，包含所有分块CRC码
 	tUpdFlag.u32Tag1 = _EFLASH_UPPROG_TAG1_;
@@ -262,12 +250,12 @@ void	UPD_MarkFileReady()
 	if(!tUpgrade.bSrcError)
 	{
 		//写入源块升级标志
-		bSrcUpgFlag = EFLASH_PageWrite(	_EFLASH_UPGRADE_SRC_BLOCK_1,
-									EFLASH_UPG_FLAG_PAGE,
-									0,
-									sizeof(_tEFLASH_UPG_INFO),
-									(u8*)&tUpdInfo
-									);
+		bSrcUpgFlag = EFLASH_PageWrite( _EFLASH_UPGRADE_SRC_BLOCK_1,
+				EFLASH_UPG_FLAG_PAGE,
+				0,
+				sizeof(_tEFLASH_UPG_INFO),
+				(u8*)&tUpdInfo
+		);
 
 		//写失败，擦除升级标志，系统仍运行原程序
 		if(TRUE != bSrcUpgFlag)
@@ -280,12 +268,12 @@ void	UPD_MarkFileReady()
 	if(!tUpgrade.bBakError)
 	{
 		//写入备份块升级标志
-		bBakUpgFlag = EFLASH_PageWrite(	_EFLASH_UPGRADE_BAK_BLOCK_1,
-										EFLASH_UPG_FLAG_PAGE,
-										0,
-										sizeof(_tEFLASH_UPG_INFO),
-										(u8*)&tUpdInfo
-										);
+		bBakUpgFlag = EFLASH_PageWrite( _EFLASH_UPGRADE_BAK_BLOCK_1,
+				EFLASH_UPG_FLAG_PAGE,
+				0,
+				sizeof(_tEFLASH_UPG_INFO),
+				(u8*)&tUpdInfo
+		);
 
 		//写失败，擦除升级标志，系统仍运行原程序
 		if(TRUE != bBakUpgFlag)
@@ -299,12 +287,12 @@ void	UPD_MarkFileReady()
 	{
 
 		EFLASH_DoubleBakWrite(_EFLASH_UPGRADE_BAK_BLOCK_1,EFLASH_UPG_FLAG_PAGE,
-							  _EFLASH_UPGRADE_SRC_BLOCK_1,EFLASH_UPG_FLAG_PAGE,
-							  (u8*)&tUpdInfo,sizeof(_tEFLASH_UPG_INFO));
+				_EFLASH_UPGRADE_SRC_BLOCK_1,EFLASH_UPG_FLAG_PAGE,
+				(u8*)&tUpdInfo,sizeof(_tEFLASH_UPG_INFO));
 
 		EFLASH_DoubleBakWrite(_EFLASH_UPGRADE_BAK_BLOCK_1,EFLASH_UPG_FLAG_PAGE - 1,
-					  _EFLASH_UPGRADE_SRC_BLOCK_1,EFLASH_UPG_FLAG_PAGE - 1,
-					  (u8*)&tUpdInfo,sizeof(_tEFLASH_UPG_INFO));
+				_EFLASH_UPGRADE_SRC_BLOCK_1,EFLASH_UPG_FLAG_PAGE - 1,
+				(u8*)&tUpdInfo,sizeof(_tEFLASH_UPG_INFO));
 
 		//系统软复位，重新引导系统
 		NVIC_SystemReset();
@@ -325,8 +313,7 @@ void	UPD_MarkFileReady()
  * 			checksum,		[IN]  块校验
  * @Ret		0：失败，1：成功
  */
-BOOL UPD_SaveUpdBlock(u16 blockId, u8 *pBlock, u16 blockLen, u8 checksum)
-{
+BOOL UPD_SaveUpdBlock(u16 blockId, u8 *pBlock, u16 blockLen, u8 checksum) {
 #if 0
 	BOOL ret;
 	u32 writeAddress = _EFLASH_UPGRADE_SRC_BLOCK_0 * EF_BLOCK_SIZE + blockId * UPGRADE_FILE_BLOCK_SIZE;
@@ -334,9 +321,9 @@ BOOL UPD_SaveUpdBlock(u16 blockId, u8 *pBlock, u16 blockLen, u8 checksum)
 	if(0 == (blockId % UPD_PAGE_BLOCKS)) //擦除页首
 	{
 		if(blockId >= UPD_SECTOR_BLOCKS)
-			ret = EFLASH_PageErase(_EFLASH_UPGRADE_SRC_BLOCK_1, blockId / UPD_PAGE_BLOCKS);
+		ret = EFLASH_PageErase(_EFLASH_UPGRADE_SRC_BLOCK_1, blockId / UPD_PAGE_BLOCKS);
 		else
-			ret = EFLASH_PageErase(_EFLASH_UPGRADE_SRC_BLOCK_0, blockId / UPD_PAGE_BLOCKS);
+		ret = EFLASH_PageErase(_EFLASH_UPGRADE_SRC_BLOCK_0, blockId / UPD_PAGE_BLOCKS);
 
 		if(!ret) //擦除失败
 		{

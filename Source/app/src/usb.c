@@ -8,7 +8,6 @@
 #include <board.h>
 #include <stm32f2xx_conf.h>
 
-void USB_Lowlevel_Init()
-{
+void USB_Lowlevel_Init() {
 
 }

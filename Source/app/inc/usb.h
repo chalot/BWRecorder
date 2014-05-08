@@ -8,7 +8,6 @@
 #ifndef USB_H_
 #define USB_H_
 
-
 void USB_Lowlevel_Init();
 
 #endif /* USB_H_ */

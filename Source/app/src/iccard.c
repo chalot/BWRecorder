@@ -7,11 +7,7 @@
 #include <iccard.h>
 #include <stm32f2xx_conf.h>
 
-void IC_Lowlevel_Init()
-{
-
+void IC_Lowlevel_Init() {
 
 }
-
-
 

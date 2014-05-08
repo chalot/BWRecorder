@@ -1,10 +1,10 @@
 /**   
-* @Title: systimer.c  
-* @Description: TODO(用一句话描述该文件做什么) 
-* @author Zhengd.Gao zhengdgao@163.com   
-* @date 2013-7-5 下午8:42:49 
-* @version V1.0   
-*/ 
+ * @Title: systimer.c  
+ * @Description: TODO(用一句话描述该文件做什么) 
+ * @author Zhengd.Gao zhengdgao@163.com   
+ * @date 2013-7-5 下午8:42:49 
+ * @version V1.0   
+ */
 #include "systimer.h"
 #include "utility.h"
 #include "parameter.h"
@@ -13,13 +13,11 @@
 
 static SYSTIMER systimer; //系统时钟
 
-
 /*声明互斥量*/
 DECLARE_MUTEX(mux)
 
 //从FLASH读取起始时间
-void SysTick_Init()
-{
+void SysTick_Init() {
 	systimer.year = 14;
 	systimer.month = 1;
 	systimer.day = 1;
@@ -30,10 +28,9 @@ void SysTick_Init()
 }
 
 /*系统时钟*/
-void SysTimer_Set(SYSTIMER *timer)
-{
+void SysTimer_Set(SYSTIMER *timer) {
 	MUTEX_LOCK(mux);
-	memcpy_((u8*)&systimer, (u8*)timer, sizeof(SYSTIMER));
+	memcpy_((u8*) &systimer, (u8*) timer, sizeof(SYSTIMER));
 	MUTEX_UNLOCK(mux);
 }
 
@@ -42,8 +39,7 @@ void SysTimer_Set(SYSTIMER *timer)
  * @Param	time		[in]	存储
  * @Ret		无
  */
-void SysTimer_Get(SYSTIMER *time)
-{
+void SysTimer_Get(SYSTIMER *time) {
 	MUTEX_LOCK(mux);
 
 	time->year = ((systimer.year / 10) << 4) + (systimer.year % 10);
@@ -61,8 +57,7 @@ void SysTimer_Get(SYSTIMER *time)
  * @Param	time		[in]	存储
  * @Ret		无
  */
-void SysTimer_GetRaw(TIME *time)
-{
+void SysTimer_GetRaw(TIME *time) {
 	MUTEX_LOCK(mux);
 
 	time->year = systimer.year;
@@ -78,38 +73,33 @@ void SysTimer_GetRaw(TIME *time)
 /**
  * 秒更新
  */
-void SysTimer_refreshPerSecond()
-{
+void SysTimer_refreshPerSecond() {
 	MUTEX_LOCK(mux);
 
-	u8	u8DaysofMonth = 0;
+	u8 u8DaysofMonth = 0;
 
 	//时间更新
 	systimer.second++;
-	if(systimer.second >= 60)
-	{
+	if (systimer.second >= 60) {
 		systimer.second = 0;
 
 		systimer.minute++;
 
-		if(	systimer.minute >= 60)
-		{
+		if (systimer.minute >= 60) {
 			systimer.minute = 0;
 			systimer.hour++;
-			if(	systimer.hour >= 24)
-			{
+			if (systimer.hour >= 24) {
 				systimer.hour = 0;
 
 				//取得当前月有多少天
-				u8DaysofMonth = MISC_DaysofMonth(systimer.year + 2000, systimer.month);
+				u8DaysofMonth = MISC_DaysofMonth(systimer.year + 2000,
+						systimer.month);
 
-				if(systimer.day >= u8DaysofMonth)
-				{
+				if (systimer.day >= u8DaysofMonth) {
 					systimer.month += 1;
 					systimer.day = 1;
 
-					if(systimer.month > 12)
-					{
+					if (systimer.month > 12) {
 						systimer.month = 1;
 						systimer.year += 1;
 					}
@@ -125,12 +115,10 @@ void SysTimer_refreshPerSecond()
 }
 
 //更新系统时间，
-void SysTimer_UpdateAdditionalSeconds(u32 seconds)
-{
+void SysTimer_UpdateAdditionalSeconds(u32 seconds) {
 	MUTEX_LOCK(mux);
 
-	while(seconds-- > 0)
-	{
+	while (seconds-- > 0) {
 		SysTimer_refreshPerSecond();
 	}
 

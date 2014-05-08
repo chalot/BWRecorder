@@ -5,10 +5,9 @@
  * 外设初始化
  *
  */
-void BEEP_Lowlevel_Init(void)
-{
-	GPIO_InitTypeDef  GPIO_InitStructure;
- 	
+void BEEP_Lowlevel_Init(void) {
+	GPIO_InitTypeDef GPIO_InitStructure;
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);	 //使能GPIOB端口时钟
 
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -19,10 +18,9 @@ void BEEP_Lowlevel_Init(void)
 	GPIO_InitStructure.GPIO_Pin = BUZZER_CTRL_PIN;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-	GPIO_ResetBits(GPIOB, BUZZER_CTRL_PIN);//关闭蜂鸣器输出
+	GPIO_ResetBits(GPIOB, BUZZER_CTRL_PIN);	 //关闭蜂鸣器输出
 }
 
-void BEEP_Init()
-{
+void BEEP_Init() {
 
 }

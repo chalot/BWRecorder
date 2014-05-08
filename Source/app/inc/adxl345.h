@@ -2,9 +2,7 @@
 #define __ADXL345_H
 #include "myiic.h"   												  	  
 
-#define DEVICE_ID		0X00 	//器件ID,0XE5
-#define THRESH_TAP		0X1D   	//敲击阀值
-#define OFSX			0X1E
+#define DEVICE_ID		0X00 	//器件ID,0XE5#define THRESH_TAP		0X1D   	//敲击阀值#define OFSX			0X1E
 #define OFSY			0X1F
 #define OFSZ			0X20
 #define DUR				0X21
@@ -34,7 +32,6 @@
 #define FIFO_CTL		0X38
 #define FIFO_STATUS		0X39
 
-
 //0X0B TO OX1F Factory Reserved	 
 //如果ALT ADDRESS脚(12脚)接地,IIC地址为0X53(不包含最低位).
 //如果接V3.3,则IIC地址为0X1D(不包含最低位).
@@ -43,47 +40,12 @@
 #define ADXL_WRITE   0X3A
 
 u8 ADXL345_Init(void); 								//初始化ADXL345
-void ADXL345_WR_Reg(u8 addr,u8 val);				//写ADXL345寄存器
+void ADXL345_WR_Reg(u8 addr, u8 val);				//写ADXL345寄存器
 u8 ADXL345_RD_Reg(u8 addr);							//读ADXL345寄存器
-void ADXL345_RD_XYZ(short *x,short *y,short *z);	//读取一次值
-void ADXL345_RD_Avval(short *x,short *y,short *z);	//读取平均值
-void ADXL345_AUTO_Adjust(char *xval,char *yval,char *zval);//自动校准
-void ADXL345_Read_Average(short *x,short *y,short *z,u8 times);//连续读取times次,取平均
-short ADXL345_Get_Angle(float x,float y,float z,u8 dir);
+void ADXL345_RD_XYZ(short *x, short *y, short *z);	//读取一次值
+void ADXL345_RD_Avval(short *x, short *y, short *z);	//读取平均值
+void ADXL345_AUTO_Adjust(char *xval, char *yval, char *zval);	//自动校准
+void ADXL345_Read_Average(short *x, short *y, short *z, u8 times);//连续读取times次,取平均
+short ADXL345_Get_Angle(float x, float y, float z, u8 dir);
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

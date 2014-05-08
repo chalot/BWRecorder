@@ -1,11 +1,11 @@
 /** @file mutex.h
-  * @brief brief description
-  * @author <gao zhengdong, zhengdgao@163.com>
-  * @date 2014年4月9日上午8:51:22
-  * @version V1.0
-  * @note
-  * detailed description
-  */
+ * @brief brief description
+ * @author <gao zhengdong, zhengdgao@163.com>
+ * @date 2014年4月9日上午8:51:22
+ * @version V1.0
+ * @note
+ * detailed description
+ */
 #ifndef MUTEX_H_
 #define MUTEX_H_
 

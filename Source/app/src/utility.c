@@ -13,17 +13,14 @@
 //Hex转ASC字符
 #define	Hex2Char(hex)		((hex >= 0 && hex <= 9) ? (hex + 0x30) : ( hex - 10 + 'A' ))
 
-
 /**
  * 清除缓冲区内容
  * @param pu8Mem，缓区头
  * @param u32Size，缓区长度
  */
-void	ZeroMem(u8* pu8Mem, u32 u32Size)
-{
+void ZeroMem(u8* pu8Mem, u32 u32Size) {
 	//while(u32Size)
-	for (; u32Size>0; u32Size--)
-	{
+	for (; u32Size > 0; u32Size--) {
 		*pu8Mem++ = 0;
 		//u32Size--;
 	}
@@ -36,13 +33,11 @@ void	ZeroMem(u8* pu8Mem, u32 u32Size)
  * @param u8Data，填充数据
  * @param u16Size，填充字节数
  */
-void memset_(u8 *pBuf, u8 u8Data, u16 u16Size)
-{
+void memset_(u8 *pBuf, u8 u8Data, u16 u16Size) {
 	u16 i;
-	u8* pu8Buf = (u8*)pBuf;
+	u8* pu8Buf = (u8*) pBuf;
 
-	for(i = 0; i < u16Size; i++)
-	{
+	for (i = 0; i < u16Size; i++) {
 		pu8Buf[i] = u8Data;
 	}
 }
@@ -53,14 +48,12 @@ void memset_(u8 *pBuf, u8 u8Data, u16 u16Size)
  * @param pSrcBuf，源缓冲区地址指针
  * @param u16Size，拷贝字节数
  */
-void memcpy_(u8 *pDstBuf, u8  *pSrcBuf, u16 u16Size)
-{
+void memcpy_(u8 *pDstBuf, u8 *pSrcBuf, u16 u16Size) {
 	u16 i;
-	u8* pu8DstBuf = (u8*)pDstBuf;
-	u8* pu8SrcBuf = (u8*)pSrcBuf;
+	u8* pu8DstBuf = (u8*) pDstBuf;
+	u8* pu8SrcBuf = (u8*) pSrcBuf;
 
-	for (i = 0; i < u16Size; i++)
-	{
+	for (i = 0; i < u16Size; i++) {
 		pu8DstBuf[i] = pu8SrcBuf[i];
 	}
 }
@@ -72,16 +65,13 @@ void memcpy_(u8 *pDstBuf, u8  *pSrcBuf, u16 u16Size)
  * @param u16Size	比较的字节数
  * @return	TRUE=相同，FALSE=不同
  */
-BOOL memcmp_(u8 *buf1, u8* buf2, u16 u16Size)
-{
+BOOL memcmp_(u8 *buf1, u8* buf2, u16 u16Size) {
 	u16 i;
-	u8 *pu8Buf1 = (u8*)buf1;
-	u8 *pu8Buf2 = (u8*)buf2;
+	u8 *pu8Buf1 = (u8*) buf1;
+	u8 *pu8Buf2 = (u8*) buf2;
 
-	for (i = 0; i < u16Size; i++)
-	{
-		if (pu8Buf1[i] != pu8Buf2[i])
-		{
+	for (i = 0; i < u16Size; i++) {
+		if (pu8Buf1[i] != pu8Buf2[i]) {
 			return FALSE;
 		}
 	}
@@ -95,9 +85,8 @@ BOOL memcmp_(u8 *buf1, u8* buf2, u16 u16Size)
  * @param u8Data	待转字节，如56转换成0x56
  * @return
  */
-u8 MISC_U82BCD(u8 u8Data)
-{
-	return	((u8Data / 10) << 4) | (u8Data % 10);
+u8 MISC_U82BCD(u8 u8Data) {
+	return ((u8Data / 10) << 4) | (u8Data % 10);
 }
 
 /**
@@ -106,9 +95,8 @@ u8 MISC_U82BCD(u8 u8Data)
  * @param u8Data	需转换的BCD字节，如0x56转换成56
  * @return	十进制数
  */
-u8	MISC_BCD2U8(u8 u8Data)
-{
-	return	((u8Data >> 4) * 10) + (u8Data & 0x0F);
+u8 MISC_BCD2U8(u8 u8Data) {
+	return ((u8Data >> 4) * 10) + (u8Data & 0x0F);
 }
 
 /**
@@ -116,13 +104,10 @@ u8	MISC_BCD2U8(u8 u8Data)
  *
  * @param u32us		微妙数
  */
-void Delay_1us(u32 u32us)
-{
+void Delay_1us(u32 u32us) {
 	u16 i;
-	while(u32us)
-	{
-		for(i = 40; i; i--)
-		{
+	while (u32us) {
+		for (i = 40; i; i--) {
 			;
 		}
 
@@ -135,16 +120,13 @@ void Delay_1us(u32 u32us)
  *
  * @param nTime		毫秒
  */
-void Delay_1ms(u32 nTime)
-{
-  u32	volatile	u32Tmp;
-  while(nTime--)
-  {
-  	  for(u32Tmp = 0; u32Tmp < 10000; u32Tmp++)
-	  {
-	  	;
-	  }
-  }
+void Delay_1ms(u32 nTime) {
+	u32 volatile u32Tmp;
+	while (nTime--) {
+		for (u32Tmp = 0; u32Tmp < 10000; u32Tmp++) {
+			;
+		}
+	}
 }
 
 /**
@@ -154,8 +136,7 @@ void Delay_1ms(u32 nTime)
  * @param u8Day		日
  * @return	星期数，0=星期日，1~6=星期一~星期六
  */
-u8 MISC_CalcuDayofWeek(u16 u16Year, u8 u8Month, u8 u8Day)
-{
+u8 MISC_CalcuDayofWeek(u16 u16Year, u8 u8Month, u8 u8Day) {
 
 	return 0;
 }
@@ -166,10 +147,10 @@ u8 MISC_CalcuDayofWeek(u16 u16Year, u8 u8Month, u8 u8Day)
  * @param u16Year
  * @return	TRUE=闰年，FALSE=平年
  */
-BOOL MISC_IsLeapYear(u16 u16Year)
-{
+BOOL MISC_IsLeapYear(u16 u16Year) {
 	//是闰年否(能被4整除但不能被100整除，或者能被400整除)?
-	return ((!(u16Year % 4) && (u16Year % 100)) || !(u16Year % 400)) ? TRUE : FALSE;
+	return ((!(u16Year % 4) && (u16Year % 100)) || !(u16Year % 400)) ?
+			TRUE : FALSE;
 }
 
 /**
@@ -179,27 +160,19 @@ BOOL MISC_IsLeapYear(u16 u16Year)
  * @param u8Month	月
  * @return	该年月天数
  */
-u8 MISC_DaysofMonth(u16 u16Year, u8 u8Month)
-{
-	if (2 == u8Month)
-	{
-		if (MISC_IsLeapYear(u16Year))
-		{
-			return	29;
+u8 MISC_DaysofMonth(u16 u16Year, u8 u8Month) {
+	if (2 == u8Month) {
+		if (MISC_IsLeapYear(u16Year)) {
+			return 29;
+		} else {
+			return 28;
 		}
-		else
-		{
-			return	28;
-		}
-	}
-	else if ((1 == u8Month) || (3 == u8Month) || (5 == u8Month) || (7 == u8Month)
-		|| (8 == u8Month) || (10 == u8Month) || (12 == u8Month))
-	{
-		return	31;
-	}
-	else
-	{
-		return	30;
+	} else if ((1 == u8Month) || (3 == u8Month) || (5 == u8Month)
+			|| (7 == u8Month) || (8 == u8Month) || (10 == u8Month)
+			|| (12 == u8Month)) {
+		return 31;
+	} else {
+		return 30;
 	}
 }
 
@@ -209,15 +182,13 @@ u8 MISC_DaysofMonth(u16 u16Year, u8 u8Month)
  * @param pData
  * @return
  */
-u16 strlen_(char *pData)
-{
+u16 strlen_(char *pData) {
 	u16 u16Len = 0;
 
-	if(NULL == pData)
+	if (NULL == pData)
 		return 0;
 
-	while(*pData != '\0')
-	{
+	while (*pData != '\0') {
 		u16Len++;
 		pData++;
 	}
@@ -233,24 +204,22 @@ u16 strlen_(char *pData)
  * @param u16CLen		字符串长度
  * @return	转换后的字符串长度
  */
-u16	Hex2String(u8* pData, u16 u16DataLen, char* pStr, u16 u16CLen)
-{
+u16 Hex2String(u8* pData, u16 u16DataLen, char* pStr, u16 u16CLen) {
 	u16 i = 0;
 	char* p = NULL;
 
 	//参数检查
-	if((NULL == pData) || (0 == u16DataLen) || (NULL == pStr))
+	if ((NULL == pData) || (0 == u16DataLen) || (NULL == pStr))
 		return 0;
 
 	p = pStr;
 
 	//校验缓区长度，应至少不小于Hex数据长度的2倍+1('\0')
-	if(u16CLen < ((u16DataLen << 1) + 1))
+	if (u16CLen < ((u16DataLen << 1) + 1))
 		return 0;
 
 	//按字节转换字符
-	for(; i < u16DataLen; i++)
-	{
+	for (; i < u16DataLen; i++) {
 		*p++ = Hex2Char((*pData >> 4));
 		*p++ = Hex2Char((*pData & 0x0F));
 
@@ -260,7 +229,7 @@ u16	Hex2String(u8* pData, u16 u16DataLen, char* pStr, u16 u16CLen)
 	//填充字符串结束符
 	*p = '\0';
 
-	return( (u16)(p - pStr) );
+	return ((u16) (p - pStr));
 }
 
 /**
@@ -270,30 +239,24 @@ u16	Hex2String(u8* pData, u16 u16DataLen, char* pStr, u16 u16CLen)
  * @param u16Size		[IN] 	序列长度
  * @return	u8,CRC冗余码
  */
-u8 CalculateCRC8(u8* pu8Buffer, u16 u16Size)
-{
-	u16	i, j;
-	u8	u8CRC, u8Code;
+u8 CalculateCRC8(u8* pu8Buffer, u16 u16Size) {
+	u16 i, j;
+	u8 u8CRC, u8Code;
 
 	//CRC-8初值 = 0
 	u8CRC = 0;
 
 	//计算一帧数据CRC-8
-	for(i = 0; i < u16Size; i++)
-	{
+	for (i = 0; i < u16Size; i++) {
 		//当前流代码
 		u8Code = pu8Buffer[i];
 
 		//字节8位二进制位
-		for(j = 0; j < 8; j++)
-		{
+		for (j = 0; j < 8; j++) {
 			//输入二进制流(bit0)与CRC-bit0异或
-			if ((u8Code ^ u8CRC) & 0x01)
-			{
+			if ((u8Code ^ u8CRC) & 0x01) {
 				u8CRC = ((u8CRC ^ 0x18) >> 1) | 0x80;
-			}
-			else
-			{
+			} else {
 				u8CRC >>= 1;
 			}
 
@@ -303,7 +266,7 @@ u8 CalculateCRC8(u8* pu8Buffer, u16 u16Size)
 	}
 
 	//返回CRC
-	return	u8CRC;
+	return u8CRC;
 }
 
 /**
@@ -311,8 +274,7 @@ u8 CalculateCRC8(u8* pu8Buffer, u16 u16Size)
  *
  * @return u32,	毫秒数
  */
-u32 GetCurTicksInMSeconds()
-{
+u32 GetCurTicksInMSeconds() {
 
 	return 0;
 }
@@ -322,8 +284,7 @@ u32 GetCurTicksInMSeconds()
  *
  * @return	u16，	包序号
  */
-u16 GeneratePacketSequenceNumber()
-{
+u16 GeneratePacketSequenceNumber() {
 	static u16 seq = 0;
 	seq++;
 
@@ -337,16 +298,14 @@ u16 GeneratePacketSequenceNumber()
  * @param datalen	[IN]	数据长度
  * @return	校验和
  */
-u8 CalculateChecksum(u8 *pData, u16 datalen)
-{
+u8 CalculateChecksum(u8 *pData, u16 datalen) {
 	u8 checksum = 0;
 	u16 i = 0;
 
-	if((pData == NULL) || (datalen == 0))
+	if ((pData == NULL ) || (datalen == 0))
 		return 0;
 
-	while(i < datalen)
-	{
+	while (i < datalen) {
 		checksum += *(pData + i);
 		i++;
 	}
@@ -361,16 +320,14 @@ u8 CalculateChecksum(u8 *pData, u16 datalen)
  * @param s2	[IN]	串2
  * @return	TRUE=相同，FALSE=不同
  */
-BOOL strcmp_(const char *s1, const char *s2)
-{
+BOOL strcmp_(const char *s1, const char *s2) {
 	u16 i = 0;
 
-	if(strlen_((char*)s1) != strlen_((char*)s2))
+	if (strlen_((char*) s1) != strlen_((char*) s2))
 		return FALSE;
 
-	while(s1[i] != '\0')
-	{
-		if(s1[i] != s2[i])
+	while (s1[i] != '\0') {
+		if (s1[i] != s2[i])
 			return FALSE;
 		i++;
 	}
@@ -384,13 +341,11 @@ BOOL strcmp_(const char *s1, const char *s2)
  * @param s1	[IN]	目的串串
  * @param s2	[IN]	源串
  */
-void strcpy_(char *s1, char *s2)
-{
+void strcpy_(char *s1, char *s2) {
 	u16 len = strlen_(s2);
 	u16 i = 0;
 
-	while(s2[i] != '\0')
-	{
+	while (s2[i] != '\0') {
 		s1[i] = s2[i];
 		i++;
 	}
@@ -406,13 +361,12 @@ void strcpy_(char *s1, char *s2)
  * @param u16DataLen
  * @return
  */
-BOOL CheckCRC(u8 u8CRC, u8 *pData, u16 u16DataLen)
-{
+BOOL CheckCRC(u8 u8CRC, u8 *pData, u16 u16DataLen) {
 	u8 _u8CRC;
 
 	_u8CRC = CalculateCRC8(pData, u16DataLen);
 
-	if(_u8CRC == u8CRC)
+	if (_u8CRC == u8CRC)
 		return TRUE;
 
 	return FALSE;

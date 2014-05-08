@@ -1,10 +1,10 @@
 /**   
-* @Title: can.h  
-* @Description: TODO(用一句话描述该文件做什么) 
-* @author Zhengd.Gao zhengdgao@163.com   
-* @date 2013-5-29 上午8:41:31 
-* @version V1.0   
-*/ 
+ * @Title: can.h  
+ * @Description: TODO(用一句话描述该文件做什么) 
+ * @author Zhengd.Gao zhengdgao@163.com   
+ * @date 2013-5-29 上午8:41:31 
+ * @version V1.0   
+ */
 
 #ifndef CAN_H_
 #define CAN_H_
@@ -12,7 +12,6 @@
 #include <stm32f2xx_conf.h>
 #include <stm32_gpio.h>
 #include <mempool.h>
-
 
 //CAN1开电
 #define CAN1_PWR_ON()		\
@@ -41,7 +40,6 @@
 						GPIO_SetBits(GPIOC,GPIOC_CAN2_ON);	\
 					}while(0)
 
-
 //网络指示灯打开/关闭
 #define CAN_LED_ON()  GPIO_ResetBits(GPIOA, GPIOA_CAN_LED_)
 #define CAN_LED_OFF()  GPIO_SetBits(GPIOA, GPIOA_CAN_LED_)
@@ -51,10 +49,9 @@
                             GPIO_WriteBit(GPIOA, GPIOA_CAN_LED_,   \
                             (BitAction)(1-(GPIO_ReadOutputDataBit(GPIOA, GPIOA_CAN_LED_))))
 
-
- /**
-  * 禁止CAN1接收，关闭接收中断
-  */
+/**
+ * 禁止CAN1接收，关闭接收中断
+ */
 #define CAN_RECIEVE_DISABLE()			\
 		do {		\
 			/**
@@ -69,13 +66,13 @@
 			  * @param  NewState: new state of the CAN interrupts.
 			  *   This parameter can be: ENABLE or DISABLE.
 			  * @retval None.
-			  */														\
-			CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, DISABLE);		\
-		}while(0)
+			  */
+CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, DISABLE);
+}while(0)
 
- /**
-  * 使能CAN1接收，打开接收中断
-  */
+/**
+ * 使能CAN1接收，打开接收中断
+ */
 #define CAN_RECIEVE_ENABLE()		\
 		do {		\
 			/**
@@ -90,9 +87,9 @@
 			  * @param  NewState: new state of the CAN interrupts.
 			  *   This parameter can be: ENABLE or DISABLE.
 			  * @retval None.
-			  */															\
-				CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE);		\
-			}while(0)
+			  */
+CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE);
+}while(0)
 
 /**
  * 发送CAN原始帧

@@ -25,9 +25,8 @@ Q_DEFINE_THIS_MODULE("gprs.c")
 
 static volatile u8 s_csq = 0; //当前信号强度
 
-#define		GPRS_MAIN_ID		0	//主连接号
-#define		GPRS_VICE_ID		1	//辅助连接号
-#define 	SOCKET_ID			0
+#define		GPRS_MAIN_ID		0	//主连接号
+#define		GPRS_VICE_ID		1	//辅助连接号#define 	SOCKET_ID			0
 
 //串口收发缓区
 #define RX_BUF_SIZE		1024
@@ -42,9 +41,8 @@ static tCOMM Comm_Rx;  //发送缓区
 #define BUFFER_LENGTH_GPRSFRAMERx 1024
 static u8 au8Buffer_GPRSFrameRx[BUFFER_LENGTH_GPRSFRAMERx];
 
-#define CHAR_CR 	0x0D  //回车
-#define CHAR_LF 	0x0A  //换行
-/*AT命令*/
+#define CHAR_CR 	0x0D  //回车
+#define CHAR_LF 	0x0A  //换行/*AT命令*/
 const char* ATCMD[] = {
 /*基本配置命令*/
 "AT\r",							//链路同步
@@ -201,8 +199,7 @@ static u8 u8PDUSMSRx_LenCount = 0;
 static u8 fGPRS_7bitDecode_Skip = 0;
 
 #if		_MSG_
-#define		GPRS_SMG_CNT				30					//短信数组长度
-/*GPRS已收短信息处理状态*/
+#define		GPRS_SMG_CNT				30					//短信数组长度/*GPRS已收短信息处理状态*/
 typedef enum {
 	_eGPRS_SMG_IDLE = 0,					//空闲态
 	_eGPRS_SMG_READ_REQ,				//已经发送短消息阅读请求
@@ -274,8 +271,7 @@ u8 GPRS_CheckCmd_IsAttaching(u8 step) {
 }
 
 //连接服务器类型
-#define SERVER_TYPE	 SERVER_PRIMARY	// ptRuntimeParam->ServerType
-#define DIST(next, tail, size)  ((tail > next) ? (tail - next) : (size - next + tail))
+#define SERVER_TYPE	 SERVER_PRIMARY	// ptRuntimeParam->ServerType#define DIST(next, tail, size)  ((tail > next) ? (tail - next) : (size - next + tail))
 
 //本地函数声明
 static u8 GPRS_WriteData(u8* pu8Data, u16 u16Length);
@@ -762,8 +758,7 @@ void GPRS_doConnect(u8 connectStep) {
 	} else if (eCmd == _ATCMD_SETSOCKET) {
 		sprintf_((u8*) &au8Cmd[0], "AT^SISS=%d,srvType,socket\r", channelId);
 	}
-#if	CONNMODE  == _UDP_ //UDP连接	else if(eCmd == _ATCMD_SETADDR)
-	{
+#if	CONNMODE  == _UDP_ //UDP连接	else if(eCmd == _ATCMD_SETADDR)	{
 		if(SERVER_TYPE == SERVER_PRIMARY)
 		{
 			sprintf_((u8*)&au8Cmd[0],"at^siss=%d,address,\"sockudp://%d.%d.%d.%d:%d\"\r",

@@ -7,6 +7,6 @@
 
 void BEEP_Lowlevel_Init();
 void BEEP_Init(void);
-		 				    
+
 #endif
 
