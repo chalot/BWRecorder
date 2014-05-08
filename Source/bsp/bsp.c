@@ -31,11 +31,12 @@
 * Quantum Leaps Web site:  http://www.quantum-leaps.com
 * e-mail:                  info@quantum-leaps.com
 *****************************************************************************/
-#include "stm32f2xx.h"
+#include "stm32f2xx_conf.h"
 #include "qp_port.h"
 #include "bsp.h"
 #include "qs.h"
 #include <qevt.h>
+#include <stm32_eval.h>
 
 Q_DEFINE_THIS_FILE
 
@@ -153,11 +154,18 @@ void SysTick_Handler(void) {
 void BSP_init(void) {
 	SystemInit();         /* initialize STM32 system (clock, PLL and Flash) */
 
+#ifdef Q_SPY
+	//初始化QS
+    if (QS_INIT((void *)0) == 0) {    /* initialize the QS software tracing */
+        Q_ERROR();
+    }
+#endif
+
 //	/* initialize LEDs, Key Button, and LCD on STM322XX-EVAL board */
 //	BSP_ButtonAndLED_Init();
 //
 //	/* initialize the Serial for printfs to the serial port */
-//	BSP_USART_Init();
+	BSP_USART_Init(); ///使能调试串口，开发板上是USART3
 //
 //	/* initialize the EXTI Line0 interrupt used for testing */
 //	BSP_EXTI_Init();
@@ -187,15 +195,15 @@ void BSP_USART_Init(void) {
 	    	  - Hardware flow control disabled (RTS and CTS signals)
 	    	  - Receive and transmit enabled
 	 */
-//	USART_InitTypeDef USART_InitStructure;
-//	USART_InitStructure.USART_BaudRate = 115200;
-//	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-//	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-//	USART_InitStructure.USART_Parity = USART_Parity_No;
-//	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-//	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-//
-//	STM_EVAL_COMInit(COM1, &USART_InitStructure);
+	USART_InitTypeDef USART_InitStructure;
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+
+	STM_EVAL_COMInit(COM1, &USART_InitStructure);
 }
 
 /*..........................................................................*/
@@ -385,6 +393,13 @@ uint32_t sys_now(void) {
     return l_nTicks * (1000 / BSP_TICKS_PER_SEC);
 }
 
+/*AO内部打印调试信息*/
+void BSP_Trace(u8 eState, QActive* pAO, char* const str)
+{
+	QS_BEGIN(eState, pAO)  /* application-specific record begin */
+		QS_STR(str);    /* Philosopher status */
+	QS_END()
+}
 
 /*****************************************************************************/
 /**

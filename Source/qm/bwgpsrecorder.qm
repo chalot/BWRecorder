@@ -2352,7 +2352,7 @@ $declare(AOs::QTTS)
 static QTTS l_tts; /* the single instance of the Table active object */
 
 /* Global-scope objects ----------------------------------------------------*/
-QActive * const AO_tts = &amp;l_tts.super; /* &quot;opaque&quot; AO pointer */
+QActive * const AO_TTS = &amp;l_tts.super; /* &quot;opaque&quot; AO pointer */
 
 /*..........................................................................*/
 $define(AOs::QTTS_ctor)

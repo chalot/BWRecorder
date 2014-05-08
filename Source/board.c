@@ -29,6 +29,7 @@
 #include <tts.h>
 #include <usb.h>
 #include <video.h>
+#include <board.h>
 
 /**串口定义*/
 static const COM_ConfigDef COM_Config[COMn] = { { .UART = GSM_COM, .COM_CLK =
@@ -926,3 +927,43 @@ void ADC3_CH7_DMA_Config(void) {
 	ADC_Cmd(ADC3, ENABLE);
 }
 
+
+//禁止CAN接收，关闭接收中断
+void CAN_RecieveDisable()
+{
+/**
+  * @brief  Enables or disables the specified CAN interrupts.
+  * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
+  * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
+  *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
+  *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
+  *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
+  *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
+  *   CAN_IT_SLK.
+  * @param  NewState: new state of the CAN interrupts.
+  *   This parameter can be: ENABLE or DISABLE.
+  * @retval None.
+  */
+	  CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, DISABLE);
+
+}
+
+//使能CAN接收，打开接收中断
+void CAN_RecieveEnable()
+{
+/**
+  * @brief  Enables or disables the specified CAN interrupts.
+  * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
+  * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
+  *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
+  *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
+  *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
+  *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
+  *   CAN_IT_SLK.
+  * @param  NewState: new state of the CAN interrupts.
+  *   This parameter can be: ENABLE or DISABLE.
+  * @retval None.
+  */
+	  CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE);
+
+}

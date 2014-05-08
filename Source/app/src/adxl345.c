@@ -2,6 +2,7 @@
 //#include "sys.h"
 //#include "delay.h"
 #include "math.h"   
+#include "utility.h"
 
 //初始化ADXL345.
 //返回值:0,初始化成功;1,初始化失败.
@@ -63,7 +64,7 @@ void ADXL345_RD_Avval(short *x,short *y,short *z)
 	for(i=0;i<10;i++)
 	{
 		ADXL345_RD_XYZ(x,y,z);
-		delay_ms(10);
+		Delay_1ms(10);
 		tx+=(short)*x;
 		ty+=(short)*y;
 		tz+=(short)*z;	   
@@ -80,7 +81,7 @@ void ADXL345_AUTO_Adjust(char *xval,char *yval,char *zval)
 	u8 i;
 	short offx=0,offy=0,offz=0;
 	ADXL345_WR_Reg(POWER_CTL,0x00);	   	//先进入休眠模式.
-	delay_ms(100);
+	Delay_1ms(100);
 	ADXL345_WR_Reg(DATA_FORMAT,0X2B);	//低电平中断输出,13位全分辨率,输出数据右对齐,16g量程 
 	ADXL345_WR_Reg(BW_RATE,0x0A);		//数据输出速度为100Hz
 	ADXL345_WR_Reg(POWER_CTL,0x28);	   	//链接使能,测量模式
@@ -89,7 +90,7 @@ void ADXL345_AUTO_Adjust(char *xval,char *yval,char *zval)
 	ADXL345_WR_Reg(OFSX,0x00);
 	ADXL345_WR_Reg(OFSY,0x00);
 	ADXL345_WR_Reg(OFSZ,0x00);
-	delay_ms(12);
+	Delay_1ms(12);
 	for(i=0;i<10;i++)
 	{
 		ADXL345_RD_Avval(&tx,&ty,&tz);
@@ -150,7 +151,7 @@ void ADXL345_Read_Average(short *x,short *y,short *z,u8 times)
 			*x+=tx;
 			*y+=ty;
 			*z+=tz;
-			delay_ms(5);
+			Delay_1ms(5);
 		}
 		*x/=times;
 		*y/=times;

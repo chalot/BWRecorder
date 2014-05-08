@@ -61,7 +61,7 @@ void TRACE_CANRawFrame(CANRAWFRAME *pFrame);
 void ISR_CAN1_Receive();
 
 
-void CAN_LowLevel_Init();
+void CAN_Lowlevel_Init();
 
 
 #pragma		pack()

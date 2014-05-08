@@ -536,6 +536,7 @@ typedef struct
 void SPI1_Lowlevel_Init();
 void I2C2_Lowlevel_Init();
 void USART_Configuration(COM_TypeDef COM, u16 u16Baund);
-
+void CAN_RecieveDisable();
+void CAN_RecieveEnable();
 
 #endif /* BOARD_H_ */

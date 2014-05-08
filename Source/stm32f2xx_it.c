@@ -24,6 +24,7 @@
 //#include "usb_hcd_int.h"
 //#include "usbh_core.h"
 #include "stm32f2xx_it.h"
+#include "stm32f2xx.h"
 #include <stm32f2xx_conf.h>
 #include <qp_port.h>
 #include <key.h>

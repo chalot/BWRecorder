@@ -299,7 +299,7 @@ void TTS_Speak(u8 u8CodeType, u8 *pTxt, u8 u8TxtLen, u8 u8RepeatInterval,
 //	}
 
 	//打开TTS音源
-	PERI_AudioSel(_AUDIO_TTS_);
+//	PERI_AudioSel(_AUDIO_TTS_);
 
 	/*
 	 //判断当前TTS状态，是否需要唤醒

@@ -179,6 +179,7 @@ static u8 	get_next_segment(char *msg, char *seg_buf);
 static u16 	Protocol_FormSysProperty(u8* pCursor, u16 seq);
 static u16 	Protocol_FormSysParams(u8* pCursor, u16 seq);
 static void Protocol_ServerGeneralAckProc(tMsg_S_GeneralAck* pMsgBlock);
+static void ERROR_Handle(iRet);
 /*********************************************************************************/
 
 static  u16 __inline__ GET_TCTRL_SEGMENT(u8 *msg, u8 *param)
@@ -1150,7 +1151,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen)
 		pDial = (T_SCMD_ReverseDial *)pMsgBlock;
 		pMsgBlock ++;
 
-		TRACE_("@CMD id[ %x - MSGID_S_Redial], type[%d], phone[%s]",
+		TRACE_(QS_USER, NULL, "@CMD id[ %x - MSGID_S_Redial], type[%d], phone[%s]",
 				MSGID_S_Redial, (u8)pDial->u8Flag, (char*)pMsgBlock);
 
 		if(pDial->u8Flag == 0)	///普通通话
@@ -1222,7 +1223,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen)
 				///电话本的联系人CRC作为ID
 				u8 u8NameLen = *(pMsgBlock + *(pMsgBlock + 1) + 2);	///号码长度
 				u8 *pName = pMsgBlock + *(pMsgBlock + 1) + 2;
-				u8ItemId = CalculateCRC(pName, u8NameLen);
+				u8ItemId = CalculateCRC8(pName, u8NameLen);
 				u8ItemLen = *(pMsgBlock + 1) + 2 + u8NameLen;
 
 				///加入项
@@ -1245,7 +1246,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen)
 				///电话本的联系人CRC作为ID
 				u8 u8NameLen = *(pMsgBlock + *(pMsgBlock + 1) + 2);	///号码长度
 				u8 *pName = pMsgBlock + *(pMsgBlock + 1) + 2;
-				u8ItemId = CalculateCRC(pName, u8NameLen);
+				u8ItemId = CalculateCRC8(pName, u8NameLen);
 				u8ItemLen = *(pMsgBlock + 1) + 2 + u8NameLen;
 
 				///加入项
@@ -1268,7 +1269,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen)
 				///电话本的联系人CRC作为ID
 				u8 u8NameLen = *(pMsgBlock + *(pMsgBlock + 1) + 2);	///号码长度
 				u8 *pName = pMsgBlock + *(pMsgBlock + 1) + 2;
-				u8ItemId = CalculateCRC(pName, u8NameLen);
+				u8ItemId = CalculateCRC8(pName, u8NameLen);
 				u8ItemLen = *(pMsgBlock + 1) + 2 + u8NameLen;
 
 				///加入项
@@ -1314,14 +1315,14 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen)
 		{
 			BSP_Vechical_Lock();	///锁车
 			QACTIVE_POST(AO_LCD, Q_NEW(QEvt, VECHICAL_CTRL_LOCK_SIG), NULL);
-			TRACE_("@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]",
+			TRACE_(QS_USER, NULL, "@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]",
 					(u8)MSGID_S_VechicleCtrl, "LOCK");
 		}
 		else
 		{
 			BSP_Vechical_UnLock();	///解锁
 			QACTIVE_POST(AO_LCD, Q_NEW(QEvt, VECHICAL_CTRL_UNLOCK_SIG), NULL);
-			TRACE_("@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]",
+			TRACE_(QS_USER, NULL, "@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]",
 					(u8)MSGID_S_VechicleCtrl, "UNLOCK");
 		}
 
@@ -2771,3 +2772,12 @@ int PHONEBOOK_WriteAmount(u8 u8Amount)
 	return EEPROM_WriteByte(EEPROM_ADDR_PHONEBOOK, u8Amount);	///回写总条目数
 }
 #endif
+
+/**
+ * 服务器命令错误处理
+ *
+ */
+void ERROR_Handle(iRet)
+{
+
+}

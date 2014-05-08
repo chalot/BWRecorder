@@ -72,6 +72,7 @@ void BSP_EXTI_Init(void);
 void BSP_Display_Init(void);		                 // initialize the display
 void BSP_busyDelay(void);             // to artificially extend RTC processing
 //void BSP_displyPhilStat(uint8_t n, char const *stat);
+void BSP_Trace(u8 eState, QActive* pAO, char* const str);
 
 /**
  * Ëø³µ/½âËø¿ØÖÆ

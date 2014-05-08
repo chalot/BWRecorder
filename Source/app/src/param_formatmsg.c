@@ -210,7 +210,7 @@ int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg)
 		///电话本的联系人CRC作为ID
 		u8 u8NameLen = *(pItemMsg + *(pItemMsg + 1) + 2);	///号码长度
 		u8 *pName = pItemMsg + *(pItemMsg + 1) + 2;
-		pItemIndex->u8Id = CalculateCRC(pName, u8NameLen);
+		pItemIndex->u8Id = CalculateCRC8(pName, u8NameLen);
 	}
 	else
 	{
@@ -218,7 +218,7 @@ int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg)
 	}
 
 	pItemIndex->u8Len = u8ItemLen;
-	pItemIndex->u8CRC = CalculateCRC(pItemMsg, u8ItemLen);
+	pItemIndex->u8CRC = CalculateCRC8(pItemMsg, u8ItemLen);
 
 	u8Amount = *(tIndexProp[type].pStorageAddr + 1); ///项总数
 
@@ -285,7 +285,7 @@ int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg
 
 	///更新项索引信息
 	pItemIndex->u8Len = u8ItemLen;
-	pItemIndex->u8CRC = CalculateCRC(pItemMsg, u8ItemLen);
+	pItemIndex->u8CRC = CalculateCRC8(pItemMsg, u8ItemLen);
 
 	///再读并校验CRC一次，确认数据内容正确
 	ret = EEPROM_ReadBufferCRC(u32ItemAddress, u8ItemLen, &crc_eeprom);

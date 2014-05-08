@@ -58,6 +58,7 @@
 #include <tts.h>
 #include <usb.h>
 #include <video.h>
+#include <qevents.h>
 
 /*模块使能*/
 #define GPRS
@@ -185,7 +186,7 @@ int main(void) {
 
 #ifdef GPRS
 	/**GPRS状态机初始化*/
-	Gprs_ctor();
+	QGprs_ctor();
 
 	/**启动GPRS状态机*/
 	QActive_start(AO_Gprs, AO_PRIO_GPRS, l_GPRSQueueSto, Q_DIM(l_GPRSQueueSto),
@@ -194,7 +195,7 @@ int main(void) {
 
 #ifdef GPS
 	/**GPS状态机初始化*/
-	Gps_ctor();
+	QGps_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_Gps, AO_PRIO_GPS, l_GPSQueueSto, Q_DIM(l_GPSQueueSto),
@@ -203,7 +204,7 @@ int main(void) {
 
 #ifdef ACCDET
 	/**ACC检测状态机初始化*/
-	ACCDetector_ctor();
+	QACCDetector_ctor();
 
 	/**启动ACC检测状态机*/
 	QActive_start(AO_ACCDetector, AO_PRIO_ACCDET, l_ACCQueueSto,
@@ -212,7 +213,7 @@ int main(void) {
 
 #ifdef CAN
 	/**CAN状态机初始化*/
-	Can_ctor();
+	QCAN_ctor();
 
 	/**启动CAN状态机*/
 	QActive_start(AO_Can, AO_PRIO_CAN, l_CANQueueSto, Q_DIM(l_CANQueueSto),
@@ -221,7 +222,7 @@ int main(void) {
 
 #ifdef LCD
 	/**LCD屏状态机初始化 */
-	LCD_ctor();
+	QLCD_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_LCD, AO_PRIO_LCD, l_LCDQueueSto, Q_DIM(l_LCDQueueSto),
@@ -230,7 +231,7 @@ int main(void) {
 
 #ifdef SENSOR
 	/**LCD屏状态机初始化 */
-	SENSOR_ctor();
+	QSensors_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_Sensors, AO_PRIO_SENSOR, l_SENSORQueueSto,
@@ -239,7 +240,7 @@ int main(void) {
 
 #ifdef VIDEO
 	/**摄像头状态机初始化 */
-	Video_ctor();
+	QVideo_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_Video, AO_PRIO_VIDEO, l_VIDEOQueueSto,
@@ -248,7 +249,7 @@ int main(void) {
 
 #ifdef TTS
 	/**TTS状态机初始化 */
-	TTS_ctor();
+	QTTS_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_TTS, AO_PRIO_TTS, l_TTSQueueSto, Q_DIM(l_TTSQueueSto),
@@ -257,7 +258,7 @@ int main(void) {
 
 #ifdef RECORDER
 	/**TTS状态机初始化 */
-	RECORDER_ctor();
+	QRecorder_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_Recorder, AO_PRIO_RECORDER, l_RECORDQueueSto,
@@ -266,7 +267,7 @@ int main(void) {
 
 #ifdef ICCARD
 	/**IC卡状态机初始化 */
-	ICCARD_ctor();
+	QICcard_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_ICCard, AO_PRIO_IC, l_ICCARDQueueSto,
@@ -275,7 +276,7 @@ int main(void) {
 
 #ifdef PRINTER
 	/**IC卡状态机初始化 */
-	PRINTER_ctor();
+	QPrinter_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_Printer, AO_PRIO_PRINTER, l_PRINTERQueueSto,
@@ -284,7 +285,7 @@ int main(void) {
 
 #ifdef IR
 	/**IC卡状态机初始化 */
-	IR_ctor();
+	QIR_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_IR, AO_PRIO_IR, l_IRQueueSto, Q_DIM(l_IRQueueSto),
@@ -293,7 +294,7 @@ int main(void) {
 
 #ifdef USB
 	/**IC卡状态机初始化 */
-	USB_ctor();
+	QUSB_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_USB, AO_PRIO_USB, l_USBQueueSto, Q_DIM(l_USBQueueSto),
@@ -302,7 +303,7 @@ int main(void) {
 
 #ifdef AUDIO
 	/**IC卡状态机初始化 */
-	AUDIO_ctor();
+	QAudio_ctor();
 
 	/**启动状态机*/
 	QActive_start(AO_Audio, AO_PRIO_AUDIO, l_AUDIOQueueSto,
@@ -311,7 +312,7 @@ int main(void) {
 
 #ifdef UPGRADE
 	/**SD卡升级状态机初始化*/
-	Upgrade_ctor();
+	QUpgrade_ctor();
 
 	/**启动升级状态机*/
 	QActive_start(AO_Upgrade, AO_PRIO_UPGRADE, l_UPGRADEQueueSto,
@@ -319,17 +320,17 @@ int main(void) {
 #endif
 
 	/**系统时间状态机初始化*/
-	Systick_ctor();
+	QSystick_ctor();
 
 	/**启动系统时钟状态机*/
 	QActive_start(AO_Systick, AO_PRIO_SYSTICK, l_SYSTICKQueueSto,
 			Q_DIM(l_SYSTICKQueueSto), (void *) 0, 0U, (QEvt *) 0);
 
 	/**载入系统参数，如失败系统停止运行*/
-	if (!Load_Parameters()) {
-		/**系统参数初始化失败，程序终止*/
-		return -1;
-	}
+//	if (!Load_Parameters()) {
+//		/**系统参数初始化失败，程序终止*/
+//		return -1;
+//	}
 
 	/**嵌套中断向量初始化*/
 	NVIC_Configuration();

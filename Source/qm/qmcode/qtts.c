@@ -45,7 +45,7 @@ static QState QTTS_poweroff(QTTS * const me, QEvt const * const e);
 static QTTS l_tts; /* the single instance of the Table active object */
 
 /* Global-scope objects ----------------------------------------------------*/
-QActive * const AO_tts = &l_tts.super; /* "opaque" AO pointer */
+QActive * const AO_TTS = &l_tts.super; /* "opaque" AO pointer */
 
 /*..........................................................................*/
 /* @(/1/30) ................................................................*/

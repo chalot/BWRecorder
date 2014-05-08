@@ -38,7 +38,7 @@ void CAN_Configuration(void) {
 	CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
 	CAN_InitStructure.CAN_BS1=CAN_BS1_13tq;
 	CAN_InitStructure.CAN_BS2=CAN_BS2_2tq;
-	CAN_InitStructure.CAN_Prescaler=RCC_ClocksStatus.PCLK1_Frequency/(16*250000);//娉㈢壒鐜囪绠楋紝16M/锛�+8+7锛�4=250k
+	CAN_InitStructure.CAN_Prescaler=RCC_ClocksStatus.PCLK1_Frequency/(16*250000);//濞夈垻澹掗悳鍥吀缁犳绱�6M/閿涳拷+8+7閿涳拷4=250k
 
 	CAN_Init(CAN1, &CAN_InitStructure);
 	//CAN filter init
@@ -54,7 +54,7 @@ void CAN_Configuration(void) {
 	CAN_FilterInit(&CAN_FilterInitStructure);
 	CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
 
-	//鏀寔鍙岃矾CAN锛屽垵濮嬪寲CAN2
+	//閺�垱瀵旈崣宀冪熅CAN閿涘苯鍨垫慨瀣CAN2
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
@@ -80,7 +80,7 @@ void CAN_Configuration(void) {
 	CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
 	CAN_InitStructure.CAN_BS1=CAN_BS1_13tq;
 	CAN_InitStructure.CAN_BS2=CAN_BS2_2tq;
-	CAN_InitStructure.CAN_Prescaler=RCC_ClocksStatus.PCLK1_Frequency/(16*250000); //娉㈢壒鐜囪绠楋紝16M/锛�+8+7锛�4=250k
+	CAN_InitStructure.CAN_Prescaler=RCC_ClocksStatus.PCLK1_Frequency/(16*250000); //濞夈垻澹掗悳鍥吀缁犳绱�6M/閿涳拷+8+7閿涳拷4=250k
 	CAN_Init(CAN2, &CAN_InitStructure);
 	/* CAN filter init */
 	CAN_FilterInitStructure.CAN_FilterNumber=14;
@@ -99,13 +99,13 @@ void CAN_Configuration(void) {
 }
 
 /***********************************************************************************************************
- * 鍔熻兘鎻忚堪锛�CAN搴曞眰鐨勫垵濮嬪寲锛屽寘鎷琁O绠¤剼鍒濆鍖栵紝CAN娉㈢壒鐜囩瓑鍒濆鍖�
- * 鍏�   鍙ｏ細	鏃�
- * 鍑�   鍙ｏ細	鏃�
- * 璇�鏄庯細	閲囨牱鐐圭殑璁剧疆锛�J1939鍗忚瑙勫畾CAN鐨勯噰鏍风偣鍦╗75%,87.5%]浣嶇疆锛屾墍浠ヨ缃椂闂翠负15TSeq,鍚屾璺宠浆瀹藉害涓�
- TSeq,BS1璁剧疆涓�2TSeq锛孊S2璁剧疆涓�TSeq銆�
+ * 閸旂喕鍏橀幓蹇氬牚閿涳拷CAN鎼存洖鐪伴惃鍕灥婵瀵查敍灞藉瘶閹风悂O缁犅ゅ壖閸掓繂顫愰崠鏍电礉CAN濞夈垻澹掗悳鍥╃搼閸掓繂顫愰崠锟�
+ * 閸忥拷   閸欙綇绱�閺冿拷
+ * 閸戯拷   閸欙綇绱�閺冿拷
+ * 鐠囷拷閺勫函绱�闁插洦鐗遍悙鍦畱鐠佸墽鐤嗛敍锟絁1939閸楀繗顔呯憴鍕暰CAN閻ㄥ嫰鍣伴弽椋庡仯閸︹晽75%,87.5%]娴ｅ秶鐤嗛敍灞惧娴犮儴顔曠純顔芥闂傜繝璐�5TSeq,閸氬本顒炵捄瀹犳祮鐎硅棄瀹虫稉锟�
+ TSeq,BS1鐠佸墽鐤嗘稉锟�TSeq閿涘瓓S2鐠佸墽鐤嗘稉锟絋Seq閵嗭拷
  ***********************************************************************************************************/
-void CAN_LowLevel_Init(void) {
+void CAN_Lowlevel_Init(void) {
 #if 0
 	GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -151,9 +151,9 @@ void CAN_LowLevel_Init(void) {
 
 #if 0
 	/* CAN Baudrate = 250KBps (CAN clocked at 18 MHz) */
-	CAN_InitStructure.CAN_SJW = CAN_SJW_1tq;	//閲嶆柊鍚屾璺宠穬瀹斤▉(SJW)
-	CAN_InitStructure.CAN_BS1 = CAN_BS1_5tq;//閲囨牱鐐逛綅缃�
-	CAN_InitStructure.CAN_BS2 = CAN_BS2_2tq;//鍙戦�鐐逛綅缃�
+	CAN_InitStructure.CAN_SJW = CAN_SJW_1tq;	//闁插秵鏌婇崥灞绢劄鐠哄疇绌�鏂も枆(SJW)
+	CAN_InitStructure.CAN_BS1 = CAN_BS1_5tq;//闁插洦鐗遍悙閫涚秴缂冿拷
+	CAN_InitStructure.CAN_BS2 = CAN_BS2_2tq;//閸欐垿锟介悙閫涚秴缂冿拷
 	CAN_InitStructure.CAN_Prescaler = 9;
 	CAN_Init(CAN1, &CAN_InitStructure);
 #endif
@@ -200,13 +200,13 @@ void CAN_LowLevel_Init(void) {
 	/* Enable FIFO 0 message pending Interrupt */
 	CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE);
 
-	//鍏堢姝㈡帴鏀�
+	//閸忓牏顩﹀銏″复閺�拷
 	CAN_RecieveDisable();
 
 #endif
 }
 
-//鍙戦�CAN娑堟伅
+//閸欐垿锟紺AN濞戝牊浼�
 BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data,
 		u8 u8DataLength) {
 #if 0
@@ -214,13 +214,13 @@ BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data,
 	uint8_t transmit_mailbox;
 	u8 ret;
 
-	//鍙傛暟妫�煡
+	//閸欏倹鏆熷Λ锟界叀
 	if(pu8Data == NULL || u8DataLength > 8)
 	{
 		return FALSE;
 	}
 
-	//缁撴瀯浣撴竻绌�
+	//缂佹挻鐎担鎾寸缁岋拷
 	ZeroMem((u8*)&tCanTransmitMsg,sizeof(CanTxMsg));
 
 	tCanTransmitMsg.StdId = u32MsgId;
@@ -234,13 +234,13 @@ BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data,
 	{
 		tCanTransmitMsg.IDE = CAN_ID_EXT;
 	}
-	//闈炶繙绋嬪抚
+	//闂堢偠绻欑粙瀣姎
 	tCanTransmitMsg.RTR = 0;
 
-	//鏁版嵁闀垮害
+	//閺佺増宓侀梹鍨
 	tCanTransmitMsg.DLC = u8DataLength;
 
-	//鎷疯礉鏁版嵁
+	//閹风柉绀夐弫鐗堝祦
 	memcpy_(tCanTransmitMsg.Data, pu8Data, u8DataLength);
 
 	transmit_mailbox = CAN_Transmit(CAN1, &tCanTransmitMsg);

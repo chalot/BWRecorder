@@ -11,6 +11,7 @@
 
 #include <stm32f2xx_conf.h>
 #include "parameter.h"
+#include "utility.h"
 
 static tPARAM_SYSTEM_STORAGE tParam_System_St;
 static tPARAM_DEVICE_STORAGE  tParam_Device_St;
@@ -309,7 +310,8 @@ int Save_Params(ePARAMTYPE eType)
  */
 int Get_SystemParam(u32 id, void* val)
 {
-	return (void*)(ADDRESS(id) + 3);
+//	val = (void*)(ADDRESS(id) + 3);
+	return 0;
 }
 
 /**
@@ -464,12 +466,12 @@ int Set_SystemParam(u32 id, u8 len, u8 *pVal)
 
 /**0X005F----0X0063 */
 	case PARAM_PERIODIC_PHOTO_CTRL:///=	0x0064,	定时拍照控制
-		memcpy_(ptParam_System->tPhotoCtrl_Periodic, len, pVal);
-		ENDIAN_U32(ptParam_System->tPhotoCtrl_Periodic);	///转成小端
+		memcpy_((u8*)&ptParam_System->tPhotoCtrl_Periodic, len, pVal);
+		ENDIAN_PU32(&ptParam_System->tPhotoCtrl_Periodic);	///转成小端
 		break;
 	case PARAM_PERDIST_PHOTO_CTRL:///=	0x0065,	定距拍照控制
-		memcpy_(ptParam_System->tPhotoCtrl_Dist, len, pVal);
-		ENDIAN_U32(ptParam_System->tPhotoCtrl_Dist);	///转成小端
+		memcpy_((u8*)&ptParam_System->tPhotoCtrl_Dist, len, pVal);
+		ENDIAN_PU32(&ptParam_System->tPhotoCtrl_Dist);	///转成小端
 		break;
 /**0X0066----0X006F */
 #endif///JTT808_Ver_2013

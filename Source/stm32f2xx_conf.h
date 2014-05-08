@@ -39,7 +39,7 @@
 #include "stm32f2xx_gpio.h"
 #include "stm32f2xx_i2c.h"
 /* #include "stm32f2xx_iwdg.h" */
-/* #include "stm32f2xx_pwr.h" */
+#include "stm32f2xx_pwr.h"
 #include "stm32f2xx_rcc.h"
 /* #include "stm32f2xx_rng.h" */
 #include "stm32f2xx_rtc.h"

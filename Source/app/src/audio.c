@@ -594,7 +594,7 @@ void AUDIO_Init()
 {
 	SPI_InitTypeDef  SPI_InitStructure;
 
-	AUDIO_LowLevel_Init();
+//	AUDIO_Lowlevel_Init();
 
 	/*!< Deselect the FLASH: Chip Select high */
 	AUDIO_CS_HIGH();

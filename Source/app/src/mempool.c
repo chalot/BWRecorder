@@ -63,7 +63,7 @@ int MP_Create() {
 
 	//内存池创建失败，严重错误
 	if (ret < 0) {
-		Trace("\nERROR! mempool create failed!  system should abort");
+		TRACE_(QS_USER, NULL, "\nERROR! mempool create failed!  system should abort");
 		return -1;
 	}
 
@@ -143,7 +143,7 @@ DATANODE* MP_AllocNode() {
 	/*链首为空，致命错误*/
 	if (mp.m_freeHead == NULL) {
 		MUTEX_UNLOCK(mux)
-		Trace("\n ERROR! lost node head!");
+		TRACE_(QS_USER, NULL, "\n ERROR! lost node head!");
 		return NULL ;
 	}
 
@@ -154,7 +154,7 @@ DATANODE* MP_AllocNode() {
 	if (mp.m_freeHead == NULL) {
 		if (mp.m_AllocBlocks == BLOCKS_MAX) //当前已达到系统允许创建的最大块数，则无法再进行内存分配
 		{
-			Trace(
+			TRACE_(QS_USER, NULL,
 					"\n !!!!! warning! mempool is full, can no longer alloc extra mem!");
 			MUTEX_UNLOCK(mux)
 			return NULL ;
@@ -218,7 +218,7 @@ int MP_FreeNode(DATANODE *node) {
 
 	if (mp.m_freeTail->next != NULL)	//致命错误，不应出现
 	{
-		Trace("\n ERROR! Tail is not NULL! something has must been wrong!");
+		TRACE_(QS_USER, NULL, "\n ERROR! Tail is not NULL! something has must been wrong!");
 		MUTEX_UNLOCK(mux)
 		return -1;
 	}
@@ -305,7 +305,7 @@ int main()
 	int ret = pool.Create();
 	if(ret < 0)
 	{
-		Trace("\npool create failed!");
+		TRACE_(QS_USER, NULL, "\npool create failed!");
 		return -1;
 	}
 
@@ -315,7 +315,7 @@ int main()
 	while(node)
 	{
 #ifdef _MPOOL_DEBUG_
-		Trace("\n [%d] node ", *((int*)node->data));
+		TRACE_(QS_USER, NULL, "\n [%d] node ", *((int*)node->data));
 #endif
 		node = node->next;
 	}
@@ -326,17 +326,17 @@ int main()
 		DATANODE *node = pool.AllocNode();
 		if(node == NULL)
 		{
-			Trace("\n !!!! alloc error!");
+			TRACE_(QS_USER, NULL, "\n !!!! alloc error!");
 			break;
 		}
 
-		Trace("\n[%ld] alloc times", i++);
+		TRACE_(QS_USER, NULL, "\n[%ld] alloc times", i++);
 
 		pool.GetState();
 
 		pool.FreeNode(node);
 
-		Trace("\n");
+		TRACE_(QS_USER, NULL, "\n");
 		pool.GetState();
 	}
 
