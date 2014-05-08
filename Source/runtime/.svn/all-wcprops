@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/235/trunk/wCortex_STM32F2xx_Template/Source/runtime
+END
+startup_stm32f2xx.S
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/235/trunk/wCortex_STM32F2xx_Template/Source/runtime/startup_stm32f2xx.S
+END
+syscalls.c
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/235/trunk/wCortex_STM32F2xx_Template/Source/runtime/syscalls.c
+END
