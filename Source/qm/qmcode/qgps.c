@@ -68,6 +68,8 @@ QActive * const AO_Gps = &l_Gps.super; /* "opaque" AO pointer */
 void QGps_ctor(void) {
     QGps *me = &l_Gps;
     QActive_ctor(&me->super, Q_STATE_CAST(&QGps_initial));
+    QTimeEvt_ctor(&me->m_Timer, Q_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_rptTimer, GPS_RPT_TIMEOUT_SIG);
 }
 /* @(/1/12) ................................................................*/
 /* @(/1/12/4) ..............................................................*/

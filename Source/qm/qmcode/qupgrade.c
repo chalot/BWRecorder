@@ -67,6 +67,7 @@ QActive * const AO_Upgrade = &l_Upgrade.super; /* "opaque" AO pointer */
 void QUpgrade_ctor(void) {
     QUpgrade *me = &l_Upgrade;
     QActive_ctor(&me->super, Q_STATE_CAST(&QUpgrade_initial));
+    QTimeEvt_ctor(&me->m_Timer, Q_TIMEOUT_SIG);
 }
 /* @(/1/11) ................................................................*/
 /* @(/1/11/6) ..............................................................*/

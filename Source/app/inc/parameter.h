@@ -535,10 +535,25 @@ enum {
 };
 
 ///各类信息在EEPROM中的存储首地址
-#define EEPROM_ADDR_EVENT		0x3333	///事件信息在EEPROM中首地址#define EEPROM_ADDR_MSGOD_MENU	0x3333	///点播菜单信息在EEPROM中首地址#define EEPROM_ADDR_MSGOD_MSG	0x3333	///点播信息在EEPROM中首地址#define EEPROM_ADDR_PHONEBOOK	0x3333	///电话本在EEPROM中首地址
-#define EEPROM_ADDR_ROUND		0x3333	///圆形区域在EEPROM中首地址#define EEPROM_ADDR_RECTANGLE	0x3333	///矩形区域在EEPROM中首地址#define EEPROM_ADDR_POLYGON		0x3333	///多边形区域在EEPROM中首地址
-#define EVT_MSG_SIZE			50 	///事件内容最大长度#define EVT_ITEM_SIZE			50	///事件最大个数#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度#define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数#define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长数#define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长数#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数
-#define ROUND_AREA_ITEM_SIZE	50	///圆形区域项总数#define RECT_AREA_ITEM_SIZE		50	///矩形区域项总数#define POLYGON_AREA_ITEM_SIZE	50	///多边形区域项总数
+#define EEPROM_ADDR_EVENT		0x3333	///事件信息在EEPROM中首地址
+#define EEPROM_ADDR_MSGOD_MENU	0x3333	///点播菜单信息在EEPROM中首地址
+#define EEPROM_ADDR_MSGOD_MSG	0x3333	///点播信息在EEPROM中首地址
+#define EEPROM_ADDR_PHONEBOOK	0x3333	///电话本在EEPROM中首地址
+#define EEPROM_ADDR_ROUND		0x3333	///圆形区域在EEPROM中首地址
+#define EEPROM_ADDR_RECTANGLE	0x3333	///矩形区域在EEPROM中首地址
+#define EEPROM_ADDR_POLYGON		0x3333	///多边形区域在EEPROM中首地址
+
+#define EVT_MSG_SIZE			50 	///事件内容最大长度
+#define EVT_ITEM_SIZE			50	///事件最大个数
+#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度
+#define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数
+#define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长数
+#define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数
+#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长数
+#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数
+#define ROUND_AREA_ITEM_SIZE	50	///圆形区域项总数
+#define RECT_AREA_ITEM_SIZE		50	///矩形区域项总数
+#define POLYGON_AREA_ITEM_SIZE	50	///多边形区域项总数
 ///事件项索引
 typedef struct {
 	u8 u8Id;	///事件ID,若终端已有同ID的事件，则被覆盖
@@ -595,12 +610,14 @@ typedef struct {
 ///电话本存储格式
 typedef struct {
 	u32 prefix;	///前缀
-	tMSGODMSG_HEADINFO headInfo;
+	tPHONEBOOK_HEADINFO headInfo;
 	u8 u8CRC; ///校验码
 } tPARAM_PHONEBOOK_HEADINFO_STORAGE;
 
 /** 电话本 **/
-#define		PHONE_NUM_SIZE		16		///电话号码长度#define		PHONE_NAME_SIZE		0xFF	///姓名长度#define		PHONE_ITEM_SIZE		50		///电话号码数目
+#define		PHONE_NUM_SIZE		16		///电话号码长度
+#define		PHONE_NAME_SIZE		0xFF	///姓名长度
+#define		PHONE_ITEM_SIZE		50		///电话号码数目
 ///电话号码项
 typedef struct {
 	u8 u8Flag;		///1：呼入；2：呼出；3：呼入/呼出
@@ -652,7 +669,8 @@ typedef struct {
 } tPARAM_RECTAREA_STORAGE;
 
 /** 多边形区域 **************************************************************/
-#define PARAM_POLYGONAREA_ITEMS_MAX	24 ///最大项目条数#define PARAM_POLYGONAREA_POINT_MAX	40 ///多边形定点数
+#define PARAM_POLYGONAREA_ITEMS_MAX	24 ///最大项目条数
+#define PARAM_POLYGONAREA_POINT_MAX	40 ///多边形定点数
 /**项扩展结构体，存储格式，增加项有效标志*/
 typedef struct {
 	u8 u8IsValid;	///有效标志，0：无效，1：有效，默认有效；增加此字段是区别该区域是否被删除

@@ -1982,11 +1982,18 @@ QACTIVE_POST(AO_Gprs, (QEvt*)pe, (void*)0);
   </class>
   <operation name="QGprs_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QGprs *me = &amp;l_Gprs;
-QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QGprs_initial));</code>
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QGprs_initial));
+QTimeEvt_ctor(&amp;me-&gt;m_Timer, Q_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_LEDTimer, GPRS_LED_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_retrieveTimer, GPRS_RETRIEVE_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_PingTimer, GPRS_PING_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_retrieveTimer, GPRS_RETRIEVE_TIMEOUT_SIG);</code>
   </operation>
   <operation name="QGps_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QGps *me = &amp;l_Gps;
-QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QGps_initial));</code>
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QGps_initial));
+QTimeEvt_ctor(&amp;me-&gt;m_Timer, Q_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_rptTimer, GPS_RPT_TIMEOUT_SIG);</code>
   </operation>
   <operation name="QExtSignals_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QExtSignals *me = &amp;l_ExtSignals;
@@ -2002,7 +2009,8 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QVideo_initial));</code>
   </operation>
   <operation name="QUpgrade_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QUpgrade *me = &amp;l_Upgrade;
-QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QUpgrade_initial));</code>
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QUpgrade_initial));
+QTimeEvt_ctor(&amp;me-&gt;m_Timer, Q_TIMEOUT_SIG);</code>
   </operation>
   <operation name="QSystick_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QSystick *me = &amp;l_Systick;
@@ -2024,10 +2032,7 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QTTS_initial));</code>
    <documentation>初始化状态机</documentation>
    <code>QCAN *me = &amp;l_Can;
 QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QCAN_initial));
-
-//QTimeEvt_ctor(&amp;me-&gt;m_rptTimer, VMS_DATAFLOW_TIMEOUT_SIG);
-//QTimeEvt_ctor(&amp;me-&gt;m_tickTimer, PER_SECOND_SIG);
-//QTimeEvt_ctor(&amp;me-&gt;m_hangTimer, CAN_CONFLICT_TIMEOUT_SIG);</code>
+QTimeEvt_ctor(&amp;me-&gt;m_tickTimer, PER_SECOND_SIG);</code>
   </operation>
   <operation name="QACCDetector_ctor" type="void" visibility="0x00" properties="0x00">
    <documentation>ACC检测初始化</documentation>
@@ -2366,6 +2371,8 @@ $define(AOs::QTTS)</text>
 #include &quot;parameter.h&quot;
 #include &quot;qevents.h&quot;
 #include &quot;type.h&quot;
+#include &quot;mempool.h&quot;
+#include &quot;trace.h&quot;
 
 Q_DEFINE_THIS_MODULE(&quot;qcan.c&quot;)
 

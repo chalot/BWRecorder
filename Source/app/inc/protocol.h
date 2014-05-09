@@ -141,7 +141,8 @@ typedef struct {
 	u8 aType[20];		///终端型号20 个字节，此终端型号由制造商自行定义，位数不足时，后补“0X00”。
 	u8 aTId[7];		///终端ID
 	u8 u8PlateColor;		///车牌颜色，按照JT/T415-2006 的5.4.12。未上牌时，取值为0。
-#endif///JTT808_Ver_2013} tTerminalInfo_Base;
+#endif///JTT808_Ver_2013
+} tTerminalInfo_Base;
 
 /** 8.5 终端注册 消息ID：0x0100。**************************************************/
 ///终端注册消息结构体定义
@@ -570,10 +571,38 @@ typedef struct {
 
 #endif///JTT808_Ver_2013
 /**报警标志位定义*/
-#define WARNING_Emergency		((u32)0x00000001)	///1：紧急报警，触动报警开关后触发 收到应答后清零#define WARNING_Overspeed		(((u32)0x00000001) << 1)	///1：超速报警 标志维持至报警条件解除#define WARNING_Fatigure		(((u32)0x00000001) << 2)	///2 1：疲劳驾驶 标志维持至报警条件解除#define WARNING_PreDangerous	(((u32)0x00000001) << 3)	///3 1：危险预警 收到应答后清零#define WARNING_GNSS_Module_Fault		(((u32)0x00000001) << 4)	///4 1：GNSS 模块发生故障 标志维持至报警条件解除#define WARNING_GNSS_Antena_Breakdown	(((u32)0x00000001) << 5)	///5 1：GNSS 天线未接或被剪断 标志维持至报警条件解除#define WARNING_GNSS_Antena_ShortCircuit	(((u32)0x00000001) << 6)	///6 1：GNSS 天线短路 标志维持至报警条件解除#define WARNING_MPwr_LowVoltage		(((u32)0x00000001) << 7)	///7 1：终端主电源欠压 标志维持至报警条件解除#define WARNING_MPwr_poweroff		(((u32)0x00000001) << 8)	///8 1：终端主电源掉电 标志维持至报警条件解除#define WARNING_LCD_Fault		(((u32)0x00000001) << 9)	///9 1：终端LCD 或显示器故障 标志维持至报警条件解除#define WARNING_TTS_Fault		(((u32)0x00000001) << 10)	///10 1：TTS 模块故障 标志维持至报警条件解除#define WARNING_Video_Fault		(((u32)0x00000001) << 11)	///11 1：摄像头故障 标志维持至报警条件解除#ifdef JTT808_Ver_2013
-#define WARNING_IC_Fault		(((u32)0x00000001) << 12)	///12 1：道路运输证IC 卡模块故障 标志维持至报警条件解除#define WARNING_PreOverspeed	(((u32)0x00000001) << 13)	///13 1：超速预警 标志维持至报警条件解除#define WARNING_PreFatigure		(((u32)0x00000001) << 14)	///14 1：疲劳驾驶预警 标志维持至报警条件解除#endif///JTT808_Ver_2013#define WARNING_TOUT_Driving_day	(((u32)0x00000001) << 18)	///18 1：当天累计驾驶超时 标志维持至报警条件解除#define WARNING_TOUT_Stopping		(((u32)0x00000001) << 19)	///19 1：超时停车 标志维持至报警条件解除#define WARNING_CrossBarrier		(((u32)0x00000001) << 20)	///20 1：进出区域 收到应答后清零#define WARNING_CrossPath		(((u32)0x00000001) << 21)	///21 1：进出路线 收到应答后清零#define WARNING_DriveTime_NotEnough	(((u32)0x00000001) << 22)	///22 1：路段行驶时间不足/过长 收到应答后清零#define WARNING_Path_Deviate		(((u32)0x00000001) << 23)	///23 1：路线偏离报警 标志维持至报警条件解除#define WARNING_Vechicle_VSS_Fault		(((u32)0x00000001) << 24)	///24 1：车辆VSS 故障 标志维持至报警条件解除#define WARNING_Vechicle_Oil_Fault		(((u32)0x00000001) << 25)	///25 1：车辆油量异常 标志维持至报警条件解除#define WARNING_Vechicle_Stolen		(((u32)0x00000001) << 26)	///26 1：车辆被盗(通过车辆防盗器) 标志维持至报警条件解除#define WARNING_Vechicle_Illegical_Launch	(((u32)0x00000001) << 27)	///27 1：车辆非法点火 收到应答后清零#define WARNING_Vechicle_Illegical_Moving	(((u32)0x00000001) << 28)	///28 1：车辆非法位移 收到应答后清零#define WARNING_Vechicle_PreCollision	(((u32)0x00000001) << 29)	///29 1：碰撞预警 标志维持至报警条件解除///#define warning_reserved_30_31	: 	2;	///30-31保留
+#define WARNING_Emergency		((u32)0x00000001)	///1：紧急报警，触动报警开关后触发 收到应答后清零
+#define WARNING_Overspeed		(((u32)0x00000001) << 1)	///1：超速报警 标志维持至报警条件解除
+#define WARNING_Fatigure		(((u32)0x00000001) << 2)	///2 1：疲劳驾驶 标志维持至报警条件解除
+#define WARNING_PreDangerous	(((u32)0x00000001) << 3)	///3 1：危险预警 收到应答后清零
+#define WARNING_GNSS_Module_Fault		(((u32)0x00000001) << 4)	///4 1：GNSS 模块发生故障 标志维持至报警条件解除
+#define WARNING_GNSS_Antena_Breakdown	(((u32)0x00000001) << 5)	///5 1：GNSS 天线未接或被剪断 标志维持至报警条件解除
+#define WARNING_GNSS_Antena_ShortCircuit	(((u32)0x00000001) << 6)	///6 1：GNSS 天线短路 标志维持至报警条件解除
+#define WARNING_MPwr_LowVoltage		(((u32)0x00000001) << 7)	///7 1：终端主电源欠压 标志维持至报警条件解除
+#define WARNING_MPwr_poweroff		(((u32)0x00000001) << 8)	///8 1：终端主电源掉电 标志维持至报警条件解除
+#define WARNING_LCD_Fault		(((u32)0x00000001) << 9)	///9 1：终端LCD 或显示器故障 标志维持至报警条件解除
+#define WARNING_TTS_Fault		(((u32)0x00000001) << 10)	///10 1：TTS 模块故障 标志维持至报警条件解除
+#define WARNING_Video_Fault		(((u32)0x00000001) << 11)	///11 1：摄像头故障 标志维持至报警条件解除
 #ifdef JTT808_Ver_2013
-#define WARNING_Vechicle_PreSidestroke		(((u32)0x00000001) << 30)	///30 1：侧翻预警 标志维持至报警条件解除#define WARNING_Vechicle_Illegical_DoorOpen		(((u32)0x00000001) << 31)	///31 1：非法开门报警（终端未设置区域时，不判断非法开门）收到应答后清零#endif ///JTT808_Ver_2013
+#define WARNING_IC_Fault		(((u32)0x00000001) << 12)	///12 1：道路运输证IC 卡模块故障 标志维持至报警条件解除
+#define WARNING_PreOverspeed	(((u32)0x00000001) << 13)	///13 1：超速预警 标志维持至报警条件解除
+#define WARNING_PreFatigure		(((u32)0x00000001) << 14)	///14 1：疲劳驾驶预警 标志维持至报警条件解除
+#endif///JTT808_Ver_2013
+#define WARNING_TOUT_Driving_day	(((u32)0x00000001) << 18)	///18 1：当天累计驾驶超时 标志维持至报警条件解除
+#define WARNING_TOUT_Stopping		(((u32)0x00000001) << 19)	///19 1：超时停车 标志维持至报警条件解除
+#define WARNING_CrossBarrier		(((u32)0x00000001) << 20)	///20 1：进出区域 收到应答后清零
+#define WARNING_CrossPath		(((u32)0x00000001) << 21)	///21 1：进出路线 收到应答后清零
+#define WARNING_DriveTime_NotEnough	(((u32)0x00000001) << 22)	///22 1：路段行驶时间不足/过长 收到应答后清零
+#define WARNING_Path_Deviate		(((u32)0x00000001) << 23)	///23 1：路线偏离报警 标志维持至报警条件解除
+#define WARNING_Vechicle_VSS_Fault		(((u32)0x00000001) << 24)	///24 1：车辆VSS 故障 标志维持至报警条件解除
+#define WARNING_Vechicle_Oil_Fault		(((u32)0x00000001) << 25)	///25 1：车辆油量异常 标志维持至报警条件解除
+#define WARNING_Vechicle_Stolen		(((u32)0x00000001) << 26)	///26 1：车辆被盗(通过车辆防盗器) 标志维持至报警条件解除
+#define WARNING_Vechicle_Illegical_Launch	(((u32)0x00000001) << 27)	///27 1：车辆非法点火 收到应答后清零
+#define WARNING_Vechicle_Illegical_Moving	(((u32)0x00000001) << 28)	///28 1：车辆非法位移 收到应答后清零
+#define WARNING_Vechicle_PreCollision	(((u32)0x00000001) << 29)	///29 1：碰撞预警 标志维持至报警条件解除///#define warning_reserved_30_31	: 	2;	///30-31保留
+#ifdef JTT808_Ver_2013
+#define WARNING_Vechicle_PreSidestroke		(((u32)0x00000001) << 30)	///30 1：侧翻预警 标志维持至报警条件解除
+#define WARNING_Vechicle_Illegical_DoorOpen		(((u32)0x00000001) << 31)	///31 1：非法开门报警（终端未设置区域时，不判断非法开门）收到应答后清零#endif ///JTT808_Ver_2013
 /**报警标志位定义*/
 typedef struct {
 	u32 warning_Emergency :1;	///1：紧急报警，触动报警开关后触发 收到应答后清零
@@ -614,7 +643,8 @@ typedef struct {
 #ifdef JTT808_Ver_2013
 	u32 warning_Vechicle_PreSidestroke :1;	///30 1：侧翻预警 标志维持至报警条件解除
 	u32 warning_Vechicle_Illegical_DoorOpen :1;	///31 1：非法开门报警（终端未设置区域时，不判断非法开门）收到应答后清零
-#endif///JTT808_Ver_2013} tWARNINGSTATE;
+#endif///JTT808_Ver_2013
+} tWARNINGSTATE;
 
 /**状态位定义*/
 typedef struct {
@@ -706,7 +736,22 @@ typedef struct {
 } tAppendInfo_DrivingTimeInadequetWarning;
 
 /**扩展车辆信号状态位*/
-#define VECHICLE_EXTSIG_CloseLight	((u32)0x00000001)	///0 1：近光灯信号#define VECHICLE_EXTSIG_FarLight	(((u32)0x00000001) << 1)	///1 1：远光灯信号#define VECHICLE_EXTSIG_RightLight	(((u32)0x00000001) << 2)	///2 1：右转向灯信号#define VECHICLE_EXTSIG_LeftLight	(((u32)0x00000001) << 3)	///3 1：左转向灯信号#define VECHICLE_EXTSIG_StopLight	(((u32)0x00000001) << 4)	///4 1：制动信号#define VECHICLE_EXTSIG_ReverseGearLight	(((u32)0x00000001) << 5)	///5 1：倒档信号#define VECHICLE_EXTSIG_FogLight	(((u32)0x00000001) << 6)	///6 1：雾灯信号#define VECHICLE_EXTSIG_WideLight	(((u32)0x00000001) << 7)	///7 1：示廓灯#define VECHICLE_EXTSIG_SpeakerLight	(((u32)0x00000001) << 8)	///8 1：喇叭信号#define VECHICLE_EXTSIG_AirConditionLight	(((u32)0x00000001) << 9)	///9 1：空调状态#define VECHICLE_EXTSIG_NullGearLight	(((u32)0x00000001) << 10)	///10 1：空挡信号#define VECHICLE_EXTSIG_RetardWorking	(((u32)0x00000001) << 11)	///11 1：缓速器工作#define VECHICLE_EXTSIG_ABSWorking	(((u32)0x00000001) << 12)	///12 1：ABS 工作#define VECHICLE_EXTSIG_HeatWorking	(((u32)0x00000001) << 13)	///13 1：加热器工作#define VECHICLE_EXTSIG_ClutchState	(((u32)0x00000001) << 14)	///14 1：离合器状态/**15-31 保留*/
+#define VECHICLE_EXTSIG_CloseLight	((u32)0x00000001)	///0 1：近光灯信号
+#define VECHICLE_EXTSIG_FarLight	(((u32)0x00000001) << 1)	///1 1：远光灯信号
+#define VECHICLE_EXTSIG_RightLight	(((u32)0x00000001) << 2)	///2 1：右转向灯信号
+#define VECHICLE_EXTSIG_LeftLight	(((u32)0x00000001) << 3)	///3 1：左转向灯信号
+#define VECHICLE_EXTSIG_StopLight	(((u32)0x00000001) << 4)	///4 1：制动信号
+#define VECHICLE_EXTSIG_ReverseGearLight	(((u32)0x00000001) << 5)	///5 1：倒档信号
+#define VECHICLE_EXTSIG_FogLight	(((u32)0x00000001) << 6)	///6 1：雾灯信号
+#define VECHICLE_EXTSIG_WideLight	(((u32)0x00000001) << 7)	///7 1：示廓灯
+#define VECHICLE_EXTSIG_SpeakerLight	(((u32)0x00000001) << 8)	///8 1：喇叭信号
+#define VECHICLE_EXTSIG_AirConditionLight	(((u32)0x00000001) << 9)	///9 1：空调状态
+#define VECHICLE_EXTSIG_NullGearLight	(((u32)0x00000001) << 10)	///10 1：空挡信号
+#define VECHICLE_EXTSIG_RetardWorking	(((u32)0x00000001) << 11)	///11 1：缓速器工作
+#define VECHICLE_EXTSIG_ABSWorking	(((u32)0x00000001) << 12)	///12 1：ABS 工作
+#define VECHICLE_EXTSIG_HeatWorking	(((u32)0x00000001) << 13)	///13 1：加热器工作
+#define VECHICLE_EXTSIG_ClutchState	(((u32)0x00000001) << 14)	///14 1：离合器状态
+/**15-31 保留*/
 
 /**IO 状态位*/
 #define VECHICLE_IOSTATE_DeepSleep	((u16)0x00000001)	///0 1：深度休眠状态#define VECHICLE_IOSTATE_Sleep		(((u16)0x00000001) << 1)	///1 1：休眠状态/**2-15 保留*/
@@ -886,7 +931,9 @@ typedef struct {
 
 /**8.26 提问下发 *************************************************************/
 ///文本信息含义定义
-#define	QUESTION_TYPE_ERGENT			0X01	///紧急#define	QUESTION_TYPE_TTS_READ			0X08	///终端TTS播读#define	QUESTION_TYPE_DISPLAY			0X10	///广告屏显示
+#define	QUESTION_TYPE_ERGENT			0X01	///紧急
+#define	QUESTION_TYPE_TTS_READ			0X08	///终端TTS播读
+#define	QUESTION_TYPE_DISPLAY			0X10	///广告屏显示
 ///提问下发候选答案消息体数据格式
 typedef struct {
 	u8 u8AnswerId;			///答案ID

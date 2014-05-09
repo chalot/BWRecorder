@@ -22,6 +22,8 @@
 #include "parameter.h"
 #include "qevents.h"
 #include "type.h"
+#include "mempool.h"
+#include "trace.h"
 
 Q_DEFINE_THIS_MODULE("qcan.c")
 
@@ -71,10 +73,7 @@ QActive * const AO_Can = &l_Can.super; /* "opaque" AO pointer */
 void QCAN_ctor(void) {
     QCAN *me = &l_Can;
     QActive_ctor(&me->super, Q_STATE_CAST(&QCAN_initial));
-
-    //QTimeEvt_ctor(&me->m_rptTimer, VMS_DATAFLOW_TIMEOUT_SIG);
-    //QTimeEvt_ctor(&me->m_tickTimer, PER_SECOND_SIG);
-    //QTimeEvt_ctor(&me->m_hangTimer, CAN_CONFLICT_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_tickTimer, PER_SECOND_SIG);
 }
 /* @(/1/7) .................................................................*/
 /* @(/1/7/6) ...............................................................*/

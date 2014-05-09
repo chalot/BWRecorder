@@ -13,10 +13,14 @@
 #pragma	pack(1)
 
 //短信编码方式
-#define CODE_GB2312								0x00				//GB2312#define CODE_UNICODE							0x03				//Unicode
-#define	TTS_BUFFER_SIZE							500					//TTS缓区最大长度#define	TTS_FRAME_SIZE							204					//一帧最大长度
-#define	TIMEOUT_TTS_RESET						1					//芯片复位低电平持续时间，10ms#define	TIMEOUT_TTS_SLEEP						30//120					//芯片进入休眠持续时间，2分钟
-#define	TTS_AUDIO_ON							1					//打开语音输出#define	TTS_AUDIO_OFF							0					//关闭语音输出
+#define CODE_GB2312								0x00				//GB2312
+#define CODE_UNICODE							0x03				//Unicode
+#define	TTS_BUFFER_SIZE							500					//TTS缓区最大长度
+#define	TTS_FRAME_SIZE							204					//一帧最大长度
+#define	TIMEOUT_TTS_RESET						1					//芯片复位低电平持续时间，10ms
+#define	TIMEOUT_TTS_SLEEP						30//120					//芯片进入休眠持续时间，2分钟
+#define	TTS_AUDIO_ON							1					//打开语音输出
+#define	TTS_AUDIO_OFF							0					//关闭语音输出
 //模块电源状态
 typedef enum {
 	_ePOWER_ON = 0,													//正常上电

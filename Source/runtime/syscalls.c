@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include "stm32f2xx.h" /* for _get_PSP() from core_cm3.h*/
 #include "bsp.h"
+#include "stm32f2xx_conf.h"
 
 #define MEMCPY(dst,src,len)             MEM_DataCopy(dst,src,len)
 #define SMEMCPY(dst,src,len)            MEM_DataCopy(dst,src,len)

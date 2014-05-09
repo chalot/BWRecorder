@@ -25,8 +25,9 @@ Q_DEFINE_THIS_MODULE("gprs.c")
 
 static volatile u8 s_csq = 0; //当前信号强度
 
-#define		GPRS_MAIN_ID		0	//主连接号
-#define		GPRS_VICE_ID		1	//辅助连接号#define 	SOCKET_ID			0
+#define		GPRS_MAIN_ID		0	//主连接号
+#define		GPRS_VICE_ID		1	//辅助连接号
+#define 	SOCKET_ID			0
 
 //串口收发缓区
 #define RX_BUF_SIZE		1024
@@ -38,10 +39,10 @@ static tCOMM Comm_Tx;  //发送缓区
 static tCOMM Comm_Rx;  //发送缓区
 
 //接收数据帧处理缓区
-#define BUFFER_LENGTH_GPRSFRAMERx 1024
+#define BUFFER_LENGTH_GPRSFRAMERx 			1024
 static u8 au8Buffer_GPRSFrameRx[BUFFER_LENGTH_GPRSFRAMERx];
 
-#define CHAR_CR 	0x0D  //回车
+#define CHAR_CR 	0x0D  //回车
 #define CHAR_LF 	0x0A  //换行/*AT命令*/
 const char* ATCMD[] = {
 /*基本配置命令*/

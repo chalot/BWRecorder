@@ -167,6 +167,11 @@ QActive * const AO_Gprs = &l_Gprs.super; /* "opaque" AO pointer */
 void QGprs_ctor(void) {
     QGprs *me = &l_Gprs;
     QActive_ctor(&me->super, Q_STATE_CAST(&QGprs_initial));
+    QTimeEvt_ctor(&me->m_Timer, Q_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_LEDTimer, GPRS_LED_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_retrieveTimer, GPRS_RETRIEVE_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_PingTimer, GPRS_PING_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_retrieveTimer, GPRS_RETRIEVE_TIMEOUT_SIG);
 }
 /* @(/1/8) .................................................................*/
 /* @(/1/8/23) ..............................................................*/

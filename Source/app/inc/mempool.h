@@ -107,7 +107,7 @@ DATANODE* MP_AllocNode();
 /*
  * 释放存储单元
  */
-int MP_FreeNode();
+int MP_FreeNode(DATANODE *node);
 
 /*
  * 分配块
@@ -120,7 +120,7 @@ int MP_AllocBlock();
 DATANODE* MP_GetAllocNodeHead();
 
 /*
- * 减少节点引用
+ * 节点引用数减1
  */
 void MP_DecountReference(DATANODE* pNode);
 

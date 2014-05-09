@@ -86,8 +86,7 @@ RTC_DateTypeDef RTC_DateStruct;		//日期信息
 __IO uint16_t u16Pwr_ADC3ConvertedValue = 0; 	///电源AD检测值
 
 /**本地函数声明***************************************************************************/
-static void COM_Lowlevel_Init(COM_TypeDef COM,
-		USART_InitTypeDef* USART_InitStruct);
+static void COM_Lowlevel_Init(COM_TypeDef COM, USART_InitTypeDef* USART_InitStruct);
 static void NVIC_ADC_IRQSet(CONTROL cntl);
 static void RTC_Configuration();
 static void Relay_Lowlevel_Init();
@@ -756,7 +755,7 @@ void COM_Lowlevel_Init(COM_TypeDef COM, USART_InitTypeDef* USART_InitStruct) {
  * 外设初始化
  *
  */
-void Periph_Lowlevel_Config() {
+void Periph_Lowlevel_Init() {
 	Relay_Lowlevel_Init();
 	PWR_Lowlevel_Init();
 	PWR_ADC_Lowlevel_Init();

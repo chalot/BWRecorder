@@ -81,10 +81,10 @@
 #define AUDIO
 
 /**
- * AO优先级 ,启动各状态机，注意优先级数值越大，状态机优先级越高
+ * AO优先级，优先级数值越大，状态机优先级越高，注意AO优先级必须>0
  */
 enum {
-	AO_PRIO_GPRS = 0,
+	AO_PRIO_GPRS = 1,
 	AO_PRIO_GPS,
 	AO_PRIO_CAN,
 	AO_PRIO_LCD,

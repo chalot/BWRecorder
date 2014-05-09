@@ -37,6 +37,8 @@
 #include "qs.h"
 #include <qevt.h>
 #include <stm32_eval.h>
+#include <trace.h>
+#include <type.h>
 
 Q_DEFINE_THIS_FILE
 
@@ -76,8 +78,6 @@ static uint32_t l_nTicks;
 //        PHILO_STAT = QS_USER
 //    };
 #endif
-
-
 
 static u8 g_bReadyForSleepMode = 0; //是否准备好进入休眠模式
 static u32 s_Ticks = 0; //当前时刻数
@@ -136,6 +136,8 @@ BOOL IsSystemReadyForSleep()
 	return FALSE;
 }
 
+static volatile u32 ticks = 0;
+
 /*..........................................................................*/
 void SysTick_Handler(void) __attribute__((__interrupt__));
 void SysTick_Handler(void) {
@@ -147,6 +149,10 @@ void SysTick_Handler(void) {
 
     QF_TICK(&l_SysTick_Handler);           /* process all armed time events */
 
+    if(ticks++ % 100 == 0)
+    {
+    	TRACE_(QS_USER, NULL, "cur tick = %d", ticks);
+    }
     QK_ISR_EXIT();                         /* inform QK-nano about ISR exit */
 }
 
@@ -272,18 +278,18 @@ void QK_onIdle(void) {
     QF_INT_ENABLE();
 
 #ifdef Q_SPY
-//
-//    if ((USART3->SR & USART_FLAG_TXE) != 0) {              /* is TXE empty? */
-//        uint16_t b;
-//
-//        QF_INT_DISABLE();
-//        b = QS_getByte();
-//        QF_INT_ENABLE();
-//
-//        if (b != QS_EOD) {                              /* not End-Of-Data? */
-//           USART3->DR = (b & 0xFF);             /* put into the DR register */
-//        }
-//    }
+
+    if ((USART3->SR & USART_FLAG_TXE) != 0) {              /* is TXE empty? */
+        uint16_t b;
+
+        QF_INT_DISABLE();
+        b = QS_getByte();
+        QF_INT_ENABLE();
+
+        if (b != QS_EOD) {                              /* not End-Of-Data? */
+           USART3->DR = (b & 0xFF);             /* put into the DR register */
+        }
+    }
 
 #elif defined NDEBUG
     __WFI();                                          /* wait for interrupt */
@@ -324,41 +330,51 @@ uint8_t QS_onStartup(void const *arg) {
                                                  /* setup the QS filters... */
     QS_FILTER_ON(QS_ALL_RECORDS);
 
-    QS_FILTER_OFF(QS_QF_ACTIVE_ADD);
-    QS_FILTER_OFF(QS_QF_ACTIVE_REMOVE);
-    QS_FILTER_OFF(QS_QF_ACTIVE_SUBSCRIBE);
-    QS_FILTER_OFF(QS_QF_ACTIVE_UNSUBSCRIBE);
-    QS_FILTER_OFF(QS_QF_ACTIVE_POST_FIFO);
-    QS_FILTER_OFF(QS_QF_ACTIVE_POST_LIFO);
-    QS_FILTER_OFF(QS_QF_ACTIVE_GET);
-    QS_FILTER_OFF(QS_QF_ACTIVE_GET_LAST);
-    QS_FILTER_OFF(QS_QF_EQUEUE_INIT);
-    QS_FILTER_OFF(QS_QF_EQUEUE_POST_FIFO);
-    QS_FILTER_OFF(QS_QF_EQUEUE_POST_LIFO);
-    QS_FILTER_OFF(QS_QF_EQUEUE_GET);
-    QS_FILTER_OFF(QS_QF_EQUEUE_GET_LAST);
-    QS_FILTER_OFF(QS_QF_MPOOL_INIT);
-    QS_FILTER_OFF(QS_QF_MPOOL_GET);
-    QS_FILTER_OFF(QS_QF_MPOOL_PUT);
-    QS_FILTER_OFF(QS_QF_PUBLISH);
-    QS_FILTER_OFF(QS_QF_NEW);
-    QS_FILTER_OFF(QS_QF_GC_ATTEMPT);
-    QS_FILTER_OFF(QS_QF_GC);
-//    QS_FILTER_OFF(QS_QF_TICK);
-    QS_FILTER_OFF(QS_QF_TIMEEVT_ARM);
-    QS_FILTER_OFF(QS_QF_TIMEEVT_AUTO_DISARM);
-    QS_FILTER_OFF(QS_QF_TIMEEVT_DISARM_ATTEMPT);
-    QS_FILTER_OFF(QS_QF_TIMEEVT_DISARM);
-    QS_FILTER_OFF(QS_QF_TIMEEVT_REARM);
-    QS_FILTER_OFF(QS_QF_TIMEEVT_POST);
-    QS_FILTER_OFF(QS_QF_CRIT_ENTRY);
-    QS_FILTER_OFF(QS_QF_CRIT_EXIT);
-    QS_FILTER_OFF(QS_QF_ISR_ENTRY);
-    QS_FILTER_OFF(QS_QF_ISR_EXIT);
+ //    QS_FILTER_OFF(QS_QEP_STATE_EMPTY);
+     QS_FILTER_OFF(QS_QEP_STATE_ENTRY);
+     QS_FILTER_OFF(QS_QEP_STATE_EXIT);
+     QS_FILTER_OFF(QS_QEP_STATE_INIT);
+     QS_FILTER_OFF(QS_QEP_INIT_TRAN);
+     QS_FILTER_OFF(QS_QEP_INTERN_TRAN);
+     QS_FILTER_OFF(QS_QEP_TRAN);
+ //    QS_FILTER_OFF(QS_QEP_IGNORED);
+     QS_FILTER_OFF(QS_QEP_DISPATCH);
 
-//    QS_FILTER_OFF(QS_QK_MUTEX_LOCK);
-//    QS_FILTER_OFF(QS_QK_MUTEX_UNLOCK);
-    QS_FILTER_OFF(QS_QK_SCHEDULE);
+     QS_FILTER_OFF(QS_QF_ACTIVE_ADD);
+     QS_FILTER_OFF(QS_QF_ACTIVE_REMOVE);
+     QS_FILTER_OFF(QS_QF_ACTIVE_SUBSCRIBE);
+     QS_FILTER_OFF(QS_QF_ACTIVE_UNSUBSCRIBE);
+     QS_FILTER_OFF(QS_QF_ACTIVE_POST_FIFO);
+     QS_FILTER_OFF(QS_QF_ACTIVE_POST_LIFO);
+     QS_FILTER_OFF(QS_QF_ACTIVE_GET);
+     QS_FILTER_OFF(QS_QF_ACTIVE_GET_LAST);
+     QS_FILTER_OFF(QS_QF_EQUEUE_INIT);
+     QS_FILTER_OFF(QS_QF_EQUEUE_POST_FIFO);
+     QS_FILTER_OFF(QS_QF_EQUEUE_POST_LIFO);
+     QS_FILTER_OFF(QS_QF_EQUEUE_GET);
+     QS_FILTER_OFF(QS_QF_EQUEUE_GET_LAST);
+     QS_FILTER_OFF(QS_QF_MPOOL_INIT);
+     QS_FILTER_OFF(QS_QF_MPOOL_GET);
+     QS_FILTER_OFF(QS_QF_MPOOL_PUT);
+     QS_FILTER_OFF(QS_QF_PUBLISH);
+     QS_FILTER_OFF(QS_QF_NEW);
+     QS_FILTER_OFF(QS_QF_GC_ATTEMPT);
+     QS_FILTER_OFF(QS_QF_GC);
+     QS_FILTER_OFF(QS_QF_TICK);
+     QS_FILTER_OFF(QS_QF_TIMEEVT_ARM);
+     QS_FILTER_OFF(QS_QF_TIMEEVT_AUTO_DISARM);
+     QS_FILTER_OFF(QS_QF_TIMEEVT_DISARM_ATTEMPT);
+     QS_FILTER_OFF(QS_QF_TIMEEVT_DISARM);
+     QS_FILTER_OFF(QS_QF_TIMEEVT_REARM);
+     QS_FILTER_OFF(QS_QF_TIMEEVT_POST);
+     QS_FILTER_OFF(QS_QF_CRIT_ENTRY);
+     QS_FILTER_OFF(QS_QF_CRIT_EXIT);
+     QS_FILTER_OFF(QS_QF_ISR_ENTRY);
+     QS_FILTER_OFF(QS_QF_ISR_EXIT);
+
+     QS_FILTER_OFF(QS_QK_MUTEX_LOCK);
+     QS_FILTER_OFF(QS_QK_MUTEX_UNLOCK);
+     QS_FILTER_OFF(QS_QK_SCHEDULE);
 
     return (uint8_t)1;                                    /* return success */
 }

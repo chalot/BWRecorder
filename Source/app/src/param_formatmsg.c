@@ -42,10 +42,11 @@ typedef struct {
 	u8 *pStorageAddr;
 } tINDEXPROPERTY;
 
-static const tINDEXPROPERTY tIndexProp[] = { { PARAM_FORMATMSG_EVT,
+static const tINDEXPROPERTY tIndexProp[] = { {
+		PARAM_FORMATMSG_EVT,
 		sizeof(tPARAM_EVT_HEADINFO_STORAGE), EEPROM_ADDR_EVENT,
-		EVT_MSG_SIZE, EVT_ITEM_SIZE, &tParam_Evt_St }, {
-		PARAM_FORMATMSG_MSGOD_MENU, sizeof(tPARAM_MSGOD_MENU_HEADINFO_STORAGE),
+		EVT_MSG_SIZE, EVT_ITEM_SIZE, &tParam_Evt_St }, {PARAM_FORMATMSG_MSGOD_MENU,
+				sizeof(tPARAM_MSGOD_MENU_HEADINFO_STORAGE),
 		EEPROM_ADDR_MSGOD_MENU, MSGOD_MENU_MSG_SIZE, MSGOD_MENU_ITEM_SIZE,
 		&tParam_MsgOD_Menu_St }, { PARAM_FORMATMSG_MSGOD_MSG,
 		sizeof(tPARAM_MSGOD_MSG_HEADINFO_STORAGE), EEPROM_ADDR_MSGOD_MSG,
@@ -84,7 +85,7 @@ int PARAM_FormatMsg_GetHead(u8 type) {
 		return -ERR_EEPROM_RW;
 
 	///索引头校验
-	if (CheckCRC(*(tIndexProp[type].pStorageAddr + CRC_STORAGE_OFFSET(type)),///索引头CRC位置
+	if (CheckCRC(*(tIndexProp[type].pStorageAddr + CRC_STORAGE_OFFSET(type)), ///索引头CRC位置
 			tIndexProp[type].pStorageAddr, tIndexProp[type].u16StorageSize - 1))
 		return 0;
 
