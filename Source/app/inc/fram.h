@@ -1,4 +1,4 @@
-/** @file eeprom.h
+/** @file FRAM.h
  * @brief brief description
  * @author <gao zhengdong, zhengdgao@163.com>
  * @date 2014年3月25日下午2:56:07
@@ -6,18 +6,18 @@
  * @note
  * detailed description
  */
-#ifndef EEPROM_H_
-#define EEPROM_H_
+#ifndef FRAM_H_
+#define FRAM_H_
 
 #include <stm32f2xx_conf.h>
 
 void FRAM_Lowlevel_Init();
-int EEPROM_Init();
-int EEPROM_WriteByte(u32 address, u8 data);
-int EEPROM_WriteBuffer(u32 address, u8 *pBuf, u16 u16BufLen);
-int EEPROM_ReadByte(u32 address, u8 *pData);
-int EEPROM_ReadBuffer(u32 address, u8 *pBuf, u16 u16DataLen);
-int EEPROM_EraseBytes(u32 address, u16 size);
-int EEPROM_ReadBufferCRC(u32 address, u16 u16DataLen, u8 *pu8CRC);
+int FRAM_Init();
+int FRAM_WriteByte(u32 address, u8 data);
+int FRAM_WriteBuffer(u32 address, u8 *pBuf, u16 u16BufLen);
+int FRAM_ReadByte(u32 address, u8 *pData);
+int FRAM_ReadBuffer(u32 address, u8 *pBuf, u16 u16DataLen);
+int FRAM_EraseBytes(u32 address, u16 size);
+int FRAM_ReadBufferCRC(u32 address, u16 u16DataLen, u8 *pu8CRC);
 
-#endif /* EEPROM_H_ */
+#endif /* FRAM_H_ */

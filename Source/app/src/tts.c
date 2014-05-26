@@ -283,8 +283,7 @@ void TTS_SendByte(u8 u8Data) {
  * @param u8RepeatInterval	重复间隔
  * @param u8ReadTimes		重复朗读次数
  */
-void TTS_Speak(u8 u8CodeType, u8 *pTxt, u8 u8TxtLen, u8 u8RepeatInterval,
-		u8 u8ReadTimes) {
+void TTS_Speak(u8 u8CodeType, u8 *pTxt, u8 u8TxtLen, u8 u8RepeatInterval, u8 u8ReadTimes) {
 	_tTTSFRAMETYPE tFrame;
 
 	//无发送内容，返回
@@ -489,12 +488,14 @@ void T1_Voice_Interrupt(void) {
 			if (tTTSFSM.u8SendBitsCount == 0) {
 				//拉低数据线，发送起始位
 				GPIO_ResetBits(TTS_TX_PORT, TTS_TX_PIN);
-			} else {
+			}
+			else {
 				//开始发送数据位
 				if (tTTSFSM.u8SendingData & 0x01) {
 					//拉高数据线，发送数据“1”
 					GPIO_SetBits(TTS_TX_PORT, TTS_TX_PIN);
-				} else {
+				}
+				else {
 					//拉低数据线，发送数据“0”
 					GPIO_ResetBits(TTS_TX_PORT, TTS_TX_PIN);
 				}
@@ -518,7 +519,8 @@ void T1_Voice_Interrupt(void) {
 			tTTSFSM.eCMD_Type = T1_CMD_IDLE;
 			return;
 		}
-	} else {
+	}
+	else {
 		//取下一字节发送
 		if (tTTSFSM.u8CurSendByte <= tTTSFSM.u8MsgLen - 1) {
 			tTTSFSM.u8SendingData = tTTSFSM.u8Msg[tTTSFSM.u8CurSendByte++];

@@ -41,14 +41,10 @@ __IO uint16_t u16Key_ADC3ConvertedValue = 0; 	///电源AD检测值
  * @return	BOOL,TRUE:表示采样值在有效范围内，FALSE:表示采样值无效
  */
 BOOL Key_ADInrange(u16 u16Sample) {
-	if ((( _KEY_AD_OK_ + _KEY_AD_OFFSET_ > u16Sample)
-			&& ( _KEY_AD_OK_ - _KEY_AD_OFFSET_ < u16Sample))
-			|| (( _KEY_AD_UP_ + _KEY_AD_OFFSET_ > u16Sample)
-					&& ( _KEY_AD_UP_ - _KEY_AD_OFFSET_ < u16Sample))
-			|| (( _KEY_AD_DOWN_ + _KEY_AD_OFFSET_ > u16Sample)
-					&& ( _KEY_AD_DOWN_ - _KEY_AD_OFFSET_ < u16Sample))
-			|| (( _KEY_AD_MENU_ + _KEY_AD_OFFSET_ > u16Sample)
-					&& ( _KEY_AD_MENU_ - _KEY_AD_OFFSET_ < u16Sample))) {
+	if ((( _KEY_AD_OK_ + _KEY_AD_OFFSET_ > u16Sample) && ( _KEY_AD_OK_ - _KEY_AD_OFFSET_ < u16Sample))
+			|| ((_KEY_AD_UP_ + _KEY_AD_OFFSET_ > u16Sample) && (_KEY_AD_UP_ - _KEY_AD_OFFSET_ < u16Sample))
+			|| ((_KEY_AD_DOWN_ + _KEY_AD_OFFSET_ > u16Sample) && (_KEY_AD_DOWN_ - _KEY_AD_OFFSET_ < u16Sample))
+			|| ((_KEY_AD_MENU_ + _KEY_AD_OFFSET_ > u16Sample) && (_KEY_AD_MENU_ - _KEY_AD_OFFSET_ < u16Sample))) {
 		return TRUE;
 	}
 
@@ -63,19 +59,19 @@ BOOL Key_ADInrange(u16 u16Sample) {
  */
 eKEY Key_GetCode(u16 u16Sample) {
 
-	if (( _KEY_AD_OK_ + _KEY_AD_OFFSET_ > u16Sample)
-			&& ( _KEY_AD_OK_ - _KEY_AD_OFFSET_ < u16Sample)) {
+	if (( _KEY_AD_OK_ + _KEY_AD_OFFSET_ > u16Sample) && ( _KEY_AD_OK_ - _KEY_AD_OFFSET_ < u16Sample)) {
 		return KEY_OK;
-	} else if (( _KEY_AD_UP_ + _KEY_AD_OFFSET_ > u16Sample)
-			&& ( _KEY_AD_UP_ - _KEY_AD_OFFSET_ < u16Sample)) {
+	}
+	else if ((_KEY_AD_UP_ + _KEY_AD_OFFSET_ > u16Sample) && (_KEY_AD_UP_ - _KEY_AD_OFFSET_ < u16Sample)) {
 		return KEY_UP;
-	} else if (( _KEY_AD_DOWN_ + _KEY_AD_OFFSET_ > u16Sample)
-			&& ( _KEY_AD_DOWN_ - _KEY_AD_OFFSET_ < u16Sample)) {
+	}
+	else if ((_KEY_AD_DOWN_ + _KEY_AD_OFFSET_ > u16Sample) && (_KEY_AD_DOWN_ - _KEY_AD_OFFSET_ < u16Sample)) {
 		return KEY_DOWN;
-	} else if (( _KEY_AD_MENU_ + _KEY_AD_OFFSET_ > u16Sample)
-			&& ( _KEY_AD_MENU_ - _KEY_AD_OFFSET_ < u16Sample)) {
+	}
+	else if ((_KEY_AD_MENU_ + _KEY_AD_OFFSET_ > u16Sample) && (_KEY_AD_MENU_ - _KEY_AD_OFFSET_ < u16Sample)) {
 		return KEY_MENU;
-	} else {
+	}
+	else {
 		return KEY_UNKNOWN;
 	}
 }
@@ -223,8 +219,7 @@ void Key_LowLevel_Init() {
 	/* DMA2 Stream0 channel2 configuration **************************************/
 	DMA_InitStructure.DMA_Channel = DMA_Channel_2;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) ADC3_DR_ADDRESS;
-	DMA_InitStructure.DMA_Memory0BaseAddr =
-			(uint32_t) &u16Key_ADC3ConvertedValue;
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t) &u16Key_ADC3ConvertedValue;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
 	DMA_InitStructure.DMA_BufferSize = 1;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -277,7 +272,10 @@ void Key_LowLevel_Init() {
 	/* Start ADC3 Software Conversion */
 	ADC_SoftwareStartConv(ADC3);
 
+
 #if 0
+	///不带DMA版本
+
 	ADC_InitTypeDef ADC_InitStructure;
 	ADC_CommonInitTypeDef ADC_CommonInitStructure;
 	//	DMA_InitTypeDef       DMA_InitStructure;

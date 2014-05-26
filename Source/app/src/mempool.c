@@ -62,8 +62,7 @@ int MP_Create() {
 
 	//内存池创建失败，严重错误
 	if (ret < 0) {
-		TRACE_(QS_USER, NULL,
-				"\nERROR! mempool create failed!  system should abort");
+		TRACE_(QS_USER, NULL, "\nERROR! mempool create failed!  system should abort");
 		return -1;
 	}
 
@@ -154,8 +153,7 @@ DATANODE* MP_AllocNode() {
 	if (mp.m_freeHead == NULL) {
 		if (mp.m_AllocBlocks == BLOCKS_MAX) //当前已达到系统允许创建的最大块数，则无法再进行内存分配
 		{
-			TRACE_(QS_USER, NULL,
-					"\n !!!!! warning! mempool is full, can no longer alloc extra mem!");
+			TRACE_(QS_USER, NULL, "\n !!!!! warning! mempool is full, can no longer alloc extra mem!");
 			MUTEX_UNLOCK(mux)
 			return NULL ;
 		}
@@ -184,7 +182,8 @@ DATANODE* MP_AllocNode() {
 		mp.m_allocTail = pNode;
 		pNode->next = NULL;
 		pNode->prev = pNode;
-	} else //分配链表飞空，挂到链表尾，使用双向链表
+	}
+	else //分配链表飞空，挂到链表尾，使用双向链表
 	{
 		mp.m_allocTail->next = pNode;
 		pNode->next = NULL;
@@ -218,8 +217,7 @@ int MP_FreeNode(DATANODE *node) {
 
 	if (mp.m_freeTail->next != NULL)	//致命错误，不应出现
 	{
-		TRACE_(QS_USER, NULL,
-				"\n ERROR! Tail is not NULL! something has must been wrong!");
+		TRACE_(QS_USER, NULL, "\n ERROR! Tail is not NULL! something has must been wrong!");
 		MUTEX_UNLOCK(mux)
 		return -1;
 	}
@@ -266,9 +264,8 @@ int MP_Clear() {
 
 void MP_GetState() {
 #if 1
-	TRACE_(QS_USER, NULL,
-			"-------- MEMPOOL: allocNodes = %d, freeNodes = %d, totalNodes = %d",
-			mp.m_AllocNodes, mp.m_FreeNodes, mp.m_TotalAllocNodes);
+	TRACE_(QS_USER, NULL, "-------- MEMPOOL: allocNodes = %d, freeNodes = %d, totalNodes = %d", mp.m_AllocNodes,
+			mp.m_FreeNodes, mp.m_TotalAllocNodes);
 #endif
 }
 

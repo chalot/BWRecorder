@@ -21,11 +21,7 @@ enum {
 };
 
 ///各类信息在EEPROM中的存储首地址
-#define EEPROM_ADDR_EVENT		0x333	///事件信息在EEPROM中首地址#define EEPROM_ADDR_MSGOD_MENU	0x333	///点播菜单信息在EEPROM中首地址#define EEPROM_ADDR_MSGOD_MSG	0x333	///点播信息在EEPROM中首地址#define EEPROM_ADDR_PHONEBOOK	0x333	///电话本在EEPROM中首地址
-#define EEPROM_ADDR_ROUND		0x333	///电话本在EEPROM中首地址#define EEPROM_ADDR_RECTANGLE	0x333	///电话本在EEPROM中首地址#define EEPROM_ADDR_POLYGON		0x333	///电话本在EEPROM中首地址
-#define EVT_MSG_SIZE			50 	///事件内容最大长度#define EVT_ITEM_SIZE			50	///事件最大个数#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度#define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数#define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长数#define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长数#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数
-///事件项索引
-typedef struct
+#define EEPROM_ADDR_EVENT		0x333	///事件信息在EEPROM中首地址#define EEPROM_ADDR_MSGOD_MENU	0x333	///点播菜单信息在EEPROM中首地址#define EEPROM_ADDR_MSGOD_MSG	0x333	///点播信息在EEPROM中首地址#define EEPROM_ADDR_PHONEBOOK	0x333	///电话本在EEPROM中首地址#define EEPROM_ADDR_ROUND		0x333	///电话本在EEPROM中首地址#define EEPROM_ADDR_RECTANGLE	0x333	///电话本在EEPROM中首地址#define EEPROM_ADDR_POLYGON		0x333	///电话本在EEPROM中首地址#define EVT_MSG_SIZE			50 	///事件内容最大长度#define EVT_ITEM_SIZE			50	///事件最大个数#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度#define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数#define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长数#define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长数#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数///事件项索引typedef struct
 {
 	u8 u8Id;	///事件ID,若终端已有同ID的事件，则被覆盖
 	u8 u8Len;///事件信息实际长度

@@ -42,8 +42,7 @@ typedef enum {
 //	u32	tick;			/*收发时刻，单位0.1ms。发送时，填充实际发送时刻值；接收时，填充实际接收时刻值*/
 //} CANRAWFRAME;
 
-BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data,
-		u8 u8DataLength);
+BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data, u8 u8DataLength);
 
 /**
  * @Func	打印帧详细信息
@@ -59,4 +58,4 @@ void CAN_Lowlevel_Init();
 
 #pragma		pack()
 
-#endif  //_GPS_VDR_CAN_INTERFACE_H__
+#endif  //_GPS_VDR_CAN_INTERFACE_H__

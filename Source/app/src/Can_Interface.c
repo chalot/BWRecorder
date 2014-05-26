@@ -207,8 +207,7 @@ void CAN_Lowlevel_Init(void) {
 }
 
 //閸欐垿锟紺AN濞戝牊浼�
-BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data,
-		u8 u8DataLength) {
+BOOL CAN_Send_Msg(u32 u32MsgId, eCANIDType eIdType, u8* pu8Data, u8 u8DataLength) {
 #if 0
 	CanTxMsg tCanTransmitMsg;
 	uint8_t transmit_mailbox;

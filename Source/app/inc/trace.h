@@ -13,12 +13,7 @@
 #include "qp_port.h"
 
 #define UART_TRACE  USART2 	//打印信息输出串口号
-#define TRACE_BUFSIZE	512		//打印串口缓区容量
-/*输出单个字符*/
-//#define PUTCHAR(c) Trace_SendData((u8*)&c, 1)
-/*输出字符串*/
-//#define PUTSTRING(c) Trace_SendData((u8*)&c[0], strlen(c))
-/*不用库函数实现可变长打印输出函数*/
+#define TRACE_BUFSIZE	512		//打印串口缓区容量/*输出单个字符*///#define PUTCHAR(c) Trace_SendData((u8*)&c, 1)/*输出字符串*///#define PUTSTRING(c) Trace_SendData((u8*)&c[0], strlen(c))/*不用库函数实现可变长打印输出函数*/
 //
 /**
  * @Func	格式化字符串
@@ -27,7 +22,8 @@
  * 			...			[in]	变成参数
  * @Ret		无
  */
-void sprintf_(u8 *pBuf, const char *format, ...);
+void
+sprintf_(u8 *pBuf, const char *format, ...);
 
 /**
  * @Func	打印帧详细信息
@@ -36,7 +32,8 @@ void sprintf_(u8 *pBuf, const char *format, ...);
  * 			format		[in]	格式化字符串
  * @Ret		无
  */
-void TRACE_(u8 eState, QActive* pAO, const char *format, ...);
+void
+TRACE_(u8 eState, QActive* pAO, const char *format, ...);
 
 /**
  * @Func	不用库函数实现可变长打印输出函数
@@ -44,7 +41,8 @@ void TRACE_(u8 eState, QActive* pAO, const char *format, ...);
  * 			...			[in]	变成参数
  * @Ret		无
  */
-void TRACE(const char *format, ...);
+void
+TRACE(const char *format, ...);
 
 /**
  * @Func	打印帧详细信息
@@ -52,7 +50,8 @@ void TRACE(const char *format, ...);
  * @Ret		无
  */
 //void TRACE_CANRawFrame(CANRAWFRAME *pFrame);
-void TRACE_RAW_BUFFER(u8 *pMsg, u16 msgLen);
+void
+TRACE_RAW_BUFFER(u8 *pMsg, u16 msgLen);
 
 #if 0
 /**

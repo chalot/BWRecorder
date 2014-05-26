@@ -149,8 +149,7 @@ u8 MISC_CalcuDayofWeek(u16 u16Year, u8 u8Month, u8 u8Day) {
  */
 BOOL MISC_IsLeapYear(u16 u16Year) {
 	//是闰年否(能被4整除但不能被100整除，或者能被400整除)?
-	return ((!(u16Year % 4) && (u16Year % 100)) || !(u16Year % 400)) ?
-			TRUE : FALSE;
+	return ((!(u16Year % 4) && (u16Year % 100)) || !(u16Year % 400)) ? TRUE : FALSE;
 }
 
 /**
@@ -164,14 +163,16 @@ u8 MISC_DaysofMonth(u16 u16Year, u8 u8Month) {
 	if (2 == u8Month) {
 		if (MISC_IsLeapYear(u16Year)) {
 			return 29;
-		} else {
+		}
+		else {
 			return 28;
 		}
-	} else if ((1 == u8Month) || (3 == u8Month) || (5 == u8Month)
-			|| (7 == u8Month) || (8 == u8Month) || (10 == u8Month)
+	}
+	else if ((1 == u8Month) || (3 == u8Month) || (5 == u8Month) || (7 == u8Month) || (8 == u8Month) || (10 == u8Month)
 			|| (12 == u8Month)) {
 		return 31;
-	} else {
+	}
+	else {
 		return 30;
 	}
 }
@@ -256,7 +257,8 @@ u8 CalculateCRC8(u8* pu8Buffer, u16 u16Size) {
 			//输入二进制流(bit0)与CRC-bit0异或
 			if ((u8Code ^ u8CRC) & 0x01) {
 				u8CRC = ((u8CRC ^ 0x18) >> 1) | 0x80;
-			} else {
+			}
+			else {
 				u8CRC >>= 1;
 			}
 

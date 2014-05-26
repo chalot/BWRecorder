@@ -83,7 +83,8 @@ void test_py(u8 *inputstr)
 	{
 		printf("\r\n输入数字为:%s\r\n",inputstr);
 		printf("部分匹配结果:%s,%s\r\n",t9.pymb[0]->py,t9.pymb[0]->pymb);
-	} else
+	}
+	else
 	{
 		printf("\r\n输入数字为:%s\r\n",inputstr);
 		printf("完全匹配的结果:\r\n");

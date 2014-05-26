@@ -167,27 +167,19 @@ void BSP_init(void) {
     }
 #endif
 
-//	/* initialize LEDs, Key Button, and LCD on STM322XX-EVAL board */
-//	BSP_ButtonAndLED_Init();
-//
-//	/* initialize the Serial for printfs to the serial port */
+    RCC_APBClockEnable();
+
+
 	BSP_USART_Init(); ///使能调试串口，开发板上是USART3
-//
-//	/* initialize the EXTI Line0 interrupt used for testing */
-//	BSP_EXTI_Init();
-//
-//	//TODO: Remove this once we go to real board
-//	BSP_Display_Init(); 	/* initialize the LCD */
-//
-//	/* initialize the ETH GPIO */
-//	ETH_GPIO_Config();
-//
-//	/* initialize the ETH MACDMA */
-//	ETH_MACDMA_Config();
 
-//	QS_OBJ_DICTIONARY(&l_SysTick_Handler);
+	Periph_Lowlevel_Init();	///所有外设初始化
+
+
+	EXTI_Configuration();
+
+	NVIC_Configuration();
+
 }
-
 
 /*..........................................................................*/
 void BSP_USART_Init(void) {
@@ -211,7 +203,6 @@ void BSP_USART_Init(void) {
 
 	STM_EVAL_COMInit(COM1, &USART_InitStructure);
 }
-
 /*..........................................................................*/
 void BSP_EXTI_Init(void) {
 	EXTI_InitTypeDef exti_init;
@@ -222,15 +213,6 @@ void BSP_EXTI_Init(void) {
 //	exti_init.EXTI_Line    = EXTI_Line0;
 //	exti_init.EXTI_LineCmd = ENABLE;
 //	EXTI_Init(&exti_init);
-}
-
-/*..........................................................................*/
-void BSP_Display_Init(void) {
-//
-//    STM322xG_LCD_Init();                              /* initialize the LCD */
-//    LCD_Clear(White);                                      /* clear the LCD */
-//    LCD_SetBackColor(Grey);
-//    LCD_SetTextColor(Black);
 }
 
 /*..........................................................................*/

@@ -10,6 +10,7 @@
 #define MUTEX_H_
 
 #include "qp_port.h"
+
 #if 0
 #define PRIO_CEILING	2
 

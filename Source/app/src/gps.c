@@ -31,7 +31,8 @@ Q_DEFINE_THIS_MODULE("gps.c")
 
 //#define TRACE_GPS	//打印GPS接收信息
 
-#define _GPS_RESPONSE_NUMBER_ 7	//GPS NMEA响应帧类型数
+#define _GPS_RESPONSE_NUMBER_ 7	//GPS NMEA响应帧类型数
+
 //GPS响应字符串
 char* GPS_ResponseString[_GPS_RESPONSE_NUMBER_] = { "$GPRMC",	//GPS输出00：推荐定位信息
 		"$GPGGA",		//GPS输出01：GPS定位信息
@@ -56,11 +57,14 @@ typedef enum {
 
 } _eGPS_RESPONSE_;
 
-#define		_GPS_NMEA_MSG_LEN_MAX_		500		//NMEA协议帧最大长度#define		_GPS_MSG_QUENE_LEN_			1024	//消息队列长度static u8 aMsg_Buffer[_GPS_NMEA_MSG_LEN_MAX_];	//NMEA协议数据帧临时缓存
+#define		_GPS_NMEA_MSG_LEN_MAX_		500		//NMEA协议帧最大长度
+#define		_GPS_MSG_QUENE_LEN_			1024	//消息队列长度
+static u8 aMsg_Buffer[_GPS_NMEA_MSG_LEN_MAX_];	//NMEA协议数据帧临时缓存
 static u8 *rpcGPSMessage = NULL;
 
 //串口收发缓区
-#define RX_BUF_SIZE		1024	//接收缓区长度static u8 buf_Rx[RX_BUF_SIZE];	//接收缓区
+#define RX_BUF_SIZE		1024	//接收缓区长度
+static u8 buf_Rx[RX_BUF_SIZE];	//接收缓区
 static tCOMM Comm_Rx;  			//接收缓区
 
 static _tGPSInfo tGpsInfo;	//GPS实时数据
@@ -131,7 +135,6 @@ void GPS_HandleMsg() {
 	u16 write = Comm_Rx.write;
 
 	do {
-
 		msgLen = GPS_RetrieveMessage(aMsg_Buffer, Comm_Rx.read, write);
 		if (msgLen > 0) {
 			aMsg_Buffer[msgLen] = '\0';
@@ -1689,4 +1692,3 @@ void GPS_Lowlevel_Init() {
 	USART_Configuration(COM_GPS, 9600);
 
 }
-

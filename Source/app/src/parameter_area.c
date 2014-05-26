@@ -5,6 +5,7 @@
  * @version V1.0
  * @note
  * 圆形区域、矩形区域、多边形区域，统一操作接口
+ * 数据存储在FRAM内
  */
 
 #include <parameter.h>
@@ -32,16 +33,16 @@ typedef struct {
 	u8 u8ItemAmount;
 } PARAM_AREA_CONFIG;
 
-static PARAM_AREA_CONFIG tConf[] = { { EEPROM_ADDR_RECTANGLE,
-		&tParam_RectArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
-		sizeof(tItem_RectArea_Ext), RECT_AREA_ITEM_SIZE }, { EEPROM_ADDR_ROUND,
-		&tParam_RoundArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
-		sizeof(tItem_RoundArea_Ext), ROUND_AREA_ITEM_SIZE }, {
-		EEPROM_ADDR_POLYGON, &tParam_PolygonArea_St,
-		sizeof(tPARAM_RECTAREA_STORAGE), sizeof(tItem_Polygon_Ex),
-		POLYGON_AREA_ITEM_SIZE }, { EEPROM_ADDR_POLYGON, &tParam_Route_St,
-		sizeof(tPARAM_ROUTE_STORAGE), sizeof(tITEM_CORNERPOINT_Ex),
-		PARAM_ROUTE_ITEM_MAX }, };
+static PARAM_AREA_CONFIG tConf[] = {
+		{ EEPROM_ADDR_RECTANGLE, &tParam_RectArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
+									sizeof(tItem_RectArea_Ext), RECT_AREA_ITEM_SIZE },
+		{ EEPROM_ADDR_ROUND, &tParam_RoundArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
+									sizeof(tItem_RoundArea_Ext), ROUND_AREA_ITEM_SIZE },
+		{ EEPROM_ADDR_POLYGON, &tParam_PolygonArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
+									sizeof(tItem_Polygon_Ex), POLYGON_AREA_ITEM_SIZE },
+		{ EEPROM_ADDR_POLYGON, &tParam_Route_St, sizeof(tPARAM_ROUTE_STORAGE),
+				sizeof(tITEM_CORNERPOINT_Ex), PARAM_ROUTE_ITEM_MAX },
+};
 
 ///取项中第一个字节，有效标志
 #define IS_VALID(type, i)	(*(tConf[type].pStorageAddr + 1 + 1 + i * tConf[type].u16ItemSize))
@@ -66,8 +67,7 @@ int PARAM_Area_Load(u8 type) {
 
 	ZeroMem((u8*) tConf[type].pStorageAddr, tConf[type].u16StorageSize);
 
-	iRet = EEPROM_ReadBuffer(tConf[type].u32EEPROMAddr,
-			(u8*) tConf[type].pStorageAddr, tConf[type].u16StorageSize);
+	iRet = EEPROM_ReadBuffer(tConf[type].u32EEPROMAddr, (u8*) tConf[type].pStorageAddr, tConf[type].u16StorageSize);
 
 	if (iRet == -1)
 		return -ERR_EEPROM_RW;
@@ -75,8 +75,7 @@ int PARAM_Area_Load(u8 type) {
 	u8CRC = *(tConf[type].pStorageAddr + tConf[type].u16StorageSize - 1);
 
 	///内容校验
-	iRet = CheckCRC(u8CRC, (u8*) tConf[type].pStorageAddr,
-			tConf[type].u16StorageSize - 1);
+	iRet = CheckCRC(u8CRC, (u8*) tConf[type].pStorageAddr, tConf[type].u16StorageSize - 1);
 
 	if (0 == iRet)
 		return ERR_EEPROM_CRC;
@@ -113,14 +112,12 @@ int PARAM_Area_Save(u8 type) {
 	if (type >= PARAM_AREA_END)
 		return -ERR_PARAM_INVALID;
 
-	ret = EEPROM_WriteBuffer(tConf[type].u32EEPROMAddr,
-			tConf[type].pStorageAddr, tConf[type].u16StorageSize);
+	ret = EEPROM_WriteBuffer(tConf[type].u32EEPROMAddr, tConf[type].pStorageAddr, tConf[type].u16StorageSize);
 
 	if (ret == -1)
 		return -ERR_EEPROM_RW;
 
-	ret = EEPROM_ReadBufferCRC(tConf[type].u32EEPROMAddr,
-			tConf[type].u16StorageSize, &crc_eeprom);
+	ret = EEPROM_ReadBufferCRC(tConf[type].u32EEPROMAddr, tConf[type].u16StorageSize, &crc_eeprom);
 	if (ret == -1)
 		return -ERR_EEPROM_RW;
 
@@ -211,8 +208,6 @@ int PARAM_Area_ReplaceItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen) {
  *
  * @param type
  * @param u32Id
- * @param pItem
- * @param u16ItemLen
  * @return
  */
 int PARAM_Area_DeleteItem(u8 type, u32 u32Id) {

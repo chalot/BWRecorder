@@ -32,48 +32,38 @@
 #include <board.h>
 
 /**串口定义*/
-static const COM_ConfigDef COM_Config[COMn] = { { .UART = GSM_COM, .COM_CLK =
-		GSM_COM_CLK, .COM_TX_PIN = GSM_COM_TX_PIN, .COM_TX_GPIO_PORT =
-		GSM_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK = GSM_COM_TX_GPIO_CLK,
-		.COM_TX_SOURCE = GSM_COM_TX_SOURCE, .COM_TX_AF = GSM_COM_TX_AF,
-		.COM_RX_PIN = GSM_COM_RX_PIN, .COM_RX_GPIO_PORT = GSM_COM_RX_GPIO_PORT,
-		.COM_RX_GPIO_CLK = GSM_COM_RX_GPIO_CLK, .COM_RX_SOURCE =
-				GSM_COM_RX_SOURCE, .COM_RX_AF = GSM_COM_RX_AF, .COM_IRQn =
-				GSM_COM_IRQn },
+static const COM_ConfigDef COM_Config[COMn] = { { .UART = GSM_COM, .COM_CLK = GSM_COM_CLK, .COM_TX_PIN = GSM_COM_TX_PIN,
+		.COM_TX_GPIO_PORT = GSM_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK = GSM_COM_TX_GPIO_CLK, .COM_TX_SOURCE =
+		GSM_COM_TX_SOURCE, .COM_TX_AF = GSM_COM_TX_AF, .COM_RX_PIN = GSM_COM_RX_PIN, .COM_RX_GPIO_PORT =
+		GSM_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK = GSM_COM_RX_GPIO_CLK, .COM_RX_SOURCE =
+		GSM_COM_RX_SOURCE, .COM_RX_AF = GSM_COM_RX_AF, .COM_IRQn =
+		GSM_COM_IRQn },
 
-{ .UART = GPS_COM, .COM_CLK = GPS_COM_CLK, .COM_TX_PIN = GPS_COM_TX_PIN,
-		.COM_TX_GPIO_PORT = GPS_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
-				GPS_COM_TX_GPIO_CLK, .COM_TX_SOURCE = GPS_COM_TX_SOURCE,
-		.COM_TX_AF = GPS_COM_TX_AF, .COM_RX_PIN = GPS_COM_RX_PIN,
-		.COM_RX_GPIO_PORT = GPS_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
-				GPS_COM_RX_GPIO_CLK, .COM_RX_SOURCE = GPS_COM_RX_SOURCE,
-		.COM_RX_AF = GPS_COM_RX_AF, .COM_IRQn = GPS_COM_IRQn },
+{ .UART = GPS_COM, .COM_CLK = GPS_COM_CLK, .COM_TX_PIN = GPS_COM_TX_PIN, .COM_TX_GPIO_PORT = GPS_COM_TX_GPIO_PORT,
+		.COM_TX_GPIO_CLK =
+		GPS_COM_TX_GPIO_CLK, .COM_TX_SOURCE = GPS_COM_TX_SOURCE, .COM_TX_AF = GPS_COM_TX_AF, .COM_RX_PIN =
+		GPS_COM_RX_PIN, .COM_RX_GPIO_PORT = GPS_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
+		GPS_COM_RX_GPIO_CLK, .COM_RX_SOURCE = GPS_COM_RX_SOURCE, .COM_RX_AF = GPS_COM_RX_AF, .COM_IRQn = GPS_COM_IRQn },
 
-{ .UART = VIDEO1_COM, .COM_CLK = VIDEO1_COM_CLK,
-		.COM_TX_PIN = VIDEO1_COM_TX_PIN, .COM_TX_GPIO_PORT =
-				VIDEO1_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
-				VIDEO1_COM_TX_GPIO_CLK, .COM_TX_SOURCE = VIDEO1_COM_TX_SOURCE,
-		.COM_TX_AF = VIDEO1_COM_TX_AF, .COM_RX_PIN = VIDEO1_COM_RX_PIN,
-		.COM_RX_GPIO_PORT = VIDEO1_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
-				VIDEO1_COM_RX_GPIO_CLK, .COM_RX_SOURCE = VIDEO1_COM_RX_SOURCE,
-		.COM_RX_AF = VIDEO1_COM_RX_AF, .COM_IRQn = VIDEO1_COM_IRQn },
+{ .UART = VIDEO1_COM, .COM_CLK = VIDEO1_COM_CLK, .COM_TX_PIN = VIDEO1_COM_TX_PIN, .COM_TX_GPIO_PORT =
+VIDEO1_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
+VIDEO1_COM_TX_GPIO_CLK, .COM_TX_SOURCE = VIDEO1_COM_TX_SOURCE, .COM_TX_AF = VIDEO1_COM_TX_AF, .COM_RX_PIN =
+VIDEO1_COM_RX_PIN, .COM_RX_GPIO_PORT = VIDEO1_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
+VIDEO1_COM_RX_GPIO_CLK, .COM_RX_SOURCE = VIDEO1_COM_RX_SOURCE, .COM_RX_AF = VIDEO1_COM_RX_AF, .COM_IRQn =
+VIDEO1_COM_IRQn },
 
-{ .UART = VIDEO2_COM, .COM_CLK = VIDEO2_COM_CLK,
-		.COM_TX_PIN = VIDEO2_COM_TX_PIN, .COM_TX_GPIO_PORT =
-				VIDEO2_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
-				VIDEO2_COM_TX_GPIO_CLK, .COM_TX_SOURCE = VIDEO2_COM_TX_SOURCE,
-		.COM_TX_AF = VIDEO2_COM_TX_AF, .COM_RX_PIN = VIDEO2_COM_RX_PIN,
-		.COM_RX_GPIO_PORT = VIDEO2_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
-				VIDEO2_COM_RX_GPIO_CLK, .COM_RX_SOURCE = VIDEO2_COM_RX_SOURCE,
-		.COM_RX_AF = VIDEO2_COM_RX_AF, .COM_IRQn = VIDEO2_COM_IRQn },
+{ .UART = VIDEO2_COM, .COM_CLK = VIDEO2_COM_CLK, .COM_TX_PIN = VIDEO2_COM_TX_PIN, .COM_TX_GPIO_PORT =
+VIDEO2_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
+VIDEO2_COM_TX_GPIO_CLK, .COM_TX_SOURCE = VIDEO2_COM_TX_SOURCE, .COM_TX_AF = VIDEO2_COM_TX_AF, .COM_RX_PIN =
+VIDEO2_COM_RX_PIN, .COM_RX_GPIO_PORT = VIDEO2_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
+VIDEO2_COM_RX_GPIO_CLK, .COM_RX_SOURCE = VIDEO2_COM_RX_SOURCE, .COM_RX_AF = VIDEO2_COM_RX_AF, .COM_IRQn =
+VIDEO2_COM_IRQn },
 
-{ .UART = DEBUG_COM, .COM_CLK = DEBUG_COM_CLK, .COM_TX_PIN = DEBUG_COM_TX_PIN,
-		.COM_TX_GPIO_PORT = DEBUG_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
-				DEBUG_COM_TX_GPIO_CLK, .COM_TX_SOURCE = DEBUG_COM_TX_SOURCE,
-		.COM_TX_AF = DEBUG_COM_TX_AF, .COM_RX_PIN = DEBUG_COM_RX_PIN,
-		.COM_RX_GPIO_PORT = DEBUG_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
-				DEBUG_COM_RX_GPIO_CLK, .COM_RX_SOURCE = DEBUG_COM_RX_SOURCE,
-		.COM_RX_AF = DEBUG_COM_RX_AF, .COM_IRQn = DEBUG_COM_IRQn },
+{ .UART = DEBUG_COM, .COM_CLK = DEBUG_COM_CLK, .COM_TX_PIN = DEBUG_COM_TX_PIN, .COM_TX_GPIO_PORT =
+DEBUG_COM_TX_GPIO_PORT, .COM_TX_GPIO_CLK =
+DEBUG_COM_TX_GPIO_CLK, .COM_TX_SOURCE = DEBUG_COM_TX_SOURCE, .COM_TX_AF = DEBUG_COM_TX_AF, .COM_RX_PIN =
+DEBUG_COM_RX_PIN, .COM_RX_GPIO_PORT = DEBUG_COM_RX_GPIO_PORT, .COM_RX_GPIO_CLK =
+DEBUG_COM_RX_GPIO_CLK, .COM_RX_SOURCE = DEBUG_COM_RX_SOURCE, .COM_RX_AF = DEBUG_COM_RX_AF, .COM_IRQn = DEBUG_COM_IRQn },
 
 };
 
@@ -131,8 +121,8 @@ void RCC_APBClockEnable(void) {
 	, ENABLE);
 	//APB2外部总线时钟
 	RCC_APB2PeriphClockCmd( RCC_APB2Periph_SPI1	 	   //SPI1
-	//		| RCC_APB2Periph_SDIO 	  	   //SDIO
-	//		| RCC_APB2Periph_ADC		   //ADC
+	//	| RCC_APB2Periph_SDIO 	  	   //SDIO
+	//	| RCC_APB2Periph_ADC		   //ADC
 			| RCC_APB2Periph_ADC3		   //ADC3时钟
 			| RCC_APB2Periph_USART6		   //USART6
 			| RCC_APB2Periph_USART1	  	   //USART1
@@ -298,66 +288,6 @@ void NVIC_ADC_IRQSet(CONTROL cntl) {
 	NVIC_Init(&NVIC_InitStructure);
 }
 
-/**
- * GPIO初始化
- */
-void GPIO_Configuration(void) {
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	///GSM DTR未初始化
-
-	//3  按键引脚检测引脚
-	//在Key_LowLevel_Init()中配置
-
-	//4CAN总线配置
-	//在CAN_Configuration()函数中配置
-
-	//5 语音模块和蜂鸣器IO口定义
-	////语音模块IO口定义
-	// Configure GPIOE_TTS_RST & TTS_RX as output push up
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-
-	GPIO_InitStructure.GPIO_Pin = TTS_RST_PIN;
-	GPIO_Init(GPIOF, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin = TTS_TX_PIN;
-	GPIO_Init(GPIOG, &GPIO_InitStructure);
-
-	// Configure TTS SHUNT as output  function
-	GPIO_InitStructure.GPIO_Pin = TTS_SHUNT_PIN;
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
-
-//	/*蜂鸣器*/
-//	GPIO_InitStructure.GPIO_Pin = BUZZER_CTRL_PIN;
-//	GPIO_Init(GPIOB, &GPIO_InitStructure);
-//	//BUZZER信号初始化时拉低
-//	GPIO_ResetBits(GPIOF, BUZZER_CTRL_PIN);
-
-	GPIO_InitStructure.GPIO_Pin = TTS_READY_PIN;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOG, &GPIO_InitStructure);
-
-	//6 OLED屏
-	//OLED屏IO口在LED_CtrlLinesConfig中初始化
-
-	//7SD 卡
-//	//SDIO IO口在SD_LowLevel_Init()中初始化
-//	  /*!< Configure SD_SPI_DETECT_PIN pin: SD Card detect pin */
-//	  GPIO_InitStructure.GPIO_Pin = SD_DETECT_PIN;
-//	  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-//	  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-//	  GPIO_Init(SD_DETECT_GPIO_PORT, &GPIO_InitStructure);
-
-	//8打印机
-	//PRT IO口中Prt_LowLevel_Init()中初始化
-
-	//9 USB HOST IO口中USB_Init()中初始化
-}
-
 //外部中断配置
 /*******************************************************************************
  * Function Name  : EXTI_Configuration
@@ -392,12 +322,6 @@ void EXTI_Configuration(void) {
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure);
-}
-
-/**
- *
- */
-void ADC_Configuration(void) {
 
 }
 
@@ -405,15 +329,14 @@ void ADC_Configuration(void) {
 void RTC_CheckAndConfig(void) {
 	static u8 u8TimeValid = 0;
 
-#define	RTC_BACKUP_VALUE	0x5A5A	//定义RTC后备寄存器
-	//系统时钟没有配置
-	if (RTC_ReadBackupRegister(RTC_BKP_DR0) != RTC_BACKUP_VALUE) {
+#define	RTC_BACKUP_VALUE	0x5A5A	//定义RTC后备寄存器	//系统时钟没有配置	if (RTC_ReadBackupRegister(RTC_BKP_DR0) != RTC_BACKUP_VALUE) {
 		//系统时间未配置
 		u8TimeValid = 0;
 
 		//配置系统时钟
 		RTC_Configuration();
-	} else {
+	}
+	else {
 		//系统时间已经配置
 		u8TimeValid = 1;
 
@@ -600,7 +523,7 @@ void TIM_Prt_Configuration(u16 u16Period)
 #endif
 
 /**
- * 独立看门狗配置
+ * 外部看门狗配置
  *
  */
 void IWDG_Configuration(void) {
@@ -658,6 +581,7 @@ void SysTick_Configuration(void) {
 	SysTick_Config(72000);
 }
 
+#if 0
 /**
  * 中断使能
  *
@@ -679,6 +603,7 @@ void INT_Enable(void) {
 
 	TIM_Cmd(TIM3, ENABLE);
 }
+#endif
 
 /**
  * 串口初始化
@@ -694,8 +619,7 @@ void USART_Configuration(COM_TypeDef COM, u16 u16Baund) {
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl =
-			USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	COM_Lowlevel_Init(COM, &USART_InitStructure);
 }
@@ -703,6 +627,8 @@ void USART_Configuration(COM_TypeDef COM, u16 u16Baund) {
 /**
  * 串口底层初始化
  *
+ * @param COM					串口号
+ * @param USART_InitStruct		串口对象
  */
 void COM_Lowlevel_Init(COM_TypeDef COM, USART_InitTypeDef* USART_InitStruct) {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -711,24 +637,22 @@ void COM_Lowlevel_Init(COM_TypeDef COM, USART_InitTypeDef* USART_InitStruct) {
 	pCOM = &COM_Config[COM];
 
 	/* Enable GPIO clock */
-	RCC_AHB1PeriphClockCmd(pCOM->COM_TX_GPIO_CLK | pCOM->COM_RX_GPIO_CLK,
-			ENABLE);
+	RCC_AHB1PeriphClockCmd(pCOM->COM_TX_GPIO_CLK | pCOM->COM_RX_GPIO_CLK, ENABLE);
 
 	/*Enable UART clock*/
 	if (COM == COM_GPRS || COM == COM_DEBUG) {
 		/* Enable UART clock */
 		RCC_APB2PeriphClockCmd(pCOM->COM_CLK, ENABLE);
-	} else {
+	}
+	else {
 		RCC_APB1PeriphClockCmd(pCOM->COM_CLK, ENABLE);
 	}
 
 	/* Connect PXx to USARTx_Tx*/
-	GPIO_PinAFConfig(pCOM->COM_TX_GPIO_PORT, pCOM->COM_TX_SOURCE,
-			pCOM->COM_TX_AF);
+	GPIO_PinAFConfig(pCOM->COM_TX_GPIO_PORT, pCOM->COM_TX_SOURCE, pCOM->COM_TX_AF);
 
 	/* Connect PXx to USARTx_Rx*/
-	GPIO_PinAFConfig(pCOM->COM_RX_GPIO_PORT, pCOM->COM_RX_SOURCE,
-			pCOM->COM_RX_AF);
+	GPIO_PinAFConfig(pCOM->COM_RX_GPIO_PORT, pCOM->COM_RX_SOURCE, pCOM->COM_RX_AF);
 
 	/* Configure USART Tx as alternate function  */
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -756,35 +680,38 @@ void COM_Lowlevel_Init(COM_TypeDef COM, USART_InitTypeDef* USART_InitStruct) {
  *
  */
 void Periph_Lowlevel_Init() {
-	Relay_Lowlevel_Init();
+
+	FRAM_Lowlevel_Init();	///铁电 *
+	NFLASH_LowLevel_Init();		///NANDFLASH
+
 	PWR_Lowlevel_Init();
 	PWR_ADC_Lowlevel_Init();
 	WatchDog_Lowlevel_Init();
 	DEBUG_Lowlevel_Init();
 
-	Digital_In_Lowlevel_Init();
-	Key_LowLevel_Init();
-	IC_Lowlevel_Init();
-	TTS_Lowlevel_Init();
-	GPRS_Lowlevel_Init();
-	GPS_Lowlevel_Init();
-	VIDEO_Lowlevel_Init();
-	I2C2_Lowlevel_Init();	///铁电、3D传感器共用I2C2
-	FRAM_Lowlevel_Init();	///铁电
-	Sensor3D_Lowlevel_Init();
-	LCD_Lowlevel_Init();
-	AUDIO_Lowlevel_Init();
-	USB_Lowlevel_Init();
-	Print_Lowlevel_Init();
-	IR_Lowlevel_Init(); ///红外
-	CAN_Lowlevel_Init();
-	BEEP_Lowlevel_Init();
-	Speed_Pulse_Lowlevel_Init();
-	NFLASH_LowLevel_Init();
+	Relay_Lowlevel_Init();
+	Digital_In_Lowlevel_Init();   ///模拟量输入
+	Key_LowLevel_Init();		///按键初始化
+	IC_Lowlevel_Init(); 		///	IC卡  *
+ 	TTS_Lowlevel_Init();		///TTS
+	GPRS_Lowlevel_Init();		///GSM模块
+	GPS_Lowlevel_Init();		///GPS
+	VIDEO_Lowlevel_Init();		///摄像头 *
+	I2C2_Lowlevel_Init();		///铁电、3D传感器共用I2C2 *
+	Sensor3D_Lowlevel_Init(); 	///3D传感器 *
+	LCD_Lowlevel_Init();		///显示屏 *
+	AUDIO_Lowlevel_Init();		///录音芯片 *
+	USB_Lowlevel_Init();		///USB
+	Print_Lowlevel_Init(); 		///打印机 *
+	IR_Lowlevel_Init(); 		///红外 *
+	CAN_Lowlevel_Init(); 		///CAN接口
+	BEEP_Lowlevel_Init();		///蜂鸣器
+	Speed_Pulse_Lowlevel_Init();	///速度脉冲
 }
 
 /**
  * 继电器IO初始化
+ *
  */
 void Relay_Lowlevel_Init() {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -799,7 +726,8 @@ void Relay_Lowlevel_Init() {
 }
 
 /**
- * 电源控制IO初始化
+ * 电源控制IO初始化，5V,3.3V
+ *
  */
 void PWR_Lowlevel_Init() {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -817,6 +745,7 @@ void PWR_Lowlevel_Init() {
  */
 void WatchDog_Lowlevel_Init() {
 
+	IWDG_Configuration();
 }
 
 /**
@@ -857,7 +786,7 @@ void PWR_ADC_Lowlevel_Init() {
 }
 
 /**
- * ADC3、DMA配置,PF9
+ * ADC3、DMA配置,PF9，电源检测
  * ADC3 channel07 with DMA configuration
  *
  */
@@ -874,8 +803,7 @@ void ADC3_CH7_DMA_Config(void) {
 	/* DMA2 Stream0 channel2 configuration **************************************/
 	DMA_InitStructure.DMA_Channel = DMA_Channel_2;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) ADC3_DR_ADDRESS;
-	DMA_InitStructure.DMA_Memory0BaseAddr =
-			(uint32_t) &u16Pwr_ADC3ConvertedValue;
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t) &u16Pwr_ADC3ConvertedValue;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
 	DMA_InitStructure.DMA_BufferSize = 1;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -926,43 +854,44 @@ void ADC3_CH7_DMA_Config(void) {
 	ADC_Cmd(ADC3, ENABLE);
 }
 
-
-//禁止CAN接收，关闭接收中断
-void CAN_RecieveDisable()
-{
 /**
-  * @brief  Enables or disables the specified CAN interrupts.
-  * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
-  * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
-  *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
-  *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
-  *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
-  *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
-  *   CAN_IT_SLK.
-  * @param  NewState: new state of the CAN interrupts.
-  *   This parameter can be: ENABLE or DISABLE.
-  * @retval None.
-  */
-	  CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, DISABLE);
-
+ * 禁止CAN接收，关闭接收中断
+ *
+ */
+void CAN_RecieveDisable() {
+	/**
+	 * @brief  Enables or disables the specified CAN interrupts.
+	 * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
+	 * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
+	 *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
+	 *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
+	 *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
+	 *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
+	 *   CAN_IT_SLK.
+	 * @param  NewState: new state of the CAN interrupts.
+	 *   This parameter can be: ENABLE or DISABLE.
+	 * @retval None.
+	 */
+	CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, DISABLE);
 }
 
-//使能CAN接收，打开接收中断
-void CAN_RecieveEnable()
-{
 /**
-  * @brief  Enables or disables the specified CAN interrupts.
-  * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
-  * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
-  *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
-  *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
-  *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
-  *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
-  *   CAN_IT_SLK.
-  * @param  NewState: new state of the CAN interrupts.
-  *   This parameter can be: ENABLE or DISABLE.
-  * @retval None.
-  */
-	  CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE);
-
+ * 使能CAN接收，打开接收中断
+ *
+ */
+void CAN_RecieveEnable() {
+	/**
+	 * @brief  Enables or disables the specified CAN interrupts.
+	 * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
+	 * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
+	 *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
+	 *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
+	 *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
+	 *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
+	 *   CAN_IT_SLK.
+	 * @param  NewState: new state of the CAN interrupts.
+	 *   This parameter can be: ENABLE or DISABLE.
+	 * @retval None.
+	 */
+	CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE);
 }

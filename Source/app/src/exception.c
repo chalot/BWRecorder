@@ -76,12 +76,11 @@ BOOL CheckSpecifiedErrTypeExisted(eFAULT_CLASS class, u8 err) {
  * @Ret		TRUE=”–π ’œ£¨FALSE=Œﬁπ ’œ
  */
 BOOL CheckIfNoErrTypeOccured() {
-	if ((FAULT_NONE == GetErrType(CAN_CLASS))
-			&& (FAULT_NONE == GetErrType(SYS_CLASS))
-			&& (FAULT_NONE == GetErrType(NET_CLASS))
-			&& (FAULT_NONE == GetErrType(GPS_CLASS))
+	if ((FAULT_NONE == GetErrType(CAN_CLASS)) && (FAULT_NONE == GetErrType(SYS_CLASS))
+			&& (FAULT_NONE == GetErrType(NET_CLASS)) && (FAULT_NONE == GetErrType(GPS_CLASS))
 			&& (FAULT_NONE == GetErrType(SD_CLASS))) {
 		return TRUE;
-	} else
+	}
+	else
 		return FALSE;
 }

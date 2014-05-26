@@ -336,7 +336,7 @@ typedef struct TransparentUploadEvtTag {
 	u8 data[100];	///透传消息内容
 } TransparentUploadEvt;
 
-/*新帧消息*/
+///查询GSM信号强度消息
 typedef struct CSQEvtTag {
 	/* protected: */
 	QEvt super;

@@ -17,14 +17,18 @@
 #define		_UDP_		1
 #define		_MSG_		1
 
-#define 	CONNMODE  _TCP_   //UDP//检测UIM卡
+#define 	CONNMODE  _TCP_   //UDP
+//检测UIM卡
 #define		_UIM_DETECT			0
 
 //#define 	BUFFER_LENGTH_GPRSFRAMERx					(1200)		//接收数据帧处理缓冲区大小
 #define		MAX_DATA_LEN								1500
-#define		BUFFER_LENGTH_SMSRx							160			//短信接收缓冲区
+#define		BUFFER_LENGTH_SMSRx							160			//短信接收缓冲区
+
 //网络连接状态
-#define 	NET_STATE_UNKNOWN							0	 		//未知#define		NET_STATE_LINKED							1			//网络已连接
+#define 	NET_STATE_UNKNOWN							0	 		//未知
+#define		NET_STATE_LINKED							1			//网络已连接
+
 //#define		GPRS_SMG_CNT_		10
 
 //#define	LINK_MAINTAIN_CYCLE_SHORT					10				//等待服务器登录反馈短周期
@@ -39,7 +43,12 @@
 //#define	CDMA_DELALL_READ								3			//删除短信标识，3表示删除所有短信
 
 //网络状态
-#define NET_STATE_REGISTED            0X01 //已注册#define NET_STATE_CONNECTING          0X02 //连接服务器#define NET_STATE_CONNECTED           0X03 //通信已建立#define NET_STATE_SERVERCONNECTED     0X03 //通信已建立#define NET_STATE_UNKOWN              0XFF //未知
+#define NET_STATE_REGISTED            0X01 //已注册
+#define NET_STATE_CONNECTING          0X02 //连接服务器
+#define NET_STATE_CONNECTED           0X03 //通信已建立
+#define NET_STATE_SERVERCONNECTED     0X03 //通信已建立
+#define NET_STATE_UNKOWN              0XFF //未知
+
 //电话状态
 typedef enum {
 
@@ -61,7 +70,8 @@ typedef enum {
 } ePHONECTRL;
 
 //电话响铃次数
-#define	GPRS_PHONE_ANSWERCLIP_COUNTS   2	//来电响铃n次后接听
+#define	GPRS_PHONE_ANSWERCLIP_COUNTS   2	//来电响铃n次后接听
+
 //语音监听状态
 typedef enum {
 	ePHONE_MONITOR_IDLE = 0,						//空闲
@@ -109,11 +119,18 @@ typedef enum {
 } _eGPRSPOWERREQ;
 
 //GSM休眠控制
-#define	GPRS_SLEEP_IDLE									0			//空闲#define	GPRS_SLEEP_PROCESS								1			//休眠处理中#define	GPRS_SLEEP_OK									2			//休眠
+#define	GPRS_SLEEP_IDLE									0			//空闲
+#define	GPRS_SLEEP_PROCESS								1			//休眠处理中
+#define	GPRS_SLEEP_OK									2			//休眠
+
 //电话响铃次数
-#define	GPRS_PHONE_ANSWERCLIP_COUNTS				2			//来电响铃n次后接听
+#define	GPRS_PHONE_ANSWERCLIP_COUNTS				2			//来电响铃n次后接听
+
 //连接的服务器类型
-#define	SERVER_PRIMARY									1  			//主服务器并保存#define	SERVER_VICE										2			//备用服务器并保存#define	SERVER_SPECIFIED_PRIM							3			//指定主服务器
+#define	SERVER_PRIMARY									1  			//主服务器并保存
+#define	SERVER_VICE										2			//备用服务器并保存
+#define	SERVER_SPECIFIED_PRIM							3			//指定主服务器
+
 #define	GPRS_DATA_CR_									0x0D
 #define	GPRS_DATA_LF_									0x0A
 
@@ -248,10 +265,13 @@ typedef enum {
 
 /*初始化命令序列*/
 #if	_MSG_
-#define	ATCMD_INIT_STEPS	    10		//初始化步骤#else
-#define	ATCMD_INIT_STEPS		7		//初始化步骤#endif
+#define	ATCMD_INIT_STEPS	    10		//初始化步骤
+#else
+#define	ATCMD_INIT_STEPS		7		//初始化步骤
+#endif
 
-#define	ATCMD_INIT_STEP1_		4		//初始化第一步步骤，当检测到UIM卡插入后，才开始进行后续的初始化过程//如果UIM卡检测不在位后，则后续的初始化过程就没有必要进行下去
+#define	ATCMD_INIT_STEP1_		4		//初始化第一步步骤，当检测到UIM卡插入后，才开始进行后续的初始化过程
+//如果UIM卡检测不在位后，则后续的初始化过程就没有必要进行下去
 
 #if	(_MSG_ == 0)
 #define INIT_STEPS_AMOUNT	   6
@@ -262,7 +282,8 @@ typedef enum {
 
 /*网络连接命令序列*/
 
-#define	ATCMD_CONNECT_STEPS		9//8		//初始化步骤
+#define	ATCMD_CONNECT_STEPS		9//8		//初始化步骤
+
 //电话号码类结构定义
 typedef struct {
 	u8 au8Number[10];	//电话号码,BCD码。当号码数字个数为奇数时，以“F”结束。“A”=“*”,“B”=“#”，“E”=“+”
@@ -286,8 +307,7 @@ void GPRS_doRegister(); //执行网络注册序列
 BOOL GPRS_doQueryData(void); //网络数据请求
 
 /* 组织待发送数据内容 */
-u16 GPRS_FormRawFrame(u8 *pSendBuf, u16 cmd, u16 sequence, void* address,
-		u16 dataSize, u16 offset);
+u16 GPRS_FormRawFrame(u8 *pSendBuf, u16 cmd, u16 sequence, void* address, u16 dataSize, u16 offset);
 
 /*帧提取*/
 void GPRS_doRetrieveFrame(u16 begin, u16 end);
@@ -312,7 +332,9 @@ u8 GPRS_GetCSQ();
 u8 GPRS_CheckCmd_IsAttaching(u8 step);
 
 /*********************** GPRS模块电源控制 *****************************************************/
-#define GPRS_POWER_ON	GPIO_SetBits(GPIOA,GPIOA_CDMA_CTRL_)  //模块开电#define GPRS_POWER_OFF	GPIO_ResetBits(GPIOA,GPIOA_CDMA_CTRL_) //模块关电
+#define GPRS_POWER_ON	GPIO_SetBits(GPIOA,GPIOA_CDMA_CTRL_)  //模块开电
+#define GPRS_POWER_OFF	GPIO_ResetBits(GPIOA,GPIOA_CDMA_CTRL_) //模块关电
+
 //网络指示灯打开/关闭
 #define GPRS_LED_OFF()  GPIO_ResetBits(GPIOC, GPIOC_CDMA_LED)
 #define GPRS_LED_ON()  GPIO_SetBits(GPIOC, GPIOC_CDMA_LED)

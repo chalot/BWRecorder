@@ -101,16 +101,19 @@ extern _vs10xx_obj vsset;		//VS10XXÉèÖÃ
 #define AUDIO_RST_CLK     			RCC_AHB1Periph_GPIOB
 
 /* Select sFLASH: Chip Select pin low */
-#define AUDIO_CS_LOW()       GPIO_ResetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN)
+#define AUDIO_CS_LOW()     GPIO_ResetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN)
 
 /* Deselect sFLASH: Chip Select pin high */
-#define AUDIO_CS_HIGH()      GPIO_SetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN)
+#define AUDIO_CS_HIGH()    GPIO_SetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN)
 
-#define VS_DREQ_STATE     GPIO_ReadInputDataBit(AUDIO_DREQ_PORT, AUDIO_DREQ_PIN)  	//DREQ
-#define VS_RST_LOW   	GPIO_ResetBits(AUDIO_RST_PORT, AUDIO_RST_PIN) 	//RST#define VS_RST_HIGH   	GPIO_SetBits(AUDIO_RST_PORT, AUDIO_RST_PIN) 	//RST
-#define VS_XCS_LOW   	GPIO_ResetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN) 	//RST#define VS_XCS_HIGH   	GPIO_SetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN) 	//RST
-#define VS_XDCS_LOW   	GPIO_ResetBits(AUDIO_XDCS_PORT, AUDIO_XDCS_PIN) 	//RST#define VS_XDCS_HIGH   	GPIO_SetBits(AUDIO_XDCS_PORT, AUDIO_XDCS_PIN) 	//RST
-u16 VS_RD_Reg(u8 address);				//¶Á¼Ä´æÆ÷
+#define VS_DREQ_STATE	GPIO_ReadInputDataBit(AUDIO_DREQ_PORT, AUDIO_DREQ_PIN)  	//DREQ
+#define VS_RST_LOW   	GPIO_ResetBits(AUDIO_RST_PORT, AUDIO_RST_PIN) 	//RST
+#define VS_RST_HIGH   	GPIO_SetBits(AUDIO_RST_PORT, AUDIO_RST_PIN) 	//RST
+#define VS_XCS_LOW   	GPIO_ResetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN) 	//RST
+#define VS_XCS_HIGH   	GPIO_SetBits(AUDIO_XCS_GPIO_PORT, AUDIO_XCS_PIN) 	//RST
+#define VS_XDCS_LOW   	GPIO_ResetBits(AUDIO_XDCS_PORT, AUDIO_XDCS_PIN) 	//RST
+#define VS_XDCS_HIGH   	GPIO_SetBits(AUDIO_XDCS_PORT, AUDIO_XDCS_PIN) 	//RST
+u16 VS_RD_Reg(u8 address);				//¶Á¼Ä´æÆ÷
 u16 VS_WRAM_Read(u16 addr);	    	//¶ÁRAM
 void VS_WR_Data(u8 data);				//Ð´Êý¾Ý
 void VS_WR_Cmd(u8 address, u16 data);	//Ð´ÃüÁî

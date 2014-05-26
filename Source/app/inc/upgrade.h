@@ -14,11 +14,31 @@
 #pragma pack(1)
 
 //升级过程操作码
-#define		UPDATE_COMMAND_START					0x01	//启动，服务器下发升级启动命令#define		UPDATE_COMMAND_DATA						0x02	//数据，服务器下发升级数据#define		UPDATE_COMMAND_REFUSE					0x10	//拒绝，终端拒绝升级命令#define		UPDATE_COMMAND_REQUEST					0x11	//请求，终端向服务器请求数据#define		UPDATE_COMMAND_ERROR					0x12	//终端通知服务器，升级中止#define		UPDATE_COMMAND_SUCCESS					0x13	//终端通知服务器，升级完成#define		UPDATE_COMMAND_OTHER					0xFF	//其他，保留
+#define		UPDATE_COMMAND_START					0x01	//启动，服务器下发升级启动命令
+#define		UPDATE_COMMAND_DATA						0x02	//数据，服务器下发升级数据
+#define		UPDATE_COMMAND_REFUSE					0x10	//拒绝，终端拒绝升级命令
+#define		UPDATE_COMMAND_REQUEST					0x11	//请求，终端向服务器请求数据
+#define		UPDATE_COMMAND_ERROR					0x12	//终端通知服务器，升级中止
+#define		UPDATE_COMMAND_SUCCESS					0x13	//终端通知服务器，升级完成
+#define		UPDATE_COMMAND_OTHER					0xFF	//其他，保留
+
 //升级目标类型
-#define		UPDATE_TARGET_PROGRAM					0x01	//终端主机程序#define		UPDATE_TARGET_MODE_CHINESE				0x02	//终端字库-汉字#define		UPDATE_TARGET_MODE_ASCII				0x03	//终端字库-ASCII#define		UPDATE_TARGET_MODE_SYMBOL				0x04	//终端字库-符号#define		UPDATE_TARGET_VOICE						0x11	//语音文件#define		UPDATE_TARGET_DISPATCHER				0x21	//终端字库-调度屏固件#define		UPDATE_TARGET_LED_AD					0x31	//终端字库-LED广告屏固件#define		UPDATE_TARGET_DAB_RECIEVER				0x41	//终端字库-DAB接收机#define		UPDATE_TARGET_OTHER						0x41	//其他
-#define		UPDATE_TARGET_TYPE_AMOUNT				0x09	//升级目标类型总数
-#define		UPD_BLOCK_SIZE		512				//升级文件分块大小#define		UPD_PAGE_BLOCKS		(EF_PAGE_SIZE / UPD_BLOCK_SIZE)	//一页存放分块个数#define		UPD_SECTOR_BLOCKS		(EF_BLOCK_SIZE / UPD_BLOCK_SIZE)	//一页存放分块个数
+#define		UPDATE_TARGET_PROGRAM					0x01	//终端主机程序
+#define		UPDATE_TARGET_MODE_CHINESE				0x02	//终端字库-汉字
+#define		UPDATE_TARGET_MODE_ASCII				0x03	//终端字库-ASCII
+#define		UPDATE_TARGET_MODE_SYMBOL				0x04	//终端字库-符号
+#define		UPDATE_TARGET_VOICE						0x11	//语音文件
+#define		UPDATE_TARGET_DISPATCHER				0x21	//终端字库-调度屏固件
+#define		UPDATE_TARGET_LED_AD					0x31	//终端字库-LED广告屏固件
+#define		UPDATE_TARGET_DAB_RECIEVER				0x41	//终端字库-DAB接收机
+#define		UPDATE_TARGET_OTHER						0x41	//其他
+
+#define		UPDATE_TARGET_TYPE_AMOUNT				0x09	//升级目标类型总数
+
+#define		UPD_BLOCK_SIZE		512				//升级文件分块大小
+#define		UPD_PAGE_BLOCKS		(EF_PAGE_SIZE / UPD_BLOCK_SIZE)	//一页存放分块个数
+#define		UPD_SECTOR_BLOCKS		(EF_BLOCK_SIZE / UPD_BLOCK_SIZE)	//一页存放分块个数
+
 //升级完成后设置连续的3个32位的升级有效标志，下次开机的时候检测升级标志是否有效，
 //如果有效的话，则从片外FLASH中把升级程序导入到片内FLASH固定的位置，然后软复位系统
 //重新启动后，系统中运行的就是升级后的程序代码了
@@ -102,7 +122,8 @@ typedef struct {
 
 } _tEFLASH_UPG_INFO;
 
-#define UPGRADE_FILE_BLOCK_SIZE		512		//每个升级文件的块大小
+#define UPGRADE_FILE_BLOCK_SIZE		512		//每个升级文件的块大小
+
 //升级文件头
 typedef struct Upgrade_File_Formate_Header_Tag {
 	//文件字节大小
@@ -161,7 +182,9 @@ extern UPGRADE_FILE_FORMATE_HEADER tUsbUpgrdeFileHeadInfo;
 #define	_UPG_PACKLEN_					(sizeof(UPGRADE_FILE_BLOCK_FORMATE))
 #define	_UPG_ASS_LEN_					(sizeof(UPGRADE_FILE_BLOCK_FORMATE) - UPGRADE_FILE_BLOCK_SIZE)
 
-#define	_CRC_STORE_OFFSET_				4						//CRC校验和在校验和数组中偏移位置#define	_PACK_DATA_OFFSET_				4						//数据包中数据的偏移
+#define	_CRC_STORE_OFFSET_				4						//CRC校验和在校验和数组中偏移位置
+#define	_PACK_DATA_OFFSET_				4						//数据包中数据的偏移
+
 BOOL UPG_SD_Detect();
 BOOL UPG_SD_Init();
 void UPG_ReportSDCardState(u8 err);

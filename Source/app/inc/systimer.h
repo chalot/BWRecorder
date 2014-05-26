@@ -37,12 +37,18 @@ typedef struct _TIME {
 } TIME, *PTIMER;
 
 /*œµÕ≥ ±÷”*/
-void SysTick_Init();
-void SysTimer_Set(SYSTIMER *time);
-void SysTimer_Get(SYSTIMER *time);
-void SysTimer_GetRaw(TIME *time);
-void SysTimer_refreshPerSecond();
-void SysTimer_UpdateAdditionalSeconds(u32 seconds);
+void
+SysTick_Init();
+void
+SysTimer_Set(SYSTIMER *time);
+void
+SysTimer_Get(SYSTIMER *time);
+void
+SysTimer_GetRaw(TIME *time);
+void
+SysTimer_refreshPerSecond();
+void
+SysTimer_UpdateAdditionalSeconds(u32 seconds);
 
 #pragma pack()
 

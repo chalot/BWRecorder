@@ -16,7 +16,9 @@ static SYSTIMER systimer; //系统时钟
 /*声明互斥量*/
 DECLARE_MUTEX(mux)
 
-//从FLASH读取起始时间
+/**
+ * 从FLASH读取起始时间
+ */
 void SysTick_Init() {
 	systimer.year = 14;
 	systimer.month = 1;
@@ -24,10 +26,13 @@ void SysTick_Init() {
 	systimer.hour = 1;
 	systimer.minute = 1;
 	systimer.second = 0;
-
 }
 
-/*系统时钟*/
+/**
+ * 设置系统时间
+ *
+ * @param timer
+ */
 void SysTimer_Set(SYSTIMER *timer) {
 	MUTEX_LOCK(mux);
 	memcpy_((u8*) &systimer, (u8*) timer, sizeof(SYSTIMER));
@@ -92,8 +97,7 @@ void SysTimer_refreshPerSecond() {
 				systimer.hour = 0;
 
 				//取得当前月有多少天
-				u8DaysofMonth = MISC_DaysofMonth(systimer.year + 2000,
-						systimer.month);
+				u8DaysofMonth = MISC_DaysofMonth(systimer.year + 2000, systimer.month);
 
 				if (systimer.day >= u8DaysofMonth) {
 					systimer.month += 1;
@@ -111,10 +115,13 @@ void SysTimer_refreshPerSecond() {
 		}
 	}
 	MUTEX_UNLOCK(mux);
-
 }
 
-//更新系统时间，
+/**
+ * 更新系统时间，将当前时刻加上指定秒数，更新到新的日期-时间表示
+ *
+ * @param seconds
+ */
 void SysTimer_UpdateAdditionalSeconds(u32 seconds) {
 	MUTEX_LOCK(mux);
 

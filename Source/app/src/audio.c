@@ -178,7 +178,7 @@ u16 VS_Ram_Test(void) {
 	VS_SPI_ReadWriteByte(0x00);
 	Delay_1ms(150);
 	VS_XDCS_HIGH;
-	return VS_RD_Reg(SPI_HDAT0);// VS1003如果得到的值为0x807F，则表明完好;VS1053为0X83FF.;       
+	return VS_RD_Reg(SPI_HDAT0);	       		    // VS1003如果得到的值为0x807F，则表明完好;VS1053为0X83FF.;       
 }
 //向VS10XX写命令
 //address:命令地址
@@ -246,9 +246,8 @@ void VS_Set_Speed(u8 t) {
 //FOR WMA HEAD0 :data speed HEAD1:0X574D
 //FOR MP3 HEAD0 :data speed HEAD1:ID
 //比特率预定值,阶层III
-const u16 bitrate[2][16] = { { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112,
-		128, 144, 160, 0 }, { 0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192,
-		224, 256, 320, 0 } };
+const u16 bitrate[2][16] = { { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, 0 }, { 0, 32, 40, 48, 56,
+		64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0 } };
 //返回Kbps的大小
 //返回值：得到的码率
 u16 VS_Get_HeadInfo(void) {
@@ -309,7 +308,8 @@ u8 VS_Send_MusicData(u8* buf) {
 			VS_SPI_ReadWriteByte(buf[n]);
 		}
 		VS_XDCS_HIGH;
-	} else
+	}
+	else
 		return 1;
 	return 0;  //成功发送了
 }
@@ -345,7 +345,8 @@ void VS_Restart_Play(void) {
 			if (VS_Send_MusicData(vsbuf) == 0)
 				i += 32;	//填充	  
 		}
-	} else
+	}
+	else
 		VS_Soft_Reset();  	//SM_CANCEL不成功,坏情况,需要软复位 	  
 	temp = VS_RD_Reg(SPI_HDAT0);
 	temp += VS_RD_Reg(SPI_HDAT1);
@@ -382,7 +383,8 @@ void VS_Load_Patch(u16 *patch, u16 len) {
 			val = patch[i++];
 			while (n--)
 				VS_WR_Cmd(addr, val);
-		} else //copy run, copy n sample 
+		}
+		else //copy run, copy n sample 
 		{
 			while (n--) {
 				val = patch[i++];
@@ -525,17 +527,16 @@ void AUDIO_Lowlevel_Init() {
 
 	/*!< Enable GPIO clocks */
 	RCC_AHB1PeriphClockCmd(
-			AUDIO_SPI1_SCK_PIN | AUDIO_SPI1_MISO_PIN | AUDIO_SPI1_MOSI_PIN,
-			ENABLE);
+	AUDIO_SPI1_SCK_PIN | AUDIO_SPI1_MISO_PIN | AUDIO_SPI1_MOSI_PIN, ENABLE);
 
 	/*!< SPI pins configuration *************************************************/
 
 	GPIO_PinAFConfig(AUDIO_SPI1_SCK_PIN, AUDIO_SPI1_SCK_SOURCE,
-			AUDIO_SPI1_SCK_AF);
+	AUDIO_SPI1_SCK_AF);
 	GPIO_PinAFConfig(AUDIO_SPI1_MISO_PIN, AUDIO_SPI1_MISO_SOURCE,
-			AUDIO_SPI1_MISO_AF);
+	AUDIO_SPI1_MISO_AF);
 	GPIO_PinAFConfig(AUDIO_SPI1_MOSI_PIN, AUDIO_SPI1_MOSI_PIN,
-			AUDIO_SPI1_MOSI_AF);
+	AUDIO_SPI1_MOSI_AF);
 
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -555,8 +556,7 @@ void AUDIO_Lowlevel_Init() {
 	GPIO_Init(AUDIO_SPI1_MISO_PORT, &GPIO_InitStructure);
 
 	RCC_AHB1PeriphClockCmd(
-			AUDIO_XDCS_PIN | AUDIO_DREQ_PIN | AUDIO_RST_PIN | AUDIO_XCS_PIN,
-			ENABLE);
+	AUDIO_XDCS_PIN | AUDIO_DREQ_PIN | AUDIO_RST_PIN | AUDIO_XCS_PIN, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = AUDIO_XCS_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;

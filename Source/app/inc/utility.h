@@ -36,37 +36,37 @@ u16 Hex2String(u8* pData, u16 u16DataLen, char* pStr, u16 u16CLen);
 #define	min(a,b)	((a < b )? (a):(b))
 
 #define ENDIAN_U16(data)  \
-				do {	\
-					u8 temp;	\
-					temp = (u8)(((data) & 0xFF00) >> 8); 	\
-					data = ((data) << 8) | temp; 	\
-				} while(0)
+							do {	\
+								u8 temp;	\
+								temp = (u8)(((data) & 0xFF00) >> 8); 	\
+								data = ((data) << 8) | temp; 	\
+							} while(0)
 
 #define ENDIAN_U32(data)  \
-				do {	\
-					u8 h_1; 	\
-					u8 h_2;		\
-					u8 h_3;		\
-					u8 h_4;		\
-					h_1 = (data & 0xFF000000) >> 24;	\
-					h_2 = (data & 0x00FF0000) >> 16;	\
-					h_3 = (data & 0x0000FF00) >> 8;	\
-					h_4 = data & 0x000000FF;		\
-					data = (u32)h_4 << 24 | (u32)h_3 << 16 | (u32)h_2 << 8 | h_1;	\
-				} while(0)
+							do {	\
+								u8 h_1; 	\
+								u8 h_2;		\
+								u8 h_3;		\
+								u8 h_4;		\
+								h_1 = (data & 0xFF000000) >> 24;	\
+								h_2 = (data & 0x00FF0000) >> 16;	\
+								h_3 = (data & 0x0000FF00) >> 8;	\
+								h_4 = data & 0x000000FF;		\
+								data = (u32)h_4 << 24 | (u32)h_3 << 16 | (u32)h_2 << 8 | h_1;	\
+							} while(0)
 
 #define ENDIAN_PU32(pdata)  \
-				do {	\
-					u8 h_1; 	\
-					u8 h_2;		\
-					u8 h_3;		\
-					u8 h_4;		\
-					h_1 = (*((u32*)pdata) & 0xFF000000) >> 24;	\
-					h_2 = (*((u32*)pdata) & 0x00FF0000) >> 16;	\
-					h_3 = (*((u32*)pdata) & 0x0000FF00) >> 8;	\
-					h_4 = *((u32*)pdata) & 0x000000FF;		\
-					*((u32*)pdata) = (u32)h_4 << 24 | (u32)h_3 << 16 | (u32)h_2 << 8 | h_1;	\
-				} while(0)
+							do {	\
+								u8 h_1; 	\
+								u8 h_2;		\
+								u8 h_3;		\
+								u8 h_4;		\
+								h_1 = (*((u32*)pdata) & 0xFF000000) >> 24;	\
+								h_2 = (*((u32*)pdata) & 0x00FF0000) >> 16;	\
+								h_3 = (*((u32*)pdata) & 0x0000FF00) >> 8;	\
+								h_4 = *((u32*)pdata) & 0x000000FF;		\
+								*((u32*)pdata) = (u32)h_4 << 24 | (u32)h_3 << 16 | (u32)h_2 << 8 | h_1;	\
+							} while(0)
 
 #define WRAP_AROUND(p, size)	do {			\
 								if(p >= size)	\

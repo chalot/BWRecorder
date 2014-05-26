@@ -14,8 +14,15 @@
 #include "type.h"
 
 /*=====     GPS信息定义    =====*/
-#define		_GPSINFO_GPS_VALID					0x01		//GPS有效#define		_GPSINFO_HEADING_VALID				0x02		//GPS信息航向有效#define		_GPSINFO_SPEED_VALID				0x04		//GPS信息速度有效#define		_GPSINFO_ALTITUDE_VALID				0x08		//GPS信息高度有效#define		_GPSINFO_SATNUM_VALID				0x10		//GPS信息卫星数有效#define		_GPSINFO_SATINFO_VALID				0x20		//GPS信息可见卫星有效#define		_GPSINFO_FIRSTTIME					0x80		//GPS-首次
-//GPS信息
+#define		_GPSINFO_GPS_VALID					0x01		//GPS有效
+#define		_GPSINFO_HEADING_VALID				0x02		//GPS信息航向有效
+#define		_GPSINFO_SPEED_VALID				0x04		//GPS信息速度有效
+#define		_GPSINFO_ALTITUDE_VALID				0x08		//GPS信息高度有效
+#define		_GPSINFO_SATNUM_VALID				0x10		//GPS信息卫星数有效
+#define		_GPSINFO_SATINFO_VALID				0x20		//GPS信息可见卫星有效
+#define		_GPSINFO_FIRSTTIME					0x80		//GPS-首次
+
+
 typedef struct {
 	u16 u16GpsInfoValid;		//信息有效否
 	u8 Latitude[4];			//纬度，单位=10^-3分
@@ -37,12 +44,12 @@ typedef struct {
 	u8 u8Minute;				//当前取得的GPS信息-分
 	u8 u8Second;				//当前取得的GPS信息-秒
 	u8 bAntenaState;			//天线状态，1=拔出，0=正常
-
 } _tGPSInfo;
 
+
 /*********************** GPS模块电源控制 *****************************************************/
-#define GPS_POWER_ON	GPIO_SetBits(GPIOC,GPIOC_GPS_CTRL_)  //模块开电#define GPS_POWER_OFF	GPIO_ResetBits(GPIOC,GPIOC_GPS_CTRL_) //模块关电
-//网络指示灯打开/关闭
+#define GPS_POWER_ON	GPIO_SetBits(GPIOC,GPIOC_GPS_CTRL_)  //模块开电
+#define GPS_POWER_OFF	GPIO_ResetBits(GPIOC,GPIOC_GPS_CTRL_) //模块关电//网络指示灯打开/关闭
 #define GPS_LED_OFF  	GPIO_SetBits(GPIOC, GPIOC_GPS_LED)
 #define GPS_LED_ON  	GPIO_ResetBits(GPIOC, GPIOC_GPS_LED)
 
@@ -58,8 +65,9 @@ typedef struct {
 //GPS天线检测，高电平为拔出，低电平为插入，使用CAN 5V供电
 #define GPS_GETANTENASTATE() 	GPIO_ReadInputDataBit(GPIOC,GPIOC_GPSANT_DET_)
 
-#define ANTENA_OK			0  //天线状态：正常#define ANTENA_ERR			1  //天线状态：故障
-//================ 函数声明 =======================================================================
+#define ANTENA_OK			0  //天线状态：正常
+#define ANTENA_ERR			1  //天线状态：故障/*********************** 函数声明 *****************************************************/
+
 void GPS_Init(); //内存初始化
 void GPS_SetAntenaState(u8); //设置天线状态
 u8 GPS_GetAntenaState(); //读取天线状态
@@ -68,7 +76,6 @@ _tGPSInfo* GPS_GetInfo(); //获取当前GPS状态
 BOOL GPS_IsLocated();	//是否定位成功
 void TRACE_GPSINFO(/*_tGPSInfo *pGpsInfo*/); //打印GPS信息
 void GPS_DumpInfo();	//存储GPS数据
-
 void GPS_Lowlevel_Init();
 
 void ISR_UART_GPS(void); //串口中断入口

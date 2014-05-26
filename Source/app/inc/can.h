@@ -49,38 +49,36 @@
                             GPIO_WriteBit(GPIOA, GPIOA_CAN_LED_,   \
                             (BitAction)(1-(GPIO_ReadOutputDataBit(GPIOA, GPIOA_CAN_LED_))))
 
-
 /**
-  * @brief  禁止CAN1接收，关闭接收中断
-  *
-  * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
-  * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
-  *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
-  *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
-  *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
-  *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
-  *   CAN_IT_SLK.
-  * @param  NewState: new state of the CAN interrupts.
-  *   This parameter can be: ENABLE or DISABLE.
-  * @retval None.
-  */
+ * @brief  禁止CAN1接收，关闭接收中断
+ *
+ * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
+ * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
+ *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
+ *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
+ *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
+ *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
+ *   CAN_IT_SLK.
+ * @param  NewState: new state of the CAN interrupts.
+ *   This parameter can be: ENABLE or DISABLE.
+ * @retval None.
+ */
 #define CAN_RECIEVE_DISABLE()		CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, DISABLE)
 
-
 /**
-  * @brief  使能CAN1接收，打开接收中断
-  *
-  * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
-  * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
-  *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
-  *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
-  *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
-  *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
-  *   CAN_IT_SLK.
-  * @param  NewState: new state of the CAN interrupts.
-  *   This parameter can be: ENABLE or DISABLE.
-  * @retval None.
-  */
+ * @brief  使能CAN1接收，打开接收中断
+ *
+ * @param  CANx: where x can be 1 or 2 to to select the CAN peripheral.
+ * @param  CAN_IT: specifies the CAN interrupt sources to be enabled or disabled.
+ *   This parameter can be: CAN_IT_TME, CAN_IT_FMP0, CAN_IT_FF0,
+ *   CAN_IT_FOV0, CAN_IT_FMP1, CAN_IT_FF1,
+ *   CAN_IT_FOV1, CAN_IT_EWG, CAN_IT_EPV,
+ *   CAN_IT_LEC, CAN_IT_ERR, CAN_IT_WKU or
+ *   CAN_IT_SLK.
+ * @param  NewState: new state of the CAN interrupts.
+ *   This parameter can be: ENABLE or DISABLE.
+ * @retval None.
+ */
 #define CAN_RECIEVE_ENABLE()		CAN_ITConfig(CAN1, CAN_IT_FMP0 | CAN_IT_FMP1, ENABLE)
 
 /**

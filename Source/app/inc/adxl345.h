@@ -2,7 +2,9 @@
 #define __ADXL345_H
 #include "myiic.h"   												  	  
 
-#define DEVICE_ID		0X00 	//器件ID,0XE5#define THRESH_TAP		0X1D   	//敲击阀值#define OFSX			0X1E
+#define DEVICE_ID		0X00 	//器件ID,0XE5
+#define THRESH_TAP		0X1D   	//敲击阀值
+#define OFSX			0X1E
 #define OFSY			0X1F
 #define OFSZ			0X20
 #define DUR				0X21
@@ -45,7 +47,8 @@ u8 ADXL345_RD_Reg(u8 addr);							//读ADXL345寄存器
 void ADXL345_RD_XYZ(short *x, short *y, short *z);	//读取一次值
 void ADXL345_RD_Avval(short *x, short *y, short *z);	//读取平均值
 void ADXL345_AUTO_Adjust(char *xval, char *yval, char *zval);	//自动校准
-void ADXL345_Read_Average(short *x, short *y, short *z, u8 times);//连续读取times次,取平均
+void ADXL345_Read_Average(short *x, short *y, short *z, u8 times);	//连续读取times次,取平均
 short ADXL345_Get_Angle(float x, float y, float z, u8 dir);
+
 #endif
 

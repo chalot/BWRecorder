@@ -19,13 +19,13 @@
 #include <bsp.h>
 #include "qassert.h"
 #include <qevt.h>
+#include <type.h>
 
 Q_DEFINE_THIS_MODULE("protocol.c")
 ///必须加上 #include <qevt.h>，否则编译报错
 
 /**参数ID值，必须与之前枚举值保持严格对应*/
-static const u32 param_id[] = {
-		0x0001,		///终端心跳发送间隔，单位为s
+static const u32 param_id[] = { 0x0001,		///终端心跳发送间隔，单位为s
 		0x0002,		///TCP应答超时，单位为s
 		0x0003,		///TCP消息重传次数
 		0x0004,		///UDP应答超时，单位为s
@@ -44,19 +44,7 @@ static const u32 param_id[] = {
 		0x0018,		///TCP端口
 		0x0019,		///UDP端口
 		/**0X001A ----0X001F 保留*/
-#ifdef JTT808_Ver_2013	///新版增加协议部分
-		0x001A,		///道路运输证IC卡认证主服务器IP地址或域名
-		0x001B,		///道路运输证IC卡认证主服务器TCP端口
-		0x001C,		///道路运输证IC卡认证主服务器UDP端口
-		0x001D,		///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
-#endif///JTT808_Ver_2013
-
-		0x0020,		///终端位置汇报策略，0:定时汇报，1:定距汇报，2:定时和定距汇报
-		0x0021,		///终端汇报方案，0:根据ACC状态，1:根据登录状态和ACC状态，
-		0x0022,		///驾驶员未登录汇报时间间隔，单位为秒
-		/**0X0023 ----0X0026 保留*/
-		0x0027,		///休眠时汇报时间间隔，单位为秒
-		0x0028,		///紧急报警时汇报时间间隔，单位为秒
+#ifdef JTT808_Ver_2013	///新版增加协议部分		0x001A,		///道路运输证IC卡认证主服务器IP地址或域名		0x001B,		///道路运输证IC卡认证主服务器TCP端口		0x001C,		///道路运输证IC卡认证主服务器UDP端口		0x001D,		///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器#endif///JTT808_Ver_2013		0x0020,		///终端位置汇报策略，0:定时汇报，1:定距汇报，2:定时和定距汇报		0x0021,		///终端汇报方案，0:根据ACC状态，1:根据登录状态和ACC状态，		0x0022,		///驾驶员未登录汇报时间间隔，单位为秒		/**0X0023 ----0X0026 保留*/		0x0027,		///休眠时汇报时间间隔，单位为秒		0x0028,		///紧急报警时汇报时间间隔，单位为秒
 		0x0029,		///缺省时汇报时间间隔，单位为秒
 		/**0X002A ----0X002B 保留*/
 		0x002C,		///缺省时距离汇报间隔，单位为米
@@ -100,14 +88,7 @@ static const u32 param_id[] = {
 		0x0064,		///定时拍照控制
 		0x0065,		///定距拍照控制
 		/**0X0066----0X006F */
-#endif///JTT808_Ver_2013
-
-		0x0070,		///图片/视频质量，1-10,1最好
-		0x0071,		///亮度，0-255
-		0x0072,		///对比度，0-127
-		0x0073,		///饱和度，0-127
-		0x0074,		///色度，0-255
-		/**0X0075----0X007F*/
+#endif///JTT808_Ver_2013		0x0070,		///图片/视频质量，1-10,1最好		0x0071,		///亮度，0-255		0x0072,		///对比度，0-127		0x0073,		///饱和度，0-127		0x0074,		///色度，0-255		/**0X0075----0X007F*/
 		0x0080,		///车辆里程表读数，1/10km
 		0x0081,		///车辆所在地省域ID
 		0x0082,		///车辆所在地市域ID
@@ -116,23 +97,16 @@ static const u32 param_id[] = {
 
 #ifdef JTT808_Ver_2013
 		/**以下为新协议增加的参数项*/
-		0x0090, 0x0091, 0x0092, 0x0093, 0x0094, 0x0095, 0x0100, 0x0101, 0x0102,
-		0x0103, 0x0110, 0x0111,
+		0x0090, 0x0091, 0x0092, 0x0093, 0x0094, 0x0095, 0x0100, 0x0101, 0x0102, 0x0103, 0x0110, 0x0111,
 #endif
 
 		};
 
-#define PARAM_AMOUNT	(sizeof(param_id) >> 2)	///参数个数
-
-/**各种辅助宏**************************************************************************/
-#if 0
-///终端控制类，解析参数字段，以';'隔开
-#define GET_TCTRL_SEGMENT(msg, param)							\
+#define PARAM_AMOUNT	(sizeof(param_id) >> 2)	///参数个数/**各种辅助宏**************************************************************************/#if 0///终端控制类，解析参数字段，以';'隔开#define GET_TCTRL_SEGMENT(msg, param)							\
 	do {														\
 		u8 len = get_next_segment(msg, param);					\
 		param[len] = '\0';										\
-	}while(0)
-#endif
+	}while(0)#endif
 
 ///数字字符串转换成U16
 #define CONVERT_STRING_2_U16(str_buf, str_len, add)				\
@@ -169,7 +143,8 @@ static u8 get_next_segment(char *msg, char *seg_buf);
 static u16 Protocol_FormSysProperty(u8* pCursor, u16 seq);
 static u16 Protocol_FormSysParams(u8* pCursor, u16 seq);
 static void Protocol_ServerGeneralAckProc(tMsg_S_GeneralAck* pMsgBlock);
-static void ERROR_Handle( iRet);
+static void Protocol_T_SendGeneralAck(u16 u16ResMsgId, u16 u16ResSeqId, u8 ret);
+static void ERROR_Handle(int iRet);
 /*********************************************************************************/
 
 static u16 __inline__ GET_TCTRL_SEGMENT(u8 *msg, u8 *param) {
@@ -188,16 +163,20 @@ void __inline__ ENDIAN_MSGHEAD_LITTLE2BIG(tMSGHEAD *pMsg) {
 /**消息头大端转换成小端，同小端到大端转换相同*/
 #define ENDIAN_MSGHEAD_BIG2LITTLE	ENDIAN_MSGHEAD_LITTLE2BIG
 
+
+
+#if 0
 /**终端发送通用命令应答消息*/
-#define T_RPT_GENERAL_ACK(u16MsgId, u16SeqId, ret)	\
+#define Protocol_T_SendGeneralAck(u16ResMsgId, u16ResSeqId, ret)	\
 	do {											\
 		tMsg_S_GeneralAck tAck;						\
-		tAck.u16RespSeqId = u16SeqId;				\
-		tAck.u16RespMsgId = u16MsgId;				\
+		tAck.u16RespSeqId = u16ResMsgId;				\
+		tAck.u16RespMsgId = u16ResSeqId;				\
 		tAck.eResult = ret;							\
 													\
 		Protocol_ServerGeneralAckProc(&tAck);		\
 	}while(0)
+#endif
 
 /**
  * 终端与服务器通信协议数据处理，处理服务器下发命令
@@ -212,7 +191,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 	u16 u16MsgBlockLen = 0; ///消息体长度
 	u16 u16TransMsgLen = 0;	///转义后消息长度
 	int iRet = 0;
-	TaskEvt *pe = NULL;
+	TaskEvt *pe = (void *) 0;
 
 	static u8 aTransMsg[CONFIG_TCP_RXBUF_MAXLEN];	///转义消息缓区
 
@@ -220,7 +199,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 //	static char pbuf[200];	///打印缓区
 //#endif
 
-	if ((pMsg == NULL ) || (msgLen == 0))
+	if ((pMsg == (void *) 0) || (msgLen == 0))
 		return;
 
 	/**转义处理,接收消息时：转义还原——>验证校验码——>解析消息。*/
@@ -229,7 +208,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 
 	/**再内容校验*/
 	if (FALSE == CheckFrame(aTransMsg, u16TransMsgLen)) {
-		TRACE_(QS_USER, NULL, " ERR! Msg check failed! ");
+		TRACE_(QS_USER, (void *) 0, " ERR! Msg check failed! ");
 		return;
 	}
 
@@ -249,7 +228,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pMsgBlock += 4;
 	}
 
-	TRACE_(QS_USER, NULL, "[GET MSG]: ");
+	TRACE_(QS_USER, (void *) 0, "[GET MSG]: ");
 	TRACE_RAW_BUFFER(pMsg, msgLen);	///打印原始数据
 
 	switch (pHead->u16MsgId) {
@@ -286,18 +265,17 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		switch (pInfo->eRet) {
 		case REG_SUCCESS: 				///	= 0,	///成功/确认
 			/**保存授权码*/
-			memcpy_(ptParam_Runtime->sAuthorCode,
-					pMsgBlock + sizeof(tMsg_S_Ack_Register),
+			memcpy_(ptParam_Runtime->sAuthorCode, pMsgBlock + sizeof(tMsg_S_Ack_Register),
 					strlen_((char*) (pMsgBlock + sizeof(tMsg_S_Ack_Register)))); ///STRING类型是否以'\0'结尾？
 
 			Save_Params(PARAM_RUNTIME); ///保存参数
-			QACTIVE_POST(AO_Gprs, Q_NEW(QEvt, SACK_TERMREG_OK_SIG), NULL); ///发送注册成功消息
+			QACTIVE_POST(AO_Gprs, Q_NEW(QEvt, SACK_TERMREG_OK_SIG), (void *)0); ///发送注册成功消息
 			break;
 		case REG_VECHICLEREGED: ///	= 1,	///车辆已经注册
 		case REG_NOVEHICLE: ///		= 2,	///数据库中无此车辆
 		case REG_TERMINALREGED: ///	= 3,	///终端已经注册
 		case REG_NOTERMINAL: ///		= 4,	///数据库中无此终端
-			QACTIVE_POST(AO_Gprs, Q_NEW(QEvt, SACK_TERMREG_ERR_SIG), NULL); ///发送注册失败消息
+			QACTIVE_POST(AO_Gprs, Q_NEW(QEvt, SACK_TERMREG_ERR_SIG), (void *)0); ///发送注册失败消息
 			break;
 		default:
 			break;
@@ -324,7 +302,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		tMsg_SCMD_SetParam *pParam;
 		TaskEvt *pe;
 
-		TRACE_(QS_USER, NULL, "[CMD]: SetParam ");
+		TRACE_(QS_USER, (void *) 0, "[CMD]: SetParam ");
 
 		pParam = (tMsg_SCMD_SetParam*) pMsgBlock;
 
@@ -337,7 +315,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			pMsgBlock += 5;	///跳过上面5个字节，指向参数内容
 			iRet = Set_SystemParam(pItem->u32Id, pItem->u8Len, pMsgBlock); ///写参数，并转成小端
 			if (iRet < 0) {
-				TRACE_(QS_USER, NULL, "## param setting err! ");
+				TRACE_(QS_USER, (void *) 0, "## param setting err! ");
 				break;
 			}
 			pMsgBlock += pItem->u8Len;
@@ -354,7 +332,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->resSeqence = pHead->u16MsgCircularId;
 		pe->ret = ((iRet == 0) ? RET_SUCCESS : RET_FAIL);
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 
 //		Trace_SystemParam();	///打印系统参数
 	}
@@ -371,7 +349,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->sequence = GenerateCirculateSeqId();
 		pe->resSeqence = pHead->u16MsgCircularId;
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -408,7 +386,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->sequence = GenerateCirculateSeqId();
 		pe->resSeqence = pHead->u16MsgCircularId;
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 	}
 
 		break;
@@ -424,7 +402,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		u8 u8CmdType = *pMsgBlock++;	///命令字
 		Q_ASSERT((u8CmdType <= 7) && (u8CmdType >= 1));
 		if (!((u8CmdType <= 7) && (u8CmdType >= 1)))
-			TRACE_(QS_USER, NULL, "ret = ERR, reason: param invalid.");
+			TRACE_(QS_USER, (void *) 0, "ret = ERR, reason: param invalid.");
 
 		u16MsgBlockLen--;
 
@@ -460,16 +438,14 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			//TCP 端口;
 			seg_len = get_next_segment(pMsgBlock, seg_buf);
 			if (seg_len > 0) {
-				CONVERT_STRING_2_U16(seg_buf, seg_len,
-						&ptParam_Runtime->u16TCP_port);
+				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16TCP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
 			//UDP 端口;
 			seg_len = get_next_segment(pMsgBlock, seg_buf);
 			if (seg_len > 0) {
-				CONVERT_STRING_2_U16(seg_buf, seg_len,
-						&ptParam_Runtime->u16UDP_port);
+				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16UDP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
@@ -486,28 +462,23 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			pMsgBlock++; ///跳过';'
 
 			//连接到指定服务器时限
-			CONVERT_STRING_2_U16(pMsgBlock,
-					(pMsg + sizeof(tMSGHEAD) + u16MsgBlockLen - pMsgBlock), ///剩余字节长度
+			CONVERT_STRING_2_U16(pMsgBlock, (pMsg + sizeof(tMSGHEAD) + u16MsgBlockLen - pMsgBlock), ///剩余字节长度
 					&ptParam_Runtime->u16TOUT_ServerConnect);
 			ptParam_Runtime->u16TOUT_ServerConnect *= 60; ///分转换成秒
 
-			TRACE_(QS_USER, NULL,
+			TRACE_(QS_USER, (void *) 0,
 					"URL:%s; PPP_name:%s, PPP_user:%s, PPP_password:%s, IP:%s, TCP_port:%d, 	\
 				UDP_port:%d,ManufuctureId:%s, Hardware_Version:%s,	Firmware_Version:%s, 	\
 				Link_tout:%d",
-					ptParam_Runtime->sURL, ptParam_Runtime->sPPP_name,
-					ptParam_Runtime->sPPP_user, ptParam_Runtime->sPPP_password,
-					ptParam_Runtime->sIP, ptParam_Runtime->u16TCP_port,
-					ptParam_Runtime->u16UDP_port,
-					ptParam_Runtime->sManufacture_ID,
-					ptParam_Runtime->sHardware_Version,
-					ptParam_Runtime->sFirmware_Version,
-					ptParam_Runtime->u16TOUT_ServerConnect);
+					ptParam_Runtime->sURL, ptParam_Runtime->sPPP_name, ptParam_Runtime->sPPP_user,
+					ptParam_Runtime->sPPP_password, ptParam_Runtime->sIP, ptParam_Runtime->u16TCP_port,
+					ptParam_Runtime->u16UDP_port, ptParam_Runtime->sManufacture_ID, ptParam_Runtime->sHardware_Version,
+					ptParam_Runtime->sFirmware_Version, ptParam_Runtime->u16TOUT_ServerConnect);
 
 			//保存到运行参数
 			iRet = Save_Params(PARAM_RUNTIME);
 			if (iRet < 0) {
-				TRACE_(QS_USER, NULL, " ERR! Save_Params failed! ");
+				TRACE_(QS_USER, (void *) 0, " ERR! Save_Params failed! ");
 				return;
 			}
 		}
@@ -530,9 +501,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			 1：切换回原缺省监控平台服务器，并恢复正常状态
 			 */
 			if (ctrl == 1) {
-				QACTIVE_POST(AO_Gprs, Q_NEW(QEvent, GPRS_CONNECTDEFAULTSERVER),
-						NULL);
-
+				QACTIVE_POST(AO_Gprs, Q_NEW(QEvent, GPRS_CONNECTDEFAULTSERVER), (void *)0);
 				return;
 			}
 
@@ -563,64 +532,58 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			//TCP 端口;
 			seg_len = get_next_segment(pMsgBlock, seg_buf);
 			if (seg_len > 0) {
-				CONVERT_STRING_2_U16(seg_buf, seg_len,
-						&ptParam_Runtime->u16TCP_port);
+				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16TCP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
 			//UDP 端口;
 			seg_len = get_next_segment(pMsgBlock, seg_buf);
 			if (seg_len > 0) {
-				CONVERT_STRING_2_U16(seg_buf, seg_len,
-						&ptParam_Runtime->u16UDP_port);
+				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16UDP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
 			//连接到指定服务器时限
-			CONVERT_STRING_2_U16(pMsgBlock,
-					(pMsg + sizeof(tMSGHEAD) + u16MsgBlockLen - pMsgBlock), ///剩余字节长度
+			CONVERT_STRING_2_U16(pMsgBlock, (pMsg + sizeof(tMSGHEAD) + u16MsgBlockLen - pMsgBlock), ///剩余字节长度
 					&ptParam_Runtime->u16TOUT_ServerConnect);
 			ptParam_Runtime->u16TOUT_ServerConnect *= 60; ///分转换成秒
 
-			TRACE_(QS_USER, NULL,
+			TRACE_(QS_USER, (void *) 0,
 					"Link_ctrl:%d, AuthorCode:%s, PPP_name:%s, PPP_user:%s, PPP_password:%s, 	\
 					IP:%s, TCP_port:%d,	UDP_port:%d, Link_tout:%d",
-					ptParam_Runtime->u8ConnectionCtrl,
-					ptParam_Runtime->sAuthorCode, ptParam_Runtime->sPPP_name,
-					ptParam_Runtime->sPPP_user, ptParam_Runtime->sPPP_password,
-					ptParam_Runtime->sIP, ptParam_Runtime->u16TCP_port,
-					ptParam_Runtime->u16UDP_port,
-					ptParam_Runtime->u16TOUT_ServerConnect);
+					ptParam_Runtime->u8ConnectionCtrl, ptParam_Runtime->sAuthorCode, ptParam_Runtime->sPPP_name,
+					ptParam_Runtime->sPPP_user, ptParam_Runtime->sPPP_password, ptParam_Runtime->sIP,
+					ptParam_Runtime->u16TCP_port, ptParam_Runtime->u16UDP_port, ptParam_Runtime->u16TOUT_ServerConnect);
 
 			//保存到运行参数
 			iRet = Save_Params(PARAM_RUNTIME);
 			if (iRet < 0) {
-				TRACE_(QS_USER, NULL, " ERR! Save_Params failed! ");
+				TRACE_(QS_USER, (void *) 0, " ERR! Save_Params failed! ");
 				return;
 			}
 		}
 			break;
 		case CMD_POWER_OFF: ///控制终端关机
-			TRACE_(QS_USER, NULL, "3, CMD_POWER_OFF");
+			TRACE_(QS_USER, (void *) 0, "3, CMD_POWER_OFF");
 			///广播关机消息，须等待其他状态机合理处理后再执行
-			QF_publish(Q_NEW(QEvent, SYS_POWEROFF), NULL);
+			QF_publish(Q_NEW(QEvent, SYS_POWEROFF), (void *) 0);
 			break;
 		case CMD_RESET: ///控制终端复位
-			TRACE_(QS_USER, NULL, "4, CMD_RESET");
+			TRACE_(QS_USER, (void *) 0, "4, CMD_RESET");
 			///广播复位消息，须等待其他状态机合理处理后再执行
-			QF_publish(Q_NEW(QEvent, SYS_RESET), NULL);
+			QF_publish(Q_NEW(QEvent, SYS_RESET), (void *) 0);
 			break;
 		case CMD_RESUME_FACTORY_SET: ///终端恢复出厂设置
-			TRACE_(QS_USER, NULL, "5, CMD_RESUME_FACTORY_SET");
-			QF_publish(Q_NEW(QEvent, SYS_RECOVERFACTORYSETTING), NULL);
+			TRACE_(QS_USER, (void *) 0, "5, CMD_RESUME_FACTORY_SET");
+			QF_publish(Q_NEW(QEvent, SYS_RECOVERFACTORYSETTING), (void *) 0);
 			break;
 		case CMD_CLOSE_DATA_LINK: ///关闭数据通信
-			TRACE_(QS_USER, NULL, "6, CMD_CLOSE_DATA_LINK");
-			QACTIVE_POST(AO_Gprs, Q_NEW(QEvent, GPRS_SHUTDATACOMM), NULL);
+			TRACE_(QS_USER, (void *) 0, "6, CMD_CLOSE_DATA_LINK");
+			QACTIVE_POST(AO_Gprs, Q_NEW(QEvent, GPRS_SHUTDATACOMM), (void *)0);
 			break;
 		case CMD_CLOSE_ALL_LINK: ///关闭所有无线通信
-			TRACE_(QS_USER, NULL, "7, CMD_CLOSE_ALL_LINK");
-			QACTIVE_POST(AO_Gprs, Q_NEW(QEvent, GPRS_SHUTALLCOMM), NULL);
+			TRACE_(QS_USER, (void *) 0, "7, CMD_CLOSE_ALL_LINK");
+			QACTIVE_POST(AO_Gprs, Q_NEW(QEvent, GPRS_SHUTALLCOMM), (void *)0);
 			break;
 		default:
 			break;
@@ -640,7 +603,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->sequence = GenerateCirculateSeqId();
 		pe->resSeqence = pHead->u16MsgCircularId;
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -670,7 +633,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 //		ENDIAN_U32(ptUpgInfo->u32UpgPack_len);
 //
 //		///升级过程未处理？？？？
-//		QACTIVE_POST(AO_Upgrade, Q_NEW(QEvent, UPG_REQUEST_SIG), NULL);
+//		QACTIVE_POST(AO_Upgrade, Q_NEW(QEvent, UPG_REQUEST_SIG), (void *)0);
 	}
 		break;
 
@@ -694,7 +657,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->sequence = GenerateCirculateSeqId();
 		pe->resSeqence = pHead->u16MsgCircularId;
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -717,7 +680,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->u16Period = pTrackInfo->u16TimeInterval;
 		pe->u32Timetill = pTrackInfo->u32TrackingTimeout;
 
-		QACTIVE_POST(AO_Gps, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gps, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -737,7 +700,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->u16VerifyWarnSeq = pWarnInfo->u16SeqNum;
 		memcpy_((u8*) &pe->tWarnInfo, (u8*) pWarnInfo->u32WarnType, 4);
 
-		QACTIVE_POST(AO_Gps, (QEvt* )pe, NULL); ///该消息在哪个状态机处理待定？？？？？？？？
+		QACTIVE_POST(AO_Gps, (QEvt* )pe, (void *)0); ///该消息在哪个状态机处理待定？？？？？？？？
 	}
 		break;
 
@@ -756,7 +719,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		if (pInfo->flag_Emergency) ///紧急
 		{
 			//????怎么处理？？？？？
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 			return;
 		}
 
@@ -770,16 +733,16 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			memcpy_((u8*) &pe->msg, (u8*) &pInfo->msg, u16MsgBlockLen - 1);
 			pe->msg[u16MsgBlockLen - 1] = '\0';
 
-			QACTIVE_POST(AO_LCD, (QEvt* )pe, NULL);
+			QACTIVE_POST(AO_LCD, (QEvt* )pe, (void *)0);
 
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 			return;
 		}
 
 		if (pInfo->flag_Advertise)	///广告，不支持
 		{
 			iRet = -1;
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
 			return;
 		}
 
@@ -792,9 +755,9 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			memcpy_((u8*) &pe->msg, (u8*) &pInfo->msg, u16MsgBlockLen - 1);
 			pe->msg[u16MsgBlockLen - 1] = '\0';
 
-			QACTIVE_POST(AO_TTS, (QEvt* )pe, NULL);
+			QACTIVE_POST(AO_TTS, (QEvt* )pe, (void *)0);
 
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 			return;
 
 		}
@@ -802,10 +765,11 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 #ifdef JTT808_Ver_2013
 		if (0 == pInfo->flag_MsgInfo)	///5 0：中心导航信息，1：CAN 故障码信息
 				{
-		} else {
+		}
+		else {
 		}
 
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 		return;
 //	}
 #endif
@@ -832,109 +796,101 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		u8EvtType = *pMsgBlock++;
 		u8EvtAmount = *pMsgBlock++;
 
-		TRACE_(QS_USER, NULL,
-				"@CMD id[ %x - MSGID_S_SetEvent], Type[%d], Amount[%s], ",
-				MSGID_S_SetEvent, u8EvtType, u8EvtAmount);
+		TRACE_(QS_USER, (void *) 0, "@CMD id[ %x - MSGID_S_SetEvent], Type[%d], Amount[%s], ", MSGID_S_SetEvent,
+				u8EvtType, u8EvtAmount);
 
-		if (u8EvtType == eDEL_ALL_EVENT)// 		= 0,	///删除终端现有所有事件，该命令不带有后续字节
+		if (u8EvtType == eDEL_ALL_EVENT) ///删除终端现有所有事件，该命令不带有后续字节
 				{
-			TRACE_(QS_USER, NULL, "Action[eDEL_ALL_EVENT]");
-			iRet = PARAM_FormatMsg_EraseAll(PARAM_FORMATMSG_EVT);		///清空内存
+			TRACE_(QS_USER, (void *) 0, "Action[eDEL_ALL_EVENT]");
+			iRet = PARAM_EraseFMTParam(PARAM_EVENT);
 			ERROR_HANDLE(iRet);
 
-			PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_EVT);				///保存索引头
+			iRet = PARAM_SaveFMTParam(PARAM_EVENT);
 			ERROR_HANDLE(iRet);
-		} else if (u8EvtType == eUPDATE_EVENT)			// 更新事件	和修改事件有什么区别？？？？？？
+		}
+		else if (u8EvtType == eUPDATE_EVENT)			// 更新事件	和修改事件有什么区别？？？？？？
 				{
 			///现在实现方式：删除现有所有事件，替换新事件
-			TRACE_(QS_USER, NULL, "Action[eUPDATE_EVENT]");
+			TRACE_(QS_USER, (void *) 0, "Action[eUPDATE_EVENT]");
 
 			///删除原事件
-			iRet = PARAM_FormatMsg_EraseAll(PARAM_FORMATMSG_EVT);		///清空内存
-			ERROR_HANDLE(iRet);
-
-			PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_EVT);				///保存索引头
+			iRet = PARAM_EraseFMTParam(PARAM_EVENT);		///清空内存
 			ERROR_HANDLE(iRet);
 
 			///替换新事件
-			Q_ASSERT(0 == PARAM_FormatMsg_GetAmount(PARAM_FORMATMSG_EVT));
-
 			i = 0;
 			while (i < u8EvtAmount) {
-				u8EvtId = *pMsgBlock++;	///事件ID
-				u8EvtLen = *pMsgBlock++; ///事件信息长度
+				u8EvtId = *pMsgBlock;
+				u8EvtLen = *(pMsgBlock + 1) + 2; ///事件项总长度
 				pEvtMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_EVT, u8EvtId,
-						u8EvtLen, pEvtMsg);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_EVENT, u8EvtLen, pEvtMsg);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Add ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8EvtId, u8EvtLen, (char*) pEvtMsg);
+				TRACE_(QS_USER, (void *) 0, "Add ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8EvtId, u8EvtLen,
+						(char*) pEvtMsg);
 
 				pMsgBlock += u8EvtLen;
 				i++;
 			}
-		} else if (u8EvtType == eAPPEND_EVENT) ///追加事件
+		}
+		else if (u8EvtType == eAPPEND_EVENT) ///追加事件
 				{
-			TRACE_(QS_USER, NULL, "Action[eAPPEND_EVENT]");
+			TRACE_(QS_USER, (void *) 0, "Action[eAPPEND_EVENT]");
 
 			i = 0;
 			while (i < u8EvtAmount) {
-				u8EvtId = *pMsgBlock++;	///事件ID
-				u8EvtLen = *pMsgBlock++; ///事件信息长度
+				u8EvtId = *pMsgBlock;
+				u8EvtLen = *(pMsgBlock + 1) + 2; ///事件项总长度
 				pEvtMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_EVT, u8EvtId,
-						u8EvtLen, pEvtMsg);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_EVENT, u8EvtLen, pEvtMsg);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8EvtId, u8EvtLen, (char*) pEvtMsg);
+				TRACE_(QS_USER, (void *) 0, "Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8EvtId, u8EvtLen,
+						(char*) pEvtMsg);
 
 				pMsgBlock += u8EvtLen;
 				i++;
 			}
-		} else if (u8EvtType == eCHANGE_EVENT) ///修改事件
+		}
+		else if (u8EvtType == eCHANGE_EVENT) ///修改事件
 				{
-			TRACE_(QS_USER, NULL, "Action[eCHANGE_EVENT]");
+			TRACE_(QS_USER, (void *) 0, "Action[eCHANGE_EVENT]");
 
 			i = 0;
 			while (i < u8EvtAmount) {
-				u8EvtId = *pMsgBlock++;	///事件ID
-				u8EvtLen = *pMsgBlock++; ///事件信息长度
+				u8EvtId = *pMsgBlock;
+				u8EvtLen = *(pMsgBlock + 1) + 2; ///事件项总长度
 				pEvtMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ReplaceItem(PARAM_FORMATMSG_EVT, u8EvtId,
-						u8EvtLen, pEvtMsg);
+				iRet = PARAM_FormatMsg_ReplaceItem(PARAM_EVENT, u8EvtId, u8EvtLen, pEvtMsg);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Change ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8EvtId, u8EvtLen, (char*) pEvtMsg);
+				TRACE_(QS_USER, (void *) 0, "Change ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8EvtId, u8EvtLen,
+						(char*) pEvtMsg);
 
 				pMsgBlock += u8EvtLen;
 				i++;
 			}
-		} else {
+		}
+		else {
 			///错误，回传普通错误应答消息
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
 			return;
 		}
 
 		///写EEPROM索引头
-		PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_MSGOD_MENU);
+		PARAM_SaveFMTParam(PARAM_EVENT);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 
 		///通知界面清空事件列表
-		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_EVENTS_SIG), NULL);
+		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_EVENTS_SIG), (void *)0);
 	}
 		break;
 
@@ -957,18 +913,18 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		if (u8QuestionType & QUESTION_TYPE_TTS_READ)	///播报
-				{
+		{
 			TTSMsgEvt *pe;
 			pe = Q_NEW(TTSMsgEvt, TTS_READMSG_SIG);
 			Q_ASSERT(pe);
 
 			///拷贝原始消息，注意包括问题及候选应答，其中候选应答的长度字段没有转换成小端
 			memcpy_((u8*) &pe->msg, pMsgBlock, u16MsgBlockLen - 2);
-			QACTIVE_POST(AO_TTS, (QEvt* )pe, NULL);
+			QACTIVE_POST(AO_TTS, (QEvt* )pe, (void *)0);
 		}
 
 		if (u8QuestionType & QUESTION_TYPE_DISPLAY) ///广告屏显示，不支持
-				{
+		{
 			return;
 		}
 	}
@@ -988,103 +944,98 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		u8Type = *pMsgBlock++;	///类型
 		u8ItemAmount = *pMsgBlock++;	///总数
 
-		TRACE_(QS_USER, NULL,
-				"@CMD id[ %x - MSGID_S_SetInfoOnDemandMenu], Type[%d], Amount[%s], ",
-				MSGID_S_SetInfoOnDemandMenu, u8Type, u8ItemAmount);
+		TRACE_(QS_USER, (void *) 0, "@CMD id[ %x - MSGID_S_SetInfoOnDemandMenu], Type[%d], Amount[%s], ",
+		MSGID_S_SetInfoOnDemandMenu, u8Type, u8ItemAmount);
 
 		if (u8Type == MSGOD_MENU_DELETE) ///删除终端现有信息项
 		{
-			TRACE_(QS_USER, NULL, "Action[ DELETE ]");
-			iRet = PARAM_FormatMsg_EraseAll(PARAM_FORMATMSG_MSGOD_MENU); ///清空内存
+			TRACE_(QS_USER, (void *) 0, "Action[ DELETE ]");
+			iRet = PARAM_EraseSysParam(PARAM_MSGODMENU);
 			ERROR_HANDLE(iRet);
 
-			PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_MSGOD_MENU); ///保存索引头
+			PARAM_SaveFMTParam(PARAM_MSGODMENU);
 			ERROR_HANDLE(iRet);
-		} else if (u8Type == MSGOD_MENU_UPDATE) ///更新菜单
-				{
-			TRACE_(QS_USER, NULL, "Action[ UPDATE ]");
-			iRet = PARAM_FormatMsg_EraseAll(PARAM_FORMATMSG_MSGOD_MENU); ///清空内存
-			ERROR_HANDLE(iRet);
-
-			PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_MSGOD_MENU); ///保存索引头
+		}
+		else if (u8Type == MSGOD_MENU_UPDATE) ///更新菜单
+		{
+			TRACE_(QS_USER, (void *) 0, "Action[ UPDATE ]");
+			iRet = PARAM_EraseSysParam(PARAM_MSGODMENU);  ///清空内存
 			ERROR_HANDLE(iRet);
 
 			i = 0;
 			while (i < u8ItemAmount) {
 				u8ItemId = *pMsgBlock++;	///菜单ID
-				u8ItemLen = *pMsgBlock++; ///菜单信息长度
+				u8ItemLen = *(pMsgBlock + 1) + 2; ///菜单项长度
 				pItemMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_MSGOD_MENU,
-						u8ItemId, u8ItemLen, pItemMsg);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_MSGODMENU, u8ItemLen, pItemMsg);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"UPDATE ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8ItemId, u8ItemLen, (char*) pItemMsg);
+				TRACE_(QS_USER, (void *) 0, "UPDATE ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
+						(char*) pItemMsg);
 
 				pMsgBlock += u8ItemLen;
 				i++;
 			}
-		} else if (u8Type == MSGOD_MENU_APPEND) ///追加菜单
-				{
-			TRACE_(QS_USER, NULL, "Action[ APPEND ]");
+		}
+		else if (u8Type == MSGOD_MENU_APPEND) ///追加菜单
+		{
+			TRACE_(QS_USER, (void *) 0, "Action[ APPEND ]");
 
 			i = 0;
 			while (i < u8ItemAmount) {
 				u8ItemId = *pMsgBlock++;	///菜单ID
-				u8ItemLen = *pMsgBlock++; ///菜单信息长度
+				u8ItemLen = *(pMsgBlock + 1) + 2; ///菜单项长度
 				pItemMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_MSGOD_MENU,
-						u8ItemId, u8ItemLen, pItemMsg);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_MSGODMENU, u8ItemId, u8ItemLen, pItemMsg);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8ItemId, u8ItemLen, (char*) pItemMsg);
+				TRACE_(QS_USER, (void *) 0, "Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
+						(char*) pItemMsg);
 
 				pMsgBlock += u8ItemLen;
 				i++;
 			}
-		} else if (u8Type == MSGOD_MENU_CHANGE) ///修改菜单
-				{
-			TRACE_(QS_USER, NULL, "Action[ CHANGE ]");
+		}
+		else if (u8Type == MSGOD_MENU_CHANGE) ///修改菜单
+		{
+			TRACE_(QS_USER, (void *) 0, "Action[ CHANGE ]");
 
 			i = 0;
 			while (i < u8ItemAmount) {
 				u8ItemId = *pMsgBlock++;	///菜单ID
-				u8ItemLen = *pMsgBlock++; ///菜单信息长度
+				u8ItemLen = *(pMsgBlock + 1) + 2; ///菜单项长度
 				pItemMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ReplaceItem(PARAM_FORMATMSG_MSGOD_MENU,
-						u8ItemId, u8ItemLen, pItemMsg);
+				iRet = PARAM_FormatMsg_ReplaceItem(PARAM_MSGODMENU, u8ItemId, u8ItemLen, pItemMsg);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Change ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8ItemId, u8ItemLen, (char*) pItemMsg);
+				TRACE_(QS_USER, (void *) 0, "Change ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
+						(char*) pItemMsg);
 
 				pMsgBlock += u8ItemLen;
 				i++;
 			}
-		} else {
+		}
+		else {
 			///错误，回传普通错误应答消息
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
 			return;
 		}
 
 		///写EEPROM索引头
-		PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_MSGOD_MENU);
+		PARAM_SaveFMTParam(PARAM_MSGODMENU);
+		ERROR_HANDLE(iRet);
 
 		///通知界面清空事件列表
-		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_EVENTS_SIG), NULL);
+		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_EVENTS_SIG), (void *)0);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1095,20 +1046,21 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		//信息服务
 	case MSGID_S_InfoService:				//0x8304
 	{
+		u16 u16ItemLen = 0;
 		T_SCMD_InfoService *pInfo;
 		pInfo = (T_SCMD_InfoService *) pMsgBlock;
 
 		ENDIAN_U16(pInfo->u16InfoTotalLength);
+		u16ItemLen = pInfo->u16InfoTotalLength + 2;
 
 		///保存一个新信息
-		PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_MSGOD_MSG, pInfo->u8InfoType,
-				pInfo->u16InfoTotalLength, pInfo->aInfo);
+		PARAM_FormatMsg_ApendItem(PARAM_MSGODINFO, u16ItemLen, pMsgBlock);
 
 		///保存索引头
-		PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_MSGOD_MSG);
+		PARAM_SaveFMTParam(PARAM_MSGODINFO);
 
 		///通知UI，更新点播信息
-		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_MSGODMSG_SIG), NULL);
+		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_MSGODMSG_SIG), (void *)0);
 	}
 		break;
 
@@ -1121,25 +1073,24 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pDial = (T_SCMD_ReverseDial *) pMsgBlock;
 		pMsgBlock++;
 
-		TRACE_(QS_USER, NULL,
-				"@CMD id[ %x - MSGID_S_Redial], type[%d], phone[%s]",
-				MSGID_S_Redial, (u8) pDial->u8Flag, (char*) pMsgBlock);
+		TRACE_(QS_USER, (void *) 0, "@CMD id[ %x - MSGID_S_Redial], type[%d], phone[%s]", MSGID_S_Redial,
+				(u8) pDial->u8Flag, (char*) pMsgBlock);
 
-		if (pDial->u8Flag == 0)	///普通通话
-				{
+		if (pDial->u8Flag == 0) {	///普通通话
 			pe = Q_NEW(DialEvt, GPRS_DIAL_NORMAL_SIG);
 			Q_ASSERT(pe);
 			strcpy_(pe->phone, (char*) pMsgBlock);
-			QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
-		} else if (pDial->u8Flag == 1) ///监听
-				{
+			QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
+		}
+		else if (pDial->u8Flag == 1) {	///监听
 			pe = Q_NEW(DialEvt, GPRS_DIAL_MONITOR_SIG);
 			Q_ASSERT(pe);
 			strcpy_(pe->phone, (char*) pMsgBlock);
-			QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
-		} else {
+			QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
+		}
+		else {
 			///回传普通错误应答消息
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
 		}
 	}
 		break;
@@ -1161,28 +1112,22 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 
 		u8ItemAmount = pBook->u8ConnPersonCount;
 
-		TRACE_(QS_USER, NULL,
-				"@CMD id[ %x - MSGID_S_SetPhoneBook], Type[%d], Amount[%s], ",
-				MSGID_S_SetPhoneBook, pBook->u8SetType, u8ItemAmount);
+		TRACE_(QS_USER, (void *) 0, "@CMD id[ %x - MSGID_S_SetPhoneBook], Type[%d], Amount[%s], ", MSGID_S_SetPhoneBook,
+				pBook->u8SetType, u8ItemAmount);
 
 		pMsgBlock += 2; ///指向第一项
 
 		if (pBook->u8SetType == ePHONEBOOK_DELETE) ///0,删除终端上所有存储的联系人
 				{
-			TRACE_(QS_USER, NULL, "Action[ DELETE ]");
-			iRet = PARAM_FormatMsg_EraseAll(PARAM_FORMATMSG_PHONEBOOK); ///清空内存
+			TRACE_(QS_USER, (void *) 0, "Action[ DELETE ]");
+			iRet = PARAM_EraseFMTParam(PARAM_PHONEBOOK); ///清空内存
 			ERROR_HANDLE(iRet);
-
-			PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_PHONEBOOK); ///保存索引头
-			ERROR_HANDLE(iRet);
-		} else if (pBook->u8SetType == ePHONEBOOK_UPDATE) ///1,更新电话本
+		}
+		else if (pBook->u8SetType == ePHONEBOOK_UPDATE) ///1,更新电话本
 				{
 			///删除终端中已有的全部联系人并追加消息中的联系人
-			TRACE_(QS_USER, NULL, "Action[ UPDATE ]");
-			iRet = PARAM_FormatMsg_EraseAll(PARAM_FORMATMSG_PHONEBOOK); ///清空内存
-			ERROR_HANDLE(iRet);
-
-			PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_PHONEBOOK); ///保存索引头
+			TRACE_(QS_USER, (void *) 0, "Action[ UPDATE ]");
+			iRet = PARAM_EraseFMTParam(PARAM_PHONEBOOK); ///清空内存
 			ERROR_HANDLE(iRet);
 
 			i = 0;
@@ -1194,18 +1139,17 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				u8ItemLen = *(pMsgBlock + 1) + 2 + u8NameLen;
 
 				///加入项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_PHONEBOOK,
-						u8ItemId, u8ItemLen, pMsgBlock);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_PHONEBOOK, u8ItemLen, pMsgBlock);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"UPDATE ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8ItemId, u8ItemLen, (char*) pItemMsg);
+				TRACE_(QS_USER, (void *) 0, "UPDATE ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
+						(char*) pItemMsg);
 
 				pMsgBlock += u8ItemLen;
 				i++;
 			}
-		} else if (pBook->u8SetType == ePHONEBOOK_APPEND)	///2,追加电话本
+		}
+		else if (pBook->u8SetType == ePHONEBOOK_APPEND)	///2,追加电话本
 				{
 			i = 0;
 			while (i < u8ItemAmount) {
@@ -1216,18 +1160,17 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				u8ItemLen = *(pMsgBlock + 1) + 2 + u8NameLen;
 
 				///加入项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_FORMATMSG_PHONEBOOK,
-						u8ItemId, u8ItemLen, pMsgBlock);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_PHONEBOOK, u8ItemLen, pMsgBlock);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8ItemId, u8ItemLen, (char*) pItemMsg);
+				TRACE_(QS_USER, (void *) 0, "Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
+						(char*) pItemMsg);
 
 				pMsgBlock += u8ItemLen;
 				i++;
 			}
-		} else if (pBook->u8SetType == ePHONEBOOK_CHANGE)	///3,修改电话本(以联系人为索引)
+		}
+		else if (pBook->u8SetType == ePHONEBOOK_CHANGE)	///3,修改电话本(以联系人为索引)
 				{
 			i = 0;
 			while (i < u8ItemAmount) {
@@ -1238,31 +1181,30 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				u8ItemLen = *(pMsgBlock + 1) + 2 + u8NameLen;
 
 				///加入项
-				iRet = PARAM_FormatMsg_ReplaceItem(PARAM_FORMATMSG_PHONEBOOK,
-						u8ItemId, u8ItemLen, pMsgBlock);
+				iRet = PARAM_FormatMsg_ReplaceItem(PARAM_PHONEBOOK, u8ItemId, u8ItemLen, pMsgBlock);
 				ERROR_HANDLE(iRet);
 
-				TRACE_(QS_USER, NULL,
-						"Replace ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i,
-						u8ItemId, u8ItemLen, (char*) pItemMsg);
+				TRACE_(QS_USER, (void *) 0, "Replace ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
+						(char*) pItemMsg);
 
 				pMsgBlock += u8ItemLen;
 				i++;
 			}
-		} else {
+		}
+		else {
 			///错误，回传普通错误应答消息
-			T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
+			Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, -1);
 			return;
 		}
 
 		///写EEPROM索引头
-		PARAM_FormatMsg_SaveHead(PARAM_FORMATMSG_PHONEBOOK);
+		PARAM_SaveFMTParam(PARAM_PHONEBOOK);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 
 		///通知UI，更新电话本，如需要
-		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_PHONEBOOK_SIG), NULL);
+		QACTIVE_POST(AO_LCD, Q_NEW(QEvt, UI_REFRESH_PHONEBOOK_SIG), (void *)0);
 	}
 		break;
 
@@ -1277,16 +1219,15 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 
 		if (u8Ctrl & 0x01) {
 			BSP_Vechical_Lock();	///锁车
-			QACTIVE_POST(AO_LCD, Q_NEW(QEvt, VECHICAL_CTRL_LOCK_SIG), NULL);
-			TRACE_(QS_USER, NULL,
-					"@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]",
-					(u8) MSGID_S_VechicleCtrl, "LOCK");
-		} else {
+			QACTIVE_POST(AO_LCD, Q_NEW(QEvt, VECHICAL_CTRL_LOCK_SIG), (void *)0);
+			TRACE_(QS_USER, (void *) 0, "@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]", (u8) MSGID_S_VechicleCtrl,
+					"LOCK");
+		}
+		else {
 			BSP_Vechical_UnLock();	///解锁
-			QACTIVE_POST(AO_LCD, Q_NEW(QEvt, VECHICAL_CTRL_UNLOCK_SIG), NULL);
-			TRACE_(QS_USER, NULL,
-					"@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]",
-					(u8) MSGID_S_VechicleCtrl, "UNLOCK");
+			QACTIVE_POST(AO_LCD, Q_NEW(QEvt, VECHICAL_CTRL_UNLOCK_SIG), (void *)0);
+			TRACE_(QS_USER, (void *) 0, "@CMD id[ %x - MSGID_S_VechicleCtrl], ctrl[%s]", (u8) MSGID_S_VechicleCtrl,
+					"UNLOCK");
 		}
 
 		///发送控制命令应答
@@ -1297,7 +1238,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->sequence = GenerateCirculateSeqId();
 		pe->resSeqence = pHead->u16MsgCircularId;
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1316,8 +1257,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		u8Type = *pMsgBlock++;
 		u8Amount = *pMsgBlock++;
 
-		if (u8Type == eAREA_UPDATE) ///0,更新区域
-				{
+		if (u8Type == eAREA_UPDATE) {	///0,更新区域
 			PARAM_Area_EraseAll(PARAM_AREA_ROUND); ///先清除原来区域信息
 
 			i = 0;
@@ -1332,16 +1272,14 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				ENDIAN_U16(pRound->u16SpeedMax);
 
 				iRet = PARAM_Area_AppendItem(PARAM_AREA_ROUND,
-						pRound->u32AreaId, (u8*) pRound,
-						sizeof(tItem_RoundArea));
+						pRound->u32AreaId, (u8*) pRound,	sizeof(tItem_RoundArea));
 				ERROR_HANDLE(iRet);
 
 				pMsgBlock += sizeof(tItem_RoundArea);
 				i++;
 			}
 		}
-		if (u8Type == eAREA_APPEND) ///1,追加区域
-				{
+		if (u8Type == eAREA_APPEND) { 	///1,追加区域
 			i = 0;
 			while (i < u8Amount) {
 				pRound = (tItem_RoundArea *) pMsgBlock;
@@ -1353,8 +1291,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				ENDIAN_U32(pRound->u32Radius);
 				ENDIAN_U16(pRound->u16SpeedMax);
 
-				iRet = PARAM_Area_AppendItem(PARAM_AREA_ROUND,
-						pRound->u32AreaId, (u8*) pRound,
+				iRet = PARAM_Area_AppendItem(PARAM_AREA_ROUND, pRound->u32AreaId, (u8*) pRound,
 						sizeof(tItem_RoundArea));
 				ERROR_HANDLE(iRet);
 
@@ -1362,8 +1299,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				i++;
 			}
 		}
-		if (u8Type == eAREA_CHANGE) ///2,修改区域
-				{
+		if (u8Type == eAREA_CHANGE) {	///2,修改区域
 			i = 0;
 			while (i < u8Amount) {
 				pRound = (tItem_RoundArea *) pMsgBlock;
@@ -1375,8 +1311,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				ENDIAN_U32(pRound->u32Radius);
 				ENDIAN_U16(pRound->u16SpeedMax);
 
-				iRet = PARAM_Area_ReplaceItem(PARAM_AREA_ROUND,
-						pRound->u32AreaId, (u8*) pRound,
+				iRet = PARAM_Area_ReplaceItem(PARAM_AREA_ROUND, pRound->u32AreaId, (u8*) pRound,
 						sizeof(tItem_RoundArea));
 				ERROR_HANDLE(iRet);
 
@@ -1389,7 +1324,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		PARAM_Area_Save(PARAM_AREA_ROUND);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1415,7 +1350,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		PARAM_Area_Save(PARAM_AREA_ROUND);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1447,8 +1382,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				ENDIAN_U32(pRect->u32RB_Lat);
 				ENDIAN_U32(pRect->u32RB_Long);
 
-				iRet = PARAM_Area_AppendItem(PARAM_AREA_RECTANGLE,
-						pRect->u32AreaId, (u8*) pRect,
+				iRet = PARAM_Area_AppendItem(PARAM_AREA_RECTANGLE, pRect->u32AreaId, (u8*) pRect,
 						sizeof(tItem_RectangleArea));
 				ERROR_HANDLE(iRet);
 
@@ -1471,8 +1405,8 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				ENDIAN_U32(pRect->u32RB_Lat);
 				ENDIAN_U32(pRect->u32RB_Long);
 
-				iRet = PARAM_Area_AppendItem(PARAM_AREA_RECTANGLE,
-						pRect->u32AreaId, (u8*) pRect, sizeof(tItem_RoundArea));
+				iRet = PARAM_Area_AppendItem(PARAM_AREA_RECTANGLE, pRect->u32AreaId, (u8*) pRect,
+						sizeof(tItem_RoundArea));
 				ERROR_HANDLE(iRet);
 
 				pMsgBlock += sizeof(tItem_RectangleArea);
@@ -1494,8 +1428,8 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				ENDIAN_U32(pRect->u32RB_Lat);
 				ENDIAN_U32(pRect->u32RB_Long);
 
-				iRet = PARAM_Area_ReplaceItem(PARAM_AREA_RECTANGLE,
-						pRect->u32AreaId, (u8*) pRect, sizeof(tItem_RoundArea));
+				iRet = PARAM_Area_ReplaceItem(PARAM_AREA_RECTANGLE, pRect->u32AreaId, (u8*) pRect,
+						sizeof(tItem_RoundArea));
 				ERROR_HANDLE(iRet);
 
 				pMsgBlock += sizeof(tItem_RectangleArea);
@@ -1507,7 +1441,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		PARAM_Area_Save(PARAM_AREA_RECTANGLE);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1533,7 +1467,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		PARAM_Area_Save(PARAM_AREA_RECTANGLE);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1562,18 +1496,16 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			i++;
 		}
 
-		u16PointSize = sizeof(tItem_PolygonArea)
-				+ (pPolygon->u16AreaTotalVertexCount << 3);
+		u16PointSize = sizeof(tItem_PolygonArea) + (pPolygon->u16AreaTotalVertexCount << 3);
 
-		iRet = PARAM_Area_AppendItem(PARAM_AREA_POLYGON, pPolygon->u32AreaId,
-				(u8*) pPolygon, u16PointSize);
+		iRet = PARAM_Area_AppendItem(PARAM_AREA_POLYGON, pPolygon->u32AreaId, (u8*) pPolygon, u16PointSize);
 		ERROR_HANDLE(iRet);
 
 		///写EEPROM
 		PARAM_Area_Save(PARAM_AREA_POLYGON);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1599,7 +1531,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		PARAM_Area_Save(PARAM_AREA_POLYGON);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1634,15 +1566,14 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			i++;
 		}
 
-		iRet = PARAM_Area_AppendItem(PARAM_AREA_ROUTE, pCornerPt->u32LineId,
-				(u8*) pCornerPt, u16MsgBlockLen);
+		iRet = PARAM_Area_AppendItem(PARAM_AREA_ROUTE, pCornerPt->u32LineId, (u8*) pCornerPt, u16MsgBlockLen);
 		ERROR_HANDLE(iRet);
 
 		///写EEPROM
 		PARAM_Area_Save(PARAM_AREA_ROUTE);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 	}
 		break;
 
@@ -1668,7 +1599,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		PARAM_Area_Save(PARAM_AREA_ROUTE);
 
 		///回传普通成功应答消息
-		T_RPT_GENERAL_ACK(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
+		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
 
 	}
 		break;
@@ -1685,7 +1616,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->u16CmdSeq = pHead->u16MsgCircularId; ///流水号
 		memcpy_(pe->param, pMsgBlock, u16MsgBlockLen);	///参数
 
-		QACTIVE_POST(AO_Recorder, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Recorder, (QEvt * )pe, (void *)0);
 	}
 		break;
 
@@ -1712,7 +1643,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->sequence = GenerateCirculateSeqId();
 		pe->resSeqence = pHead->u16MsgCircularId;
 
-		QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1769,7 +1700,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///向那个状态机发？？？
-		QACTIVE_POST(AO_Video, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Video, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1789,8 +1720,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->u16CmdSeq = pHead->u16MsgCircularId;
 
 		pe->tParam.u16Cmd = pCmd->u16Cmd;
-		pe->tParam.u16PicIntervalOrRecordTime =
-				pCmd->u16PicIntervalOrRecordTime;
+		pe->tParam.u16PicIntervalOrRecordTime = pCmd->u16PicIntervalOrRecordTime;
 		pe->tParam.u8AVQuality = pCmd->u8AVQuality;
 		pe->tParam.u8Brightness = pCmd->u8Brightness;
 		pe->tParam.u8ChannelId = pCmd->u8ChannelId;
@@ -1800,7 +1730,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->tParam.u8Saturation = pCmd->u8Saturation;
 		pe->tParam.u8SaveTag = pCmd->u8SaveTag;
 
-		QACTIVE_POST(AO_Video, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Video, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1825,12 +1755,10 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->tParam.u8MediaType = pCmd->u8MediaType;
 		pe->tParam.u8EventCode = pCmd->u8EventCode;
 		pe->tParam.u8ChannelId = pCmd->u8ChannelId;
-		memcpy_((u8*) &pe->tParam.tBcdStartTime, (u8*) &pCmd->tBcdStartTime,
-				sizeof(tBCDTime));
-		memcpy_((u8*) &pe->tParam.tBcdEndTime, (u8*) &pCmd->tBcdEndTime,
-				sizeof(tBCDTime));
+		memcpy_((u8*) &pe->tParam.tBcdStartTime, (u8*) &pCmd->tBcdStartTime, sizeof(tBCDTime));
+		memcpy_((u8*) &pe->tParam.tBcdEndTime, (u8*) &pCmd->tBcdEndTime, sizeof(tBCDTime));
 
-		QACTIVE_POST(AO_Video, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Video, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1854,12 +1782,10 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->tParam.u8EventCode = pCmd->u8EventCode;
 		pe->tParam.u8ChannelId = pCmd->u8ChannelId;
 		pe->tParam.u8DeleteTag = pCmd->u8DeleteTag;
-		memcpy_((u8*) &pe->tParam.tBcdStartTime, (u8*) &pCmd->tBcdStartTime,
-				sizeof(tBCDTime));
-		memcpy_((u8*) &pe->tParam.tBcdEndTime, (u8*) &pCmd->tBcdEndTime,
-				sizeof(tBCDTime));
+		memcpy_((u8*) &pe->tParam.tBcdStartTime, (u8*) &pCmd->tBcdStartTime, sizeof(tBCDTime));
+		memcpy_((u8*) &pe->tParam.tBcdEndTime, (u8*) &pCmd->tBcdEndTime, sizeof(tBCDTime));
 
-		QACTIVE_POST(AO_Video, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Video, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1882,7 +1808,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->tParam.u8SampleRate = pCmd->u8SampleRate;
 		pe->tParam.u8SaveTag = pCmd->u8SaveTag;
 
-		QACTIVE_POST(AO_Audio, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Audio, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1902,7 +1828,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->tParam.u32MediaId = pCmd->u32MediaId;
 		pe->tParam.u8DeleteFlag = pCmd->u8DeleteFlag;
 
-		QACTIVE_POST(AO_Audio, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Audio, (QEvt * )pe, (void *)0);
 	}
 		break;
 
@@ -1916,7 +1842,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		pe->u8Type = *pMsgBlock++;
 		memcpy_(pe->data, pMsgBlock, u16MsgBlockLen - 1);
 
-		QACTIVE_POST(AO_Audio, (QEvt* )pe, NULL);
+		QACTIVE_POST(AO_Audio, (QEvt* )pe, (void *)0);
 	}
 		break;
 
@@ -1963,8 +1889,8 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 u16 EnCodeData(u8* const pu8Data, u16 u16Length, u8* pu8DestData) {
 	u16 u16ResultLength = 0;
 	u16 u16i = 0;
-	u8* pu8SourceAddr = NULL;
-	u8* pu8DestAddr = NULL;
+	u8* pu8SourceAddr = (void *) 0;
+	u8* pu8DestAddr = (void *) 0;
 
 	pu8SourceAddr = pu8Data;
 	pu8DestAddr = pu8DestData;
@@ -1974,19 +1900,22 @@ u16 EnCodeData(u8* const pu8Data, u16 u16Length, u8* pu8DestData) {
 			if (u16i == 0 || u16i == u16Length - 1) {
 				*pu8DestAddr++ = MSG_FLAG_BYTE;
 				u16ResultLength++;
-			} else {
+			}
+			else {
 				*pu8DestAddr++ = MSG_TRANS_BYTE;
 				*pu8DestAddr++ = 0x02;
 
 				u16ResultLength += 2;
 			}
-		} else {
+		}
+		else {
 			if (*pu8SourceAddr == MSG_TRANS_BYTE) {
 				*pu8DestAddr++ = MSG_TRANS_BYTE;
 				*pu8DestAddr++ = 0X01;
 
 				u16ResultLength += 2;
-			} else {
+			}
+			else {
 				*pu8DestAddr++ = *pu8SourceAddr;
 				u16ResultLength += 1;
 			}
@@ -2008,24 +1937,24 @@ u16 EnCodeData(u8* const pu8Data, u16 u16Length, u8* pu8DestData) {
 u16 DeCodeData(const u8* pu8Data, u16 u16Length, u8* pu8DestData) {
 	u16 u16ResultLength = 0;
 	u16 u16i = 0;
-	u8* pu8SourceAddr = NULL;
-	u8* pu8DestAddr = NULL;
+	u8* pu8SourceAddr = (void *) 0;
+	u8* pu8DestAddr = (void *) 0;
 
 	pu8SourceAddr = pu8Data;
 	pu8DestAddr = pu8DestData;
 
 	for (u16i = 0; u16i < u16Length; u16i++) {
-		if ((*pu8SourceAddr == MSG_TRANS_BYTE) && (u16i < (u16Length - 1))
-				&& (*(pu8SourceAddr + 1) == 0x02)) {
+		if ((*pu8SourceAddr == MSG_TRANS_BYTE) && (u16i < (u16Length - 1)) && (*(pu8SourceAddr + 1) == 0x02)) {
 			*pu8DestAddr++ = MSG_FLAG_BYTE;
 			u16ResultLength += 1;
 			pu8SourceAddr += 2;
-		} else if ((*pu8SourceAddr == MSG_TRANS_BYTE)
-				&& (u16i < (u16Length - 1)) && (*(pu8SourceAddr + 1) == 0x01)) {
+		}
+		else if ((*pu8SourceAddr == MSG_TRANS_BYTE) && (u16i < (u16Length - 1)) && (*(pu8SourceAddr + 1) == 0x01)) {
 			*pu8DestAddr++ = MSG_TRANS_BYTE;
 			u16ResultLength += 1;
 			pu8SourceAddr += 2;
-		} else {
+		}
+		else {
 			*pu8DestAddr++ = *pu8SourceAddr;
 			u16ResultLength += 1;
 			pu8SourceAddr++;
@@ -2045,7 +1974,7 @@ u16 DeCodeData(const u8* pu8Data, u16 u16Length, u8* pu8DestData) {
 u8 CalculateXorChecksum(u8* pData, u16 u16Length) {
 	u8 u8Checksum = 0;
 
-	if (pData == NULL || u16Length == 0) {
+	if (pData == (void *) 0 || u16Length == 0) {
 		return u8Checksum;
 	}
 
@@ -2073,7 +2002,7 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 	u16 frameLen = 0;
 	int ret = 0;
 
-	if ((pTaskEvt == NULL ) || (pBuf == NULL ) || (bufSize == 0))
+	if ((pTaskEvt == (void *) 0) || (pBuf == (void *) 0) || (bufSize == 0))
 		return 0;
 
 	ZeroMem(pBuf, bufSize);
@@ -2089,7 +2018,7 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 
 	pCursor = pBuf + sizeof(tMSGHEAD);
 
-	TRACE_(QS_USER, NULL, "\n[SEND MSG]");
+	TRACE_(QS_USER, (void *) 0, "\n[SEND MSG]");
 
 	switch (pTaskEvt->cmd) {
 	//终端通用应答消息
@@ -2110,10 +2039,8 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 		/**校验码*/
 		pCursor += sizeof(tMsg_T_GeneralAck);
 
-		TRACE_(QS_USER, NULL,
-				"\n type:GeneralAck, \n id:%x, \n u16CmdId=%x, \n u16ResponsePackId=%x, \n ret=%x",
-				MSGID_T_GeneralAck, pMsgBlock->u16CmdId,
-				pMsgBlock->u16ResponsePackId, pMsgBlock->eResult);
+		TRACE_(QS_USER, (void *) 0, "\n type:GeneralAck, \n id:%x, \n u16CmdId=%x, \n u16ResponsePackId=%x, \n ret=%x",
+		MSGID_T_GeneralAck, pMsgBlock->u16CmdId, pMsgBlock->u16ResponsePackId, pMsgBlock->eResult);
 	}
 		break;
 
@@ -2136,14 +2063,12 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 		//终端注册
 	case MSGID_T_Register: 				//0x0100
 	{
-		memcpy_(pCursor, (u8*) &ptParam_Device->tBase,
-				sizeof(tTerminalInfo_Base));
+		memcpy_(pCursor, (u8*) &ptParam_Device->tBase, sizeof(tTerminalInfo_Base));
 		pCursor += sizeof(tTerminalInfo_Base);
 
 		/**V2011： 机动车号牌; V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安
 		 交通管理部门颁发的机动车号牌。*/
-		memcpy_(pCursor, ptParam_Device->aPlate,
-				strlen_((char*) ptParam_Device->aPlate));
+		memcpy_(pCursor, ptParam_Device->aPlate, strlen_((char*) ptParam_Device->aPlate));
 		pCursor += strlen_((char*) ptParam_Device->aPlate);
 	}
 		break;
@@ -2446,22 +2371,41 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 }
 
 /**
- * 服务器应答消息处理
+ * 服务器通用应答消息处理
  *
  * @param pSAck		应答消息
  */
 void Protocol_ServerGeneralAckProc(tMsg_S_GeneralAck *pSAck) {
-	SAckEvt *pe;
-	Q_ASSERT(pSAck);
+//	SAckEvt *pe;
+//	Q_ASSERT(pSAck);
+//
+//	/**申请服务器应答事件并发送*/
+//	pe = Q_NEW(SAckEvt, GPRS_SACK_SIG);
+//	Q_ASSERT(pe);
+//	pe->u16RespMsgId = pSAck->u16RespMsgId;
+//	pe->u16RespSeqId = pSAck->u16RespSeqId;
+//	pe->ret = (u8) pSAck->eResult;
+//
+//	QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
+}
 
-	/**申请服务器应答事件并发送*/
-	pe = Q_NEW(SAckEvt, GPRS_SACK_SIG);
+/**
+ * 终端发送通用命令应答消息
+ *
+ */
+void Protocol_T_SendGeneralAck(u16 u16ResMsgId, u16 u16ResSeqId, u8 ret) {
+	TaskEvt *pe;
+
+	/**创建命令应答发送事件并发送*/
+	pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
 	Q_ASSERT(pe);
-	pe->u16RespMsgId = pSAck->u16RespMsgId;
-	pe->u16RespSeqId = pSAck->u16RespSeqId;
-	pe->ret = (u8) pSAck->eResult;
+	pe->cmd = MSGID_T_GeneralAck;	///0x0001
+	pe->resCmd = u16ResMsgId;		///应答消息ID
+	pe->sequence = GenerateCirculateSeqId();	///流水号
+	pe->resSeqence = u16ResSeqId;	///应答消息ID
+	pe->ret = ret;		///结果
 
-	QACTIVE_POST(AO_Gprs, (QEvt* )pe, NULL);
+	QACTIVE_POST(AO_Gprs, (QEvt* )pe, (void *)0);
 }
 
 /**

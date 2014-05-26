@@ -540,7 +540,10 @@
 #define CONTROL_ON		1	///输出=1
 #define CONTROL_OFF		0	///输出=0
 //定义系统使用的定时器
-#define	TIMTts				TIM1	//TIM1#define	TIMIr				TIM2	//TIM2#define	TIM10ms				TIM3	//TIM3#define	TIMPrt				TIM4	//TIM4
+#define	TIMTts				TIM1	//TIM1
+#define	TIMIr				TIM2	//TIM2
+#define	TIM10ms				TIM3	//TIM3
+#define	TIMPrt				TIM4	//TIM4
 
 #define COMn	5	///串口总数
 typedef enum {

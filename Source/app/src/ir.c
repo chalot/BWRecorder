@@ -137,8 +137,7 @@ void ISR_IRReceive(void) {
 	case _IR_RECEIVEDSTATUS_START:
 		//上次接收到的是启动码
 		if ((tIRFSM.u32CodeTime >= _IR_CODE_TIME_START - _IR_CODE_TIME_BIAS)
-				&& (tIRFSM.u32CodeTime
-						<= _IR_CODE_TIME_START + _IR_CODE_TIME_BIAS)) {
+				&& (tIRFSM.u32CodeTime <= _IR_CODE_TIME_START + _IR_CODE_TIME_BIAS)) {
 			//接收状态转为接收32位数据
 			tIRFSM.u8ReceivedStatus = _IR_RECEIVEDSTATUS_32BITSDATA;
 
@@ -196,8 +195,7 @@ void ISR_IRReceive(void) {
 				u8OperateAntiData = tIRFSM.u32Recieved32Bits & 0x000000FF;
 
 				//地址、数据不正确
-				if ((0xFF != u8IDData + u8IDAntiData)
-						|| (0xFF != u8OperateData + u8OperateAntiData)) {
+				if ((0xFF != u8IDData + u8IDAntiData) || (0xFF != u8OperateData + u8OperateAntiData)) {
 					u8Err = 1;
 				}
 				//接收到正确的数据
@@ -208,8 +206,7 @@ void ISR_IRReceive(void) {
 						tIRFSM.u8Available_Rx++;
 
 						//将接收到的红外操作码放入数据缓冲区
-						*(tIRFSM.pu8Buffer_Rx + tIRFSM.u8Write_Rx++) =
-								u8OperateData;
+						*(tIRFSM.pu8Buffer_Rx + tIRFSM.u8Write_Rx++) = u8OperateData;
 
 						//记录接收到的操作码
 						tIRFSM.u8RecievedCode = u8OperateData;
@@ -251,8 +248,7 @@ void ISR_IRReceive(void) {
 	case _IR_RECEIVEDSTATUS_CONTINUE:
 		//连发码
 		if ((tIRFSM.u32CodeTime >= _IR_CODE_TIME_SEQUENTIAL - _IR_CODE_TIME_BIAS)
-				&& (tIRFSM.u32CodeTime
-						<= _IR_CODE_TIME_SEQUENTIAL + _IR_CODE_TIME_BIAS)) {
+				&& (tIRFSM.u32CodeTime <= _IR_CODE_TIME_SEQUENTIAL + _IR_CODE_TIME_BIAS)) {
 			//是第一个连发码？
 			if (tIRFSM.fFirstContinue == 1) {
 				//抛弃第一个连发码
@@ -269,8 +265,7 @@ void ISR_IRReceive(void) {
 					tIRFSM.u8Available_Rx++;
 
 					//将上次接收到的操作码放入接收缓冲区
-					*(tIRFSM.pu8Buffer_Rx + tIRFSM.u8Write_Rx++) =
-							tIRFSM.u8RecievedCode;
+					*(tIRFSM.pu8Buffer_Rx + tIRFSM.u8Write_Rx++) = tIRFSM.u8RecievedCode;
 
 					//接收缓冲区写指针回头
 					if (tIRFSM.u8Write_Rx >= _BUFFER_LENGTH_IR_Rx_) {

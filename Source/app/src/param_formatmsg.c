@@ -12,6 +12,7 @@
  * 注意，对于电话本，索引仍是定长，但以联系人名称CRC值为索引字段ID；项分配的是固定长度缓区，存储的变长
  * 内容，与协议格式一致；
  */
+#if 0
 
 #include <parameter.h>
 #include <error.h>
@@ -42,18 +43,16 @@ typedef struct {
 	u8 *pStorageAddr;
 } tINDEXPROPERTY;
 
-static const tINDEXPROPERTY tIndexProp[] = { {
-		PARAM_FORMATMSG_EVT,
-		sizeof(tPARAM_EVT_HEADINFO_STORAGE), EEPROM_ADDR_EVENT,
-		EVT_MSG_SIZE, EVT_ITEM_SIZE, &tParam_Evt_St }, {PARAM_FORMATMSG_MSGOD_MENU,
-				sizeof(tPARAM_MSGOD_MENU_HEADINFO_STORAGE),
-		EEPROM_ADDR_MSGOD_MENU, MSGOD_MENU_MSG_SIZE, MSGOD_MENU_ITEM_SIZE,
-		&tParam_MsgOD_Menu_St }, { PARAM_FORMATMSG_MSGOD_MSG,
-		sizeof(tPARAM_MSGOD_MSG_HEADINFO_STORAGE), EEPROM_ADDR_MSGOD_MSG,
-		MSGOD_MSG_MSG_SIZE, MSGOD_MSG_ITEM_SIZE, &tParam_MsgOD_Msg_St }, {
-		PARAM_FORMATMSG_PHONEBOOK, sizeof(tPARAM_PHONEBOOK_HEADINFO_STORAGE),
-		EEPROM_ADDR_PHONEBOOK, PHONEBOOK_MSG_SIZE, PHONEBOOK_ITEM_SIZE,
-		&tParam_PhoneBook_St }, };
+static const tINDEXPROPERTY tIndexProp[] = {
+		{ PARAM_FORMATMSG_EVT, sizeof(tPARAM_EVT_HEADINFO_STORAGE), EEPROM_ADDR_EVENT,
+								EVT_MSG_SIZE, EVT_ITEM_SIZE, &tParam_Evt_St },
+		{ PARAM_FORMATMSG_MSGOD_MENU, sizeof(tPARAM_MSGOD_MENU_HEADINFO_STORAGE), EEPROM_ADDR_MSGOD_MENU,
+								MSGOD_MENU_MSG_SIZE, MSGOD_MENU_ITEM_SIZE, &tParam_MsgOD_Menu_St },
+		{ PARAM_FORMATMSG_MSGOD_MSG, sizeof(tPARAM_MSGOD_MSG_HEADINFO_STORAGE),	EEPROM_ADDR_MSGOD_MSG,
+								MSGOD_MSG_MSG_SIZE, MSGOD_MSG_ITEM_SIZE, &tParam_MsgOD_Msg_St },
+		{ PARAM_FORMATMSG_PHONEBOOK, sizeof(tPARAM_PHONEBOOK_HEADINFO_STORAGE), EEPROM_ADDR_PHONEBOOK,
+								PHONEBOOK_MSG_SIZE,	PHONEBOOK_ITEM_SIZE, &tParam_PhoneBook_St },
+};
 
 ///项在EEPROM中的偏移位置，相对于头
 #define ITEM_EEPROM_OFFSET(i, type) (i * tIndexProp[type].u8ItemSize)
@@ -79,8 +78,8 @@ int PARAM_FormatMsg_GetHead(u8 type) {
 	ZeroMem(tIndexProp[type].pStorageAddr, tIndexProp[type].u16StorageSize);
 
 	///读取索引头
-	ret = EEPROM_ReadBuffer(tIndexProp[type].u32EEPROMAddress,
-			tIndexProp[type].pStorageAddr, tIndexProp[type].u16StorageSize);
+	ret = EEPROM_ReadBuffer(tIndexProp[type].u32EEPROMAddress, tIndexProp[type].pStorageAddr,
+			tIndexProp[type].u16StorageSize);
 	if (ret == -1)
 		return -ERR_EEPROM_RW;
 
@@ -105,13 +104,12 @@ int PARAM_FormatMsg_SaveHead(u8 type) {
 	if (type >= PARAM_FORMATMSG_END)
 		return -ERR_PARAM_INVALID;
 
-	ret = EEPROM_WriteBuffer(tIndexProp[type].u32EEPROMAddress,
-			tIndexProp[type].pStorageAddr, tIndexProp[type].u16StorageSize);
+	ret = EEPROM_WriteBuffer(tIndexProp[type].u32EEPROMAddress, tIndexProp[type].pStorageAddr,
+			tIndexProp[type].u16StorageSize);
 	if (ret == -1)
 		return -ERR_EEPROM_RW;
 
-	ret = EEPROM_ReadBufferCRC(tIndexProp[type].u32EEPROMAddress,
-			tIndexProp[type].u16StorageSize, &crc_eeprom);
+	ret = EEPROM_ReadBufferCRC(tIndexProp[type].u32EEPROMAddress, tIndexProp[type].u16StorageSize, &crc_eeprom);
 	if (ret == -1)
 		return -ERR_EEPROM_RW;
 
@@ -143,13 +141,11 @@ int PARAM_FormatMsg_GetAmount(u8 type) {
  * @param pEvtMsg		OUT		事件信息
  * @return	0=成功，否则错误代码
  */
-int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId,
-		u8 *pu8ItemLen, u8 *pItemMsg) {
-	tITEMINDEX *pItemIndex;
+int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId, u8 *pu8ItemLen, u8 *pItemMsg) {
+	tITEMINDEX * pItemIndex;
 	int ret;
 
-	if ((type >= PARAM_FORMATMSG_END) || (u8ItemIndex >= ITEM_AMOUNT(type))
-			|| (pItemMsg == NULL ))
+	if ((type >= PARAM_FORMATMSG_END) || (u8ItemIndex >= ITEM_AMOUNT(type)) || (pItemMsg == NULL ))
 		return -ERR_PARAM_INVALID;
 
 	pItemIndex = (tITEMINDEX *) (tIndexProp[type].pStorageAddr + 2); ///项数组起始位置
@@ -157,9 +153,7 @@ int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId,
 	*pu8ItemId = pItemIndex->u8Id;
 	*pu8ItemLen = pItemIndex->u8Len;
 
-	ret = EEPROM_ReadBuffer(
-			tIndexProp[type].u32EEPROMAddress
-					+ ITEM_EEPROM_OFFSET(u8ItemIndex, type), pItemMsg,
+	ret = EEPROM_ReadBuffer(tIndexProp[type].u32EEPROMAddress + ITEM_EEPROM_OFFSET(u8ItemIndex, type), pItemMsg,
 			pItemIndex->u8Len);
 
 	if (ret != 0)
@@ -180,7 +174,7 @@ int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId,
  * @return	0=成功，否则错误代码
  */
 int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg) {
-	tITEMINDEX *pItemIndex;
+	tITEMINDEX * pItemIndex;
 	u32 u32Address;
 	int ret;
 	u8 crc_eeprom;
@@ -199,7 +193,8 @@ int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg) 
 		u8 u8NameLen = *(pItemMsg + *(pItemMsg + 1) + 2);	///号码长度
 		u8 *pName = pItemMsg + *(pItemMsg + 1) + 2;
 		pItemIndex->u8Id = CalculateCRC8(pName, u8NameLen);
-	} else {
+	}
+	else {
 		pItemIndex->u8Id = u8ItemId;
 	}
 
@@ -208,8 +203,7 @@ int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg) 
 
 	u8Amount = *(tIndexProp[type].pStorageAddr + 1); ///项总数
 
-	u32Address = tIndexProp[type].u32EEPROMAddress
-			+ ITEM_EEPROM_OFFSET(u8Amount, type);
+	u32Address = tIndexProp[type].u32EEPROMAddress + ITEM_EEPROM_OFFSET(u8Amount, type);
 
 	ret = EEPROM_WriteBuffer(u32Address, pItemMsg, u8ItemLen);
 	if (ret == -1)
@@ -237,9 +231,8 @@ int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg) 
  * @param pEvtMsg		IN	事件信息内容
  * @return	0=成功，-1=失败
  */
-int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen,
-		u8 *pItemMsg) {
-	tITEMINDEX *pItemIndex;
+int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg) {
+	tITEMINDEX * pItemIndex;
 	int ret;
 	u8 crc_eeprom;
 	u8 u8ItemAmount;
@@ -263,8 +256,7 @@ int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen,
 	if (i >= u8ItemAmount)	///项不存在，退出
 		return 0;
 
-	u32ItemAddress = tIndexProp[type].u32EEPROMAddress
-			+ ITEM_EEPROM_OFFSET(u8ItemAmount, type);
+	u32ItemAddress = tIndexProp[type].u32EEPROMAddress + ITEM_EEPROM_OFFSET(u8ItemAmount, type);
 
 	ret = EEPROM_WriteBuffer(u32ItemAddress, pItemMsg, u8ItemLen);
 	if (ret == -1)
@@ -297,8 +289,7 @@ int PARAM_FormatMsg_EraseAll(u8 type) {
 		return -ERR_PARAM_INVALID;
 
 	///擦除EEPROM
-	ret = EEPROM_EraseBytes(tIndexProp[type].u32EEPROMAddress,
-			tIndexProp[type].u16StorageSize);
+	ret = EEPROM_EraseBytes(tIndexProp[type].u32EEPROMAddress, tIndexProp[type].u16StorageSize);
 
 	if (ret == -1)
 		return -ERR_EEPROM_RW;
@@ -308,3 +299,4 @@ int PARAM_FormatMsg_EraseAll(u8 type) {
 
 	return 0;
 }
+#endif

@@ -8,6 +8,64 @@
 
 #pragma pack(1)
 
+
+/**系统参数类*/
+typedef enum {
+	PARAM_FACTORY_DEFAULT 	= 0,	////出厂参数
+	PARAM_TERMINALINFO = 1,	////设备信息
+	PARAM_SYSTEM,			////系统信息
+	PARAM_RUNTIME,			////运行信息
+	PARAM_UPGRADE,			///升级信息
+	PARAM_TYPEEND,
+} eSYSPARAM;
+
+///格式化参数类
+typedef enum {
+	PARAM_MSGODMENU = 0,		////点播菜单
+	PARAM_MSGODINFO,		////点播消息
+	PARAM_EVENT,			///事件
+	PARAM_AREA_RECTANGLE,	///矩形
+	PARAM_AREA_ROUND,		///圆形
+	PARAM_AREA_POLYGON,		///多边形
+	PARAM_AREA_ROUTE,		///路线
+	PARAM_DRIVER,			///驾驶人信息
+	PARAM_PHONEBOOK,		///电话本
+
+	PARAM_FMTEND,
+} eFMTMSG_PARAM;
+
+///各类信息在EEPROM中的存储首地址
+#define EEPROM_ADDR_FACTORYPARAM		0x3333	///出厂参数在EEPROM中首地址
+#define EEPROM_ADDR_DEVICE		0x3333	///设备参数在EEPROM中首地址
+#define EEPROM_ADDR_SYSTEM		0x3333	///系统参数在EEPROM中首地址
+#define EEPROM_ADDR_RUNTIME		0x3333	///运行参数在EEPROM中首地址
+#define EEPROM_ADDR_DRIVER		0x3333	///驾驶人信息在EEPROM中首地址
+#define EEPROM_ADDR_UPGRADE		0x3333	///升级参数在EEPROM中首地址
+
+#define EEPROM_ADDR_EVENT		0x3333	///事件信息在EEPROM中首地址
+#define EEPROM_ADDR_MSGOD_MENU	0x3333	///点播菜单信息在EEPROM中首地址
+#define EEPROM_ADDR_MSGOD_MSG	0x3333	///点播信息在EEPROM中首地址
+#define EEPROM_ADDR_PHONEBOOK	0x3333	///电话本在EEPROM中首地址
+
+#define EEPROM_ADDR_ROUND		0x3333	///圆形区域在EEPROM中首地址
+#define EEPROM_ADDR_RECTANGLE	0x3333	///矩形区域在EEPROM中首地址
+#define EEPROM_ADDR_POLYGON		0x3333	///多边形区域在EEPROM中首地址
+#define EEPROM_ADDR_ROUTE		0x3333	///路线在EEPROM中首地址
+
+#define EVT_MSG_SIZE			50 	///事件内容最大长度
+#define EVT_ITEM_SIZE			50	///事件最大个数
+#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度
+#define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数
+#define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长度
+#define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数
+#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长度
+#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数
+
+#define ROUND_AREA_ITEM_SIZE	50	///圆形区域项总数
+#define RECT_AREA_ITEM_SIZE		50	///矩形区域项总数
+#define POLYGON_AREA_ITEM_SIZE	50	///多边形区域项总数
+
+
 /**参数项ID定义*/
 enum {
 	ePARAM_ALIVE_INTERVAL = 0,	///			=	0x0001,		///终端心跳发送间隔，单位为s
@@ -29,11 +87,13 @@ enum {
 	ePARAM_TCP_PORT,	///				=	0x0018,		///TCP端口
 	ePARAM_UDP_PORT,	///					=	0x0019,		///UDP端口
 	/**0X001A ----0X001F 保留*/
-#ifdef JTT808_Ver_2013	///新版增加协议部分	ePARAM_ICVERIFY_MS_IPOrDNS = 17,///		=	0x001A,		///道路运输证IC卡认证主服务器IP地址或域名
+#ifdef JTT808_Ver_2013	///新版增加协议部分
+	ePARAM_ICVERIFY_MS_IPOrDNS = 17,///		=	0x001A,		///道路运输证IC卡认证主服务器IP地址或域名
 	ePARAM_ICVERIFY_TCPPORT,///			=	0x001B,		///道路运输证IC卡认证主服务器TCP端口
 	ePARAM_ICVERIFY_UDPPORT,///			=	0x001C,		///道路运输证IC卡认证主服务器UDP端口
 	ePARAM_ICVERIFY_BS_UDPPORT,	///		=	0x001D,		///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 	ePARAM_POSRPT_STRATEGE = 21,	///	终端位置汇报策略
 	/**终端汇报方案，0:根据ACC状态，1:根据登录状态和ACC状态，先判断登录状态，
 	 若登录再根据ACC状态*/
@@ -95,7 +155,8 @@ enum {
 	ePARAM_PERIODIC_PHOTO_CTRL,	///		=	0x0064,		///定时拍照控制
 	ePARAM_PERDIST_PHOTO_CTRL = 58,	///		=	0x0065,		///定距拍照控制
 	/**0X0066----0X006F */
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 	ePARAM_VIDEO_QUALITY = 59,	///		=	0x0070,		///图片/视频质量，1-10,1最好
 	ePARAM_BRIGHTNESS,	///				=	0x0071,		///亮度，0-255
 	ePARAM_CONTRASTNESS,	///				=	0x0072,		///对比度，0-127
@@ -147,79 +208,16 @@ enum {
  9、音频数据
  */
 
-/**参数类型*/
-typedef enum {
-///	PARAM_FACTORY_DEFAULT 	= 0,	////出厂参数
-	PARAM_TERMINALINFO = 1,	////设备信息
-	PARAM_SYSTEM = 2,	////系统信息
-	PARAM_RUNTIME = 3,	////运行信息
-	PARAM_RECTANGLEAREA = 4,	////矩形区域
-	PARAM_ROUNDAREA = 5,	////圆形区域
-	PARAM_POLYGONAREA = 6,	////多边形区域
-	PARAM_ROUTE = 7,	////路线
-	PARAM_ONDEMANDMSGINFO = 8,	////点播消息
-	PARAM_EVENT,					///事件
-
-	PARAM_TYPEEND,
-
-} ePARAMTYPE;
-
 /**参数内容校验前缀码，加上它是为了避免从外部存储器读参数发生错误时，内容和校验码
  * 全为0，则仍能通过校验，当做有效参数的情况*/
-#define PARAM_PREFIX  0x12345678
+#define PARAM_PREFIX  	0x12345678
+#define PREFIX_SIZE		(sizeof(u32))
 
-/*
+#define PLATE_SIZE	30	///牌照数组长度
 
- ///系统存储的电话簿
- #define		PHONE_NUM_MAX_LENGTH	16	///电话号码长度
- #define		PHONE_NAME_MAX_LENGTH	16	///姓名长度
- #define		PHONE_NUM_MAX_CNT		50	///电话号码数目
+#define PARAM_FIX_ITEM_CNT	10	///定长系统参数个数
+#define PARAM_STR_ITEM_CNT	10	///变长系统参数个数，字符串
 
- ///电话号码项
- typedef      struct
- {
- u8		u8CodeLength;									///电话号码长度
- u8		au8CodeNum[PHONE_NUM_MAX_LENGTH];				///电话号码内容
- u8		u8NameLength;									///姓名长度
- u8		au8Name[PHONE_NAME_MAX_LENGTH];					///姓名内容
- }tPHONENUMITEM;
-
-
- ///通话记录簿
- typedef 	struct
- {
- u8				u8OutDialingCnt;								///已拨号码数目
- tPHONENUMITEM	tOutDialPhoneNumItem[PHONE_NUM_MAX_CNT];		///已拨电话号码数组
- u8				u8UnListenedCnt;								///未接来电数目
- tPHONENUMITEM	tUnListenedPhoneNumItem[PHONE_NUM_MAX_CNT];		///未接电话号码数组
- u8				u8ListenedCnt;									///已接来电数目
- tPHONENUMITEM	tListenedPhoneNumItem[PHONE_NUM_MAX_CNT];		///已接电话号码数组
- u8				u8CRC;											///校验和
- }tPHONELOGINFOType;
-
- typedef	struct
- {
- u8 	u8PhoneTag;					///电话标志1:呼入；2:呼出；3:呼入/呼出
- tPHONENUMITEM tPhoneNumItem;
- }tPHONEBOOKITEM;
- ///电话号码簿
- typedef 	struct
- {
- u8				u8Amount;										///电话号码数目
- tPHONEBOOKITEM	tPhoneNumItem[PHONE_NUM_MAX_CNT];				///电话号码
- u8				u8CRC;											///校验和
- }tPHONEBOOKINFOType;
-
-
- typedef	struct	
- {
- u8 		u8PhoneNumLength;				///电话号码长度
- u8		au8PhoneNum[20];				///电话号码
- }tPHONENUMITEM;
- */
-
-#define PLATE_SIZE	30	///牌照数组长度
-#define PARAM_FIX_ITEM_CNT	10	///定长系统参数个数#define PARAM_STR_ITEM_CNT	10	///变长系统参数个数，字符串
 /////参数项头部
 //typedef 	struct
 //{
@@ -436,17 +434,18 @@ typedef struct {
 typedef struct {
 	tTerminalInfo_Base tBase; /**基本信息*/
 	u8 aPlate[PARAM_VIN_PLATE_MAXLEN]; /**V2011： 机动车号牌;
-	 V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安
-	 交通管理部门颁发的机动车号牌。*/
+										 V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安
+										 交通管理部门颁发的机动车号牌。*/
 
 #ifdef JTT808_Ver_2013
 	tTerminalType tType; /**终端类型*/
 #endif
-	tGNSSModule_Property tGNSSModuleProperty; /**GNSS模块属性*/
-	tCommModule_Property tCommModuleProperty; /**通信模块属性*/
 
 	u8 ver_hardware[50];	///终端硬件版本号 STRING
 	u8 ver_software[50];	///终端软件版本号 STRING
+
+	tGNSSModule_Property tGNSSModuleProperty; /**GNSS模块属性*/
+	tCommModule_Property tCommModuleProperty; /**通信模块属性*/
 
 } tPARAM_DEVICE;
 
@@ -497,63 +496,73 @@ typedef struct {
 	u8 u8CRC; ///校验码
 } tPARAM_RUNTIME_STORAGE;
 
-#ifdef JTT808_Ver_2013
-/**升级类型*/
-typedef enum {
-	UPG_TERMINAL = 0, ///终端
-	UPG_IC_Reader = 12, ///道路运输证IC 卡读卡器
-	UPG_GNSS = 52, ///北斗卫星定位模块
-} eUPG_TYPE;
-
-/** 升级信息 *****************************************************************/
-typedef struct {
-	u8 upg_type;	///升级类型 0：终端，12：道路运输证IC 卡读卡器，52：北斗卫星定位模块
-	u8 factoryId[5];	///制造商ID BYTE[5] 制造商编号
-	u8 version_len;		///版本号长度 BYTE n
-	u8 version[50];		///版本号 STRING
-	u32 u32UpgPack_len;	///7+n 升级数据包长度 DWORD 单位为BYTE
-	u8 result;     ///升级结果  0：成功，1：失败，2：取消
-} tUPGRADEINFO;
-
-/**升级信息存储结构体*/
-typedef struct {
-	u32 prefix;	///前缀
-	tUPGRADEINFO tUpgradeInfo; ///运行参数
-	u8 u8CRC; ///校验码
-} tUPGRADEINFO_STORAGE;
-#endif
 
 /** 事件/点播菜单/点播消息/电话本参数  ***********************************************************/
 
-enum {
-	PARAM_FORMATMSG_EVT = 0,
-	PARAM_FORMATMSG_MSGOD_MENU,
-	PARAM_FORMATMSG_MSGOD_MSG,
-	PARAM_FORMATMSG_PHONEBOOK,
+/** 事件 ****************************************************************/
+typedef struct {
+	u8 u8EventId;		///事件ID,若终端已有同ID的事件，则被覆盖
+	u8 u8EventLen;		///事件长度
+	u8 aEventMsg[EVT_MSG_SIZE];		///事件内容
+} tEVENTITEM;
 
-	PARAM_FORMATMSG_END,
-};
+typedef struct {
+	u8 u8Amount;	///事件总数
+	tEVENTITEM index[EVT_ITEM_SIZE];	///事件索引数组
+} tEVT_INFO;
 
-///各类信息在EEPROM中的存储首地址
-#define EEPROM_ADDR_EVENT		0x3333	///事件信息在EEPROM中首地址
-#define EEPROM_ADDR_MSGOD_MENU	0x3333	///点播菜单信息在EEPROM中首地址
-#define EEPROM_ADDR_MSGOD_MSG	0x3333	///点播信息在EEPROM中首地址
-#define EEPROM_ADDR_PHONEBOOK	0x3333	///电话本在EEPROM中首地址
-#define EEPROM_ADDR_ROUND		0x3333	///圆形区域在EEPROM中首地址
-#define EEPROM_ADDR_RECTANGLE	0x3333	///矩形区域在EEPROM中首地址
-#define EEPROM_ADDR_POLYGON		0x3333	///多边形区域在EEPROM中首地址
+///事件信息存储格式
+typedef struct {
+	u32 prefix;	///前缀
+	tEVT_INFO tEvt;
+	u8 u8CRC; ///校验码
+} tPARAM_EVT_STORAGE;
 
-#define EVT_MSG_SIZE			50 	///事件内容最大长度
-#define EVT_ITEM_SIZE			50	///事件最大个数
-#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度
-#define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数
-#define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长数
-#define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数
-#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长数
-#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数
-#define ROUND_AREA_ITEM_SIZE	50	///圆形区域项总数
-#define RECT_AREA_ITEM_SIZE		50	///矩形区域项总数
-#define POLYGON_AREA_ITEM_SIZE	50	///多边形区域项总数
+/** 点播菜单 ****************************************************************/
+///信息点播信息项定义
+typedef struct {
+	u8 u8InfoType;			///信息类型
+	u16 u16InfoNameLen;		///信息名称长度
+	u8 aInfoName[50];		///信息名称
+} tMSGODMENUITEM;
+
+///点播菜单存储头
+typedef struct {
+	u8 u8Amount;	///事件总数
+	tMSGODMENUITEM index[MSGOD_MENU_ITEM_SIZE];	///事件索引数组
+} tMSGODMENU_INFO;
+
+///点播菜单存储格式
+typedef struct {
+	u32 prefix;	///前缀
+	tMSGODMENU_INFO tMsgODMenu;
+	u8 u8CRC; ///校验码
+} tPARAM_MSGOD_MENU_STORAGE;
+
+/** 点播信息 ****************************************************************/
+///点播信息项定义
+typedef struct {
+	u8 u8InfoType;			///信息类型
+	u16 u16InfoNameLen;		///信息名称长度
+	u8 aInfoName[50];		///信息名称
+} tMSGODITEM;
+
+///点播信息存储头
+typedef struct {
+	u8 u8Amount;	///事件总数
+	tMSGODITEM index[MSGOD_MSG_ITEM_SIZE];	///事件索引数组
+} tMSGODMSG_INFO;
+
+///点播信息存储格式
+typedef struct {
+	u32 prefix;	///前缀
+	tMSGODMSG_INFO tMsgODMsg;
+	u8 u8CRC; ///校验码
+} tPARAM_MSGOD_MSG_STORAGE;
+
+
+
+#if 0
 ///事件项索引
 typedef struct {
 	u8 u8Id;	///事件ID,若终端已有同ID的事件，则被覆盖
@@ -566,58 +575,47 @@ typedef struct {
 typedef struct {
 	u8 u8Amount;	///事件总数
 	tITEMINDEX index[EVT_ITEM_SIZE];	///事件索引数组
-} tEVT_HEADINFO;
+} tEVT_INFO;
 
 ///事件信息存储格式
 typedef struct {
 	u32 prefix;	///前缀
-	tEVT_HEADINFO headInfo;
+	tEVT_INFO INFO;
 	u8 u8CRC; ///校验码
-} tPARAM_EVT_HEADINFO_STORAGE;
+} tPARAM_EVT_INFO_STORAGE;
 
 ///点播菜单存储头
 typedef struct {
 	u8 u8Amount;	///事件总数
 	tITEMINDEX index[MSGOD_MENU_ITEM_SIZE];	///事件索引数组
-} tMSGODMENU_HEADINFO;
+} tMSGODMENU_INFO;
 
 ///点播菜单存储格式
 typedef struct {
 	u32 prefix;	///前缀
-	tMSGODMENU_HEADINFO headInfo;
+	tMSGODMENU_INFO INFO;
 	u8 u8CRC; ///校验码
-} tPARAM_MSGOD_MENU_HEADINFO_STORAGE;
+} tPARAM_MSGOD_MENU_INFO_STORAGE;
 
 ///点播信息存储头
 typedef struct {
 	u8 u8Amount;	///事件总数
 	tITEMINDEX index[MSGOD_MSG_ITEM_SIZE];	///事件索引数组
-} tMSGODMSG_HEADINFO;
+} tMSGODMSG_INFO;
 
 ///点播信息存储格式
 typedef struct {
 	u32 prefix;	///前缀
-	tMSGODMSG_HEADINFO headInfo;
+	tMSGODMSG_INFO INFO;
 	u8 u8CRC; ///校验码
-} tPARAM_MSGOD_MSG_HEADINFO_STORAGE;
-
-///电话本存储头
-typedef struct {
-	u8 u8Amount;	///电话本总数
-	tITEMINDEX index[MSGOD_MSG_ITEM_SIZE];	///索引数组
-} tPHONEBOOK_HEADINFO;
-
-///电话本存储格式
-typedef struct {
-	u32 prefix;	///前缀
-	tPHONEBOOK_HEADINFO headInfo;
-	u8 u8CRC; ///校验码
-} tPARAM_PHONEBOOK_HEADINFO_STORAGE;
+} tPARAM_MSGOD_MSG_INFO_STORAGE;
+#endif
 
 /** 电话本 **/
-#define		PHONE_NUM_SIZE		16		///电话号码长度
-#define		PHONE_NAME_SIZE		0xFF	///姓名长度
-#define		PHONE_ITEM_SIZE		50		///电话号码数目
+#define		PHONE_NUM_SIZE		16	///电话号码长度
+#define		PHONE_NAME_SIZE		50	///姓名长度
+#define		PHONE_ITEM_SIZE		50	///电话号码数目
+
 ///电话号码项
 typedef struct {
 	u8 u8Flag;		///1：呼入；2：呼出；3：呼入/呼出
@@ -627,8 +625,24 @@ typedef struct {
 	u8 aName[PHONE_NAME_SIZE];		///姓名内容
 } tPHONEBOOK_ITEM;
 
+///电话本存储头
+typedef struct {
+	u8 u8Amount;		///联系人总数
+	tPHONEBOOK_ITEM tPhoneBook[PHONE_ITEM_SIZE];	///联系人项
+} tPHONEBOOK_INFO;
+
+///电话本存储格式
+typedef struct {
+	u32 prefix;	///前缀
+	tPHONEBOOK_INFO tPhoneBook;
+	u8 u8CRC; ///校验码
+} tPARAM_PHONEBOOK_STORAGE;
+
+
+
 /** 圆形区域 ****************************************************************/
-#define PARAM_ROUNDAREA_MAXITEMS	24 ////圆形区域最大项数/**圆形区域项扩展结构体，存储格式，增加项有效标志*/
+#define PARAM_ROUNDAREA_MAXITEMS	24 ////圆形区域最大项数
+/**圆形区域项扩展结构体，存储格式，增加项有效标志*/
 typedef struct {
 	u8 u8IsValid;	///有效标志，0：无效，1：有效，默认有效；增加此字段是区别该区域是否被删除
 	tItem_RoundArea tItem;
@@ -648,7 +662,8 @@ typedef struct {
 } tPARAM_ROUNDAREA_STORAGE;
 
 /** 矩形区域 ****************************************************************/
-#define PARAM_RECTAREA_MAXITEMS	24 ///最大项目条数
+#define PARAM_RECTAREA_MAXITEMS	24 ///最大项目条数
+
 /**区域项扩展结构体，存储格式，增加项有效标志*/
 typedef struct {
 	u8 u8IsValid;	///有效标志，0：无效，1：有效，默认有效；增加此字段是区别该区域是否被删除
@@ -670,7 +685,8 @@ typedef struct {
 
 /** 多边形区域 **************************************************************/
 #define PARAM_POLYGONAREA_ITEMS_MAX	24 ///最大项目条数
-#define PARAM_POLYGONAREA_POINT_MAX	40 ///多边形定点数
+#define PARAM_POLYGONAREA_POINT_MAX	40 ///多边形定点数
+
 /**项扩展结构体，存储格式，增加项有效标志*/
 typedef struct {
 	u8 u8IsValid;	///有效标志，0：无效，1：有效，默认有效；增加此字段是区别该区域是否被删除
@@ -694,6 +710,7 @@ typedef struct {
 #define PARAM_ROUTE_POINT_MAX	40
 #define PARAM_ROUTE_ITEM_MAX	24
 
+/**角点结构体*/
 typedef struct {
 	u32 u32LineId;		///路线ID
 	u16 u16LineProperty;	///路线属性
@@ -731,16 +748,67 @@ typedef struct {
 	u8 au8QulifiedCode[40];		///驾驶员从业资格证编码
 	u8 u8GovNameLength;			///发证机构名称长度
 	u8 au8GovName[20];			///发证机构名称
-} tDRIVERINFO;
+} tITEM_DRIVER;
 
 ///一辆车对应的最多驾驶员数目
-#define	ONE_VEHICLE_DRIVER_NUNBER_MAX		6
+#define	DRIVERS_PERCAR_MAXNUM		6
 typedef struct {
+	u8 u8Amount;
 	u8 u8CurDriver;		///当前驾驶员 0xFF表示无效
-	u8 u8DriverCnt;		///有效驾驶员个数
-	tDRIVERINFO tDriverInfo[ONE_VEHICLE_DRIVER_NUNBER_MAX]; 	///驾驶员列表
-	u8 u8CRC;
-} tVEHICLEDRIVERType;
+//	u8 u8DriverCnt;		///有效驾驶员个数
+	tITEM_DRIVER tDriverInfo[DRIVERS_PERCAR_MAXNUM]; 	///驾驶员列表
+} tPARAM_DRIVER;
+
+/**驾驶人信息存储格式*/
+typedef struct {
+	u32 prefix;	///前缀
+	tPARAM_DRIVER tDrivers;
+	u8 u8CRC; ///校验码
+} tPARAM_DRIVER_STORAGE;
+
+/** 升级 *****************************************************************/
+#ifdef JTT808_Ver_2013
+/**升级类型*/
+typedef enum {
+	UPG_TERMINAL = 0, ///终端
+	UPG_IC_Reader = 12, ///道路运输证IC 卡读卡器
+	UPG_GNSS = 52, ///北斗卫星定位模块
+} eUPG_TYPE;
+
+/** 升级信息 */
+typedef struct {
+	u8 upg_type;	///升级类型 0：终端，12：道路运输证IC 卡读卡器，52：北斗卫星定位模块
+	u8 factoryId[5];	///制造商ID BYTE[5] 制造商编号
+	u8 version_len;		///版本号长度 BYTE n
+	u8 version[50];		///版本号 STRING
+	u32 u32UpgPack_len;	///7+n 升级数据包长度 DWORD 单位为BYTE
+	u8 result;     ///升级结果  0：成功，1：失败，2：取消
+} tUPGRADEINFO;
+
+/**升级信息存储结构体*/
+typedef struct {
+	u32 prefix;	///前缀
+	tUPGRADEINFO tUpgradeInfo; ///运行参数
+	u8 u8CRC; ///校验码
+} tUPGRADEINFO_STORAGE;
+#endif
+
+/** 出厂参数  *****************************************************************/
+typedef struct {
+
+	tPARAM_SYSTEM tSystemParam;
+	tPARAM_DEVICE tDeviceParam;
+	tPARAM_RUNTIME tRuntimeParam;
+} tPARAM_FACTORY;
+
+/**出厂参数存储结构体*/
+typedef struct {
+	u32 prefix;	///前缀
+	tPARAM_FACTORY tFactoryParam; ///出厂参数
+	u8 u8CRC; ///校验码
+} tPARAM_FACTORY_STORAGE;
+#endif
+
 
 /**
  * 恢复出厂参数，recovery system default setting from EEPROM
@@ -787,36 +855,35 @@ int Set_SystemParam(u32 id, u8 len, u8 *pVal);
 /**
  * 读取点播信息，从EEPROM载入
  *
- * @return
+ * @return	0=成功，-1=失败
  */
 int PARAM_LoadMsgOD();
 
 /**
  * 保存点播消息，写入EEPROM
  *
- * @return
+ * @return	0=成功，-1=失败
  */
 int PARAM_SaveMsgOD();
 
+/**
+ * 外部全局访问参数对象
+ */
 extern tPARAM_SYSTEM *ptParam_System;
 extern tPARAM_DEVICE *ptParam_Device;
 extern tPARAM_RUNTIME *ptParam_Runtime;
 extern tPARAM_RECTAREA *ptParam_Rect;
 extern tPARAM_ROUNDAREA *ptParam_Round;
 extern tPARAM_SYSTEM *ptParam_System;
-//extern tPARAM_EVT_HEADINFO *ptParam_EvtInfo;
-//extern tPARAM_MSGOD_MENUINDEX *ptParam_MsgOD_MenuIndex;
-//extern tPARAM_MSGOD_MSGINDEX *ptParam_MsgOD_MsgIndex;
+
 
 /** 事件/点播菜单/点播消息/电话本外部接口 *******************************************/
 int PARAM_FormatMsg_GetHead(u8 type);
 int PARAM_FormatMsg_SaveHead(u8 type);
 int PARAM_FormatMsg_GetAmount(u8 type);
-int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId,
-		u8 *pu8ItemLen, u8 *pItemMsg);
+int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId,	u8 *pu8ItemLen, u8 *pItemMsg);
 int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg);
-int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen,
-		u8 *pItemMsg);
+int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen,	u8 *pItemMsg);
 int PARAM_FormatMsg_EraseAll(u8 type);
 
 /** 圆形/矩形/多边形/外部接口 ******************************************************/
@@ -830,4 +897,4 @@ int PARAM_Area_DeleteItem(u8 type, u32 u32Id);
 u16 GetItem_AllSystemParam(u8 *pData);
 
 #pragma pack()
-#endif   ///_GPS_PARAMETER_H_
+#endif   ///_GPS_PARAMETER_H_

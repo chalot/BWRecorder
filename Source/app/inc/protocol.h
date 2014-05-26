@@ -18,17 +18,89 @@
 
 /**编译开关，控制新旧协议支持，两者同时只能打开一个*/
 ///#define JTT808_Ver_2011	///编译开关，打开使能旧国标协议
-#define JTT808_Ver_2013	///新国标协议
+#define JTT808_Ver_2013	///新国标协议
+
 #pragma pack(1)
 
 /**************************** 协议命令字类型 *********************************/
-#define	MSGID_T_GeneralAck				0x0001///终端通用应答消息#define	MSGID_S_GeneralAck				0x8001///平台通用应答消息#ifdef JTT808_Ver_2013
-#define	MSGID_S_ReloadSubPack			0x8003///Ver2013,///补传分包请求#endif///JTT808_Ver_2013#define	MSGID_T_Heatbeat				0x0002///终端心跳#define	MSGID_T_Register				0x0100///终端注册#define	MSGID_S_RegisterAck				0x8100///终端注册应答#define	MSGID_T_Unregister				0x0003///终端注销#define	MSGID_T_Authentication			0x0102///终端鉴权#define	MSGID_S_SetParam				0x8103///设置终端参数#define	MSGID_S_QueryParam				0x8104///查询终端参数#ifdef JTT808_Ver_2013
-#define	MSGID_T_QuerySpecifyParam		0x8106///查询指定终端参数#endif///JTT808_Ver_2013#define	MSGID_T_QueryParamAck			0x0104///查询终端参数应答#define	MSGID_S_Control					0x8105///终端控制#ifdef JTT808_Ver_2013
-#define	MSGID_S_QueryProperty			0x8107///查询终端属性#define	MSGID_T_QueryPropertyAck		0x0107///查询终端属性应答#define	MSGID_T_DispathUpgPack			0x8108///下发终端升级包#define	MSGID_T_UpgrageResult			0x0108///终端升级结果通知#endif///JTT808_Ver_2013#define	MSGID_T_RptPositionInfo			0x0200///位置信息汇报#define	MSGID_S_QueryPosition			0x8201///位置信息查询#define	MSGID_T_QueryPositionAck		0x0201///位置信息查询应答#define	MSGID_S_Tracking				0x8202///临时位置跟踪控制#ifdef JTT808_Ver_2013
-#define	MSGID_S_ConfirmWarningInfo		0x8203///人工确认报警消息#endif///JTT808_Ver_2013#define	MSGID_S_DownloadTxtInfo			0x8300///文本信息下发#define	MSGID_S_SetEvent				0x8301///事件设置#define	MSGID_T_RptEvent				0x0301///事件报告#define	MSGID_S_AskQuestion				0x8302///提问下发#define	MSGID_T_QuestionAck				0x0302///提问应答#define	MSGID_S_SetInfoOnDemandMenu		0x8303///信息点播菜单设置#define	MSGID_T_OrderInfoCtrl			0x0303///信息点播/取消#define	MSGID_S_InfoService				0x8304///信息服务#define	MSGID_S_Redial					0x8400///电话回拨#define	MSGID_S_SetPhoneBook			0x8401///设置电话本#define	MSGID_S_VechicleCtrl			0x8500///车辆控制#define	MSGID_T_VechicleCtrlAck			0x0500///车辆控制应答#define	MSGID_S_SetRoundErea			0x8600///设置圆形区域#define	MSGID_S_DelRoundErea			0x8601///删除圆形区域#define	MSGID_S_SetRectangleErea		0x8602///设置矩形区域#define	MSGID_S_DelRectangleErea		0x8603///删除矩形区域#define	MSGID_S_SetPolygonErea			0x8604///设置多边形区域#define	MSGID_S_DelPolygonErea			0x8605///删除多边形区域#define	MSGID_S_SetPathline				0x8606///设置路线#define	MSGID_S_DelPathline				0x8607///删除路线#define	MSGID_S_RecorderCapture			0x8700///行驶记录仪数据采集命令#define	MSGID_T_RecorderDataUpload		0x0700///行驶记录仪数据上传#define	MSGID_S_RecorderParamDownload	0x8701///行驶记录参数下传命令#define	MSGID_T_EBillRpt				0x0701///电子运单上报#define	MSGID_S_RequestDriverInfo		0x8702///上报驾驶人信息#define	MSGID_T_DriverInfoRpt			0x0702///驾驶员身份信息采集上报#ifdef JTT808_Ver_2013
-#define	MSGID_T_PositionInfoBatchRpt	0x0704///定位数据批量上传#define	MSGID_T_CANDataUpload			0x0705///CAN总线数据上传#endif///JTT808_Ver_2013#define	MSGID_T_MediaEventInfoRpt		0x0800///多媒体事件信息上传#define	MSGID_T_MediaDataRpt			0x0801///多媒体数据上传#define	MSGID_S_MediaDataRptAck			0x8800///多媒体数据上传应答#define	MSGID_S_TakePhoto				0x8801///摄像头立即拍照命令#ifdef JTT808_Ver_2013
-#define	MSGID_S_TakePhotoAck			0x0805///摄像头立即拍照命令应答#endif///JTT808_Ver_2013#define	MSGID_S_StoredMediaQuery		0x8802///存储多媒体数据检索命令#define	MSGID_T_StoredMediaQueryAck		0x0802///存储多媒体数据检索应答命令#define	MSGID_S_StoredMediaRpt			0x8803///存储多媒体数据上传命令#define	MSGID_S_StartAudioRecord		0x8804///录音开始命令#define MSGID_S_SingleMediaRetrieve		0x8805///8.60 单条存储多媒体数据检索上传命令#define	MSGID_S_TransparentTransfer		0x8900///数据下行透传命令#define	MSGID_T_TransparentTransfer		0x0900///数据上行透传命令#define	MSGID_T_DataCompressRpt			0x0901///数据压缩上报#define	MSGID_S_PlatformRASKey			0x8A00///平台RAS公钥#define	MSGID_T_RASKey					0x0A00///终端RAS公钥
+#define	MSGID_T_GeneralAck				0x0001///终端通用应答消息
+#define	MSGID_S_GeneralAck				0x8001///平台通用应答消息
+#ifdef JTT808_Ver_2013
+#define	MSGID_S_ReloadSubPack			0x8003///Ver2013,///补传分包请求
+#endif///JTT808_Ver_2013
+#define	MSGID_T_Heatbeat				0x0002///终端心跳
+#define	MSGID_T_Register				0x0100///终端注册
+#define	MSGID_S_RegisterAck				0x8100///终端注册应答
+#define	MSGID_T_Unregister				0x0003///终端注销
+#define	MSGID_T_Authentication			0x0102///终端鉴权
+#define	MSGID_S_SetParam				0x8103///设置终端参数
+#define	MSGID_S_QueryParam				0x8104///查询终端参数
+#ifdef JTT808_Ver_2013
+#define	MSGID_T_QuerySpecifyParam		0x8106///查询指定终端参数
+#endif///JTT808_Ver_2013
+#define	MSGID_T_QueryParamAck			0x0104///查询终端参数应答
+#define	MSGID_S_Control					0x8105///终端控制
+#ifdef JTT808_Ver_2013
+#define	MSGID_S_QueryProperty			0x8107///查询终端属性
+#define	MSGID_T_QueryPropertyAck		0x0107///查询终端属性应答
+#define	MSGID_T_DispathUpgPack			0x8108///下发终端升级包
+#define	MSGID_T_UpgrageResult			0x0108///终端升级结果通知
+#endif///JTT808_Ver_2013
+#define	MSGID_T_RptPositionInfo			0x0200///位置信息汇报
+#define	MSGID_S_QueryPosition			0x8201///位置信息查询
+#define	MSGID_T_QueryPositionAck		0x0201///位置信息查询应答
+#define	MSGID_S_Tracking				0x8202///临时位置跟踪控制
+#ifdef JTT808_Ver_2013
+#define	MSGID_S_ConfirmWarningInfo		0x8203///人工确认报警消息
+#endif///JTT808_Ver_2013
+#define	MSGID_S_DownloadTxtInfo			0x8300///文本信息下发
+#define	MSGID_S_SetEvent				0x8301///事件设置
+#define	MSGID_T_RptEvent				0x0301///事件报告
+#define	MSGID_S_AskQuestion				0x8302///提问下发
+#define	MSGID_T_QuestionAck				0x0302///提问应答
+#define	MSGID_S_SetInfoOnDemandMenu		0x8303///信息点播菜单设置
+#define	MSGID_T_OrderInfoCtrl			0x0303///信息点播/取消
+#define	MSGID_S_InfoService				0x8304///信息服务
+#define	MSGID_S_Redial					0x8400///电话回拨
+#define	MSGID_S_SetPhoneBook			0x8401///设置电话本
+#define	MSGID_S_VechicleCtrl			0x8500///车辆控制
+#define	MSGID_T_VechicleCtrlAck			0x0500///车辆控制应答
+#define	MSGID_S_SetRoundErea			0x8600///设置圆形区域
+#define	MSGID_S_DelRoundErea			0x8601///删除圆形区域
+#define	MSGID_S_SetRectangleErea		0x8602///设置矩形区域
+#define	MSGID_S_DelRectangleErea		0x8603///删除矩形区域
+#define	MSGID_S_SetPolygonErea			0x8604///设置多边形区域
+#define	MSGID_S_DelPolygonErea			0x8605///删除多边形区域
+#define	MSGID_S_SetPathline				0x8606///设置路线
+#define	MSGID_S_DelPathline				0x8607///删除路线
+#define	MSGID_S_RecorderCapture			0x8700///行驶记录仪数据采集命令
+#define	MSGID_T_RecorderDataUpload		0x0700///行驶记录仪数据上传
+#define	MSGID_S_RecorderParamDownload	0x8701///行驶记录参数下传命令
+#define	MSGID_T_EBillRpt				0x0701///电子运单上报
+#define	MSGID_S_RequestDriverInfo		0x8702///上报驾驶人信息
+#define	MSGID_T_DriverInfoRpt			0x0702///驾驶员身份信息采集上报
+#ifdef JTT808_Ver_2013
+#define	MSGID_T_PositionInfoBatchRpt	0x0704///定位数据批量上传
+#define	MSGID_T_CANDataUpload			0x0705///CAN总线数据上传
+#endif///JTT808_Ver_2013
+#define	MSGID_T_MediaEventInfoRpt		0x0800///多媒体事件信息上传
+#define	MSGID_T_MediaDataRpt			0x0801///多媒体数据上传
+#define	MSGID_S_MediaDataRptAck			0x8800///多媒体数据上传应答
+#define	MSGID_S_TakePhoto				0x8801///摄像头立即拍照命令
+#ifdef JTT808_Ver_2013
+#define	MSGID_S_TakePhotoAck			0x0805///摄像头立即拍照命令应答
+#endif///JTT808_Ver_2013
+#define	MSGID_S_StoredMediaQuery		0x8802///存储多媒体数据检索命令
+#define	MSGID_T_StoredMediaQueryAck		0x0802///存储多媒体数据检索应答命令
+#define	MSGID_S_StoredMediaRpt			0x8803///存储多媒体数据上传命令
+#define	MSGID_S_StartAudioRecord		0x8804///录音开始命令
+#define MSGID_S_SingleMediaRetrieve		0x8805///8.60 单条存储多媒体数据检索上传命令
+#define	MSGID_S_TransparentTransfer		0x8900///数据下行透传命令
+#define	MSGID_T_TransparentTransfer		0x0900///数据上行透传命令
+#define	MSGID_T_DataCompressRpt			0x0901///数据压缩上报
+#define	MSGID_S_PlatformRASKey			0x8A00///平台RAS公钥
+#define	MSGID_T_RASKey					0x0A00///终端RAS公钥
+
 ///消息格式
 ///typedef struct
 ///{
@@ -42,7 +114,8 @@
 #define		MSG_FLAG_BYTE		0x7E
 #define		MSG_TRANS_BYTE		0x7D
 
-#define ENCRYPT_FLAG	0	///加密标志，1=数据加密, 0=数据不加密
+#define ENCRYPT_FLAG	0	///加密标志，1=数据加密, 0=数据不加密
+
 ///组织消息属性格式
 #define	FORM_MSG_PROPERTY(len, rsa, multipack) 	(((len) & 0x3FF) |		    \
 												((rsa == 0) ? 0 : 0x0400) |	\
@@ -124,7 +197,8 @@ typedef struct {
 	u8 u8ReloadPackCnt;	///重传包总数
 	u8* pu8PackIds;			///重传包ID列表
 } tMsg_S_ReloadSubPack;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 #define PARAM_VIN_PLATE_MAXLEN		40	/**VIN码或车牌最大长度*/
 
 /**终端基本信息*/
@@ -181,26 +255,65 @@ typedef struct {
 
 #if 1
 ///参数项ID定义
-#define	PARAM_ALIVE_INTERVAL			0x0001		///终端心跳发送间隔，单位为s#define	PARAM_TCPACK_TIMEOUT			0x0002		///TCP应答超时，单位为s#define	PARAM_TCP_RESENDTIMES			0x0003		///TCP消息重传次数#define	PARAM_UDPACK_TIMEOUT			0x0004		///UDP应答超时，单位为s#define	PARAM_UDP_RESENDTIMES			0x0005		///UDP消息重传次数#define	PARAM_SMSACK_TIMEOUT			0x0006		///SMS应答超时，单位为s#define	PARAM_SMS_RESENDTIMES			0x0007		///SMS消息重传次数/**0X0008 ----0X000F 保留*/
-#define	PARAM_MAINSRV_APN				0x0010		///主服务器APN，无线通信拨号访问点#define	PARAM_MAINSRV_USR				0x0011		///主服务器无线通信拨号用户名#define	PARAM_MAINSRV_PSWD				0x0012		///主服务器无线通信拨号密码#define	PARAM_MAINSRV_IP				0x0013		///主服务器地址，IP或域名#define	PARAM_VICESRV_APN				0x0014		///备份服务器APN，无线通信拨号访问点#define	PARAM_VICESRV_USR				0x0015		///备份服务器无线通信拨号用户名#define	PARAM_VICESRV_PSWD				0x0016		///备份服务器无线通信拨号密码#define	PARAM_VICESRV_IP				0x0017		///备份服务器地址，IP或域名#define	PARAM_TCP_PORT					0x0018		///TCP端口#define	PARAM_UDP_PORT					0x0019		///UDP端口/**0X001A ----0X001F 保留*/
-#ifdef JTT808_Ver_2013	///新版增加协议部分#define	PARAM_ICVERIFY_MS_IPOrDNS		0x001A		///道路运输证IC卡认证主服务器IP地址或域名#define	PARAM_ICVERIFY_TCPPORT			0x001B		///道路运输证IC卡认证主服务器TCP端口#define	PARAM_ICVERIFY_UDPPORT			0x001C		///道路运输证IC卡认证主服务器UDP端口#define	PARAM_ICVERIFY_BS_UDPPORT		0x001D		///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器#endif///JTT808_Ver_2013
+#define	PARAM_ALIVE_INTERVAL			0x0001		///终端心跳发送间隔，单位为s
+#define	PARAM_TCPACK_TIMEOUT			0x0002		///TCP应答超时，单位为s
+#define	PARAM_TCP_RESENDTIMES			0x0003		///TCP消息重传次数
+#define	PARAM_UDPACK_TIMEOUT			0x0004		///UDP应答超时，单位为s
+#define	PARAM_UDP_RESENDTIMES			0x0005		///UDP消息重传次数
+#define	PARAM_SMSACK_TIMEOUT			0x0006		///SMS应答超时，单位为s
+#define	PARAM_SMS_RESENDTIMES			0x0007		///SMS消息重传次数
+/**0X0008 ----0X000F 保留*/
+#define	PARAM_MAINSRV_APN				0x0010		///主服务器APN，无线通信拨号访问点
+#define	PARAM_MAINSRV_USR				0x0011		///主服务器无线通信拨号用户名
+#define	PARAM_MAINSRV_PSWD				0x0012		///主服务器无线通信拨号密码
+#define	PARAM_MAINSRV_IP				0x0013		///主服务器地址，IP或域名
+#define	PARAM_VICESRV_APN				0x0014		///备份服务器APN，无线通信拨号访问点
+#define	PARAM_VICESRV_USR				0x0015		///备份服务器无线通信拨号用户名
+#define	PARAM_VICESRV_PSWD				0x0016		///备份服务器无线通信拨号密码
+#define	PARAM_VICESRV_IP				0x0017		///备份服务器地址，IP或域名
+#define	PARAM_TCP_PORT					0x0018		///TCP端口
+#define	PARAM_UDP_PORT					0x0019		///UDP端口
+/**0X001A ----0X001F 保留*/
+#ifdef JTT808_Ver_2013	///新版增加协议部分
+#define	PARAM_ICVERIFY_MS_IPOrDNS		0x001A		///道路运输证IC卡认证主服务器IP地址或域名
+#define	PARAM_ICVERIFY_TCPPORT			0x001B		///道路运输证IC卡认证主服务器TCP端口
+#define	PARAM_ICVERIFY_UDPPORT			0x001C		///道路运输证IC卡认证主服务器UDP端口
+#define	PARAM_ICVERIFY_BS_UDPPORT		0x001D		///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
+#endif///JTT808_Ver_2013
+
 /**终端位置汇报策略，0:定时汇报，1:定距汇报，2:定时和定距汇报*/
 #define	PARAM_POSRPT_STRATEGE		0x0020
 /**终端汇报方案，0:根据ACC状态，1:根据登录状态和ACC状态，先判断登录状态，
  若登录再根据ACC状态*/
 #define	PARAM_POSRPT_METHOD				0x0021
-#define	PARAM_DRV_UNREG_RPTPERIOD		0x0022		///驾驶员未登录汇报时间间隔，单位为秒/**0X0023 ----0X0026 保留*/
-#define	PARAM_RPTPERIOD_ONSLEEP			0x0027		///休眠时汇报时间间隔，单位为秒#define	PARAM_RPTPERIOD_URGENT			0x0028		///紧急报警时汇报时间间隔，单位为秒#define	PARAM_RPTPERIOD_DEFAULT			0x0029		///缺省时汇报时间间隔，单位为秒/**0X002A ----0X002B 保留*/
-#define	PARAM_RPTDIST_DEFAULT			0x002C		///缺省时距离汇报间隔，单位为米#define	PARAM_RPTDIST_DRV_UNREG			0x002D		///驾驶员未登录距离汇报间隔，单位为米#define	PARAM_RPTDIST_SLEEP				0x002E		///休眠时距离汇报间隔，单位为米#define	PARAM_RPTDIST_URGENT			0x002F		///紧急报警时距离汇报间隔，单位为米#define	PARAM_INFLECTION_POINT_ANGLE	0x0030		///拐点补传角度，单位为度(< 180)#define	PARAM_BARRIER_RADIUS			0x0031		///电子围栏半径(非法移位阈值)，单位为米/**0X0032----0X003F 保留*/
-#define	PARAM_MONITORCENTER_PHONENUM	0x0040		///监控平台电话号码#define	PARAM_RESET_PHONENUM	0x0041		///复位电话号码，可采用此电话号码拨打终端电话让终端复位///回复出厂设置电话号码，可采用此电话号码拨打终端电话让终端恢复出厂设置
+#define	PARAM_DRV_UNREG_RPTPERIOD		0x0022		///驾驶员未登录汇报时间间隔，单位为秒
+/**0X0023 ----0X0026 保留*/
+#define	PARAM_RPTPERIOD_ONSLEEP			0x0027		///休眠时汇报时间间隔，单位为秒
+#define	PARAM_RPTPERIOD_URGENT			0x0028		///紧急报警时汇报时间间隔，单位为秒
+#define	PARAM_RPTPERIOD_DEFAULT			0x0029		///缺省时汇报时间间隔，单位为秒
+/**0X002A ----0X002B 保留*/
+#define	PARAM_RPTDIST_DEFAULT			0x002C		///缺省时距离汇报间隔，单位为米
+#define	PARAM_RPTDIST_DRV_UNREG			0x002D		///驾驶员未登录距离汇报间隔，单位为米
+#define	PARAM_RPTDIST_SLEEP				0x002E		///休眠时距离汇报间隔，单位为米
+#define	PARAM_RPTDIST_URGENT			0x002F		///紧急报警时距离汇报间隔，单位为米
+#define	PARAM_INFLECTION_POINT_ANGLE	0x0030		///拐点补传角度，单位为度(< 180)
+#define	PARAM_BARRIER_RADIUS			0x0031		///电子围栏半径(非法移位阈值)，单位为米
+/**0X0032----0X003F 保留*/
+#define	PARAM_MONITORCENTER_PHONENUM	0x0040		///监控平台电话号码
+#define	PARAM_RESET_PHONENUM	0x0041		///复位电话号码，可采用此电话号码拨打终端电话让终端复位
+///回复出厂设置电话号码，可采用此电话号码拨打终端电话让终端恢复出厂设置
 #define	PARAM_RECOVERFACTORY_PHONENUM	0x0042
-#define	PARAM_MONITORCENTER_SMS_NUM		0x0043		///监控平台SMS电话号码#define	PARAM_RECVTXTALARM_SMS_NUM		0x0044		///接收终端SMS文本报警电话号码///终端电话接听策略，0:自动接通，1:ACC ON时自动接通，OFF时手动接听
+#define	PARAM_MONITORCENTER_SMS_NUM		0x0043		///监控平台SMS电话号码
+#define	PARAM_RECVTXTALARM_SMS_NUM		0x0044		///接收终端SMS文本报警电话号码
+///终端电话接听策略，0:自动接通，1:ACC ON时自动接通，OFF时手动接听
 #define	PARAM_ANSWERCALLING_STRATEGE	0x0045
 ///终端每次通话时最长通话时间，单位为秒，0为不允许通话，0xffffffff为不限制
 #define	PARAM_TOUT_PERCALL				0x0046
 ///终端每月最长通话时间，单位为秒，0为不允许通话，0xffffffff为不限制
 #define	PARAM_TOUT_PERMONTHCALL			0x0047
-#define	PARAM_MONITORLISTEN_PHONENUM	0x0048			///监听电话号码#define	PARAM_SUPERVISE_SMS_NUM			0x0049			///监管平台特权短信号码/**0X004A----0X004F 保留*/
+#define	PARAM_MONITORLISTEN_PHONENUM	0x0048			///监听电话号码
+#define	PARAM_SUPERVISE_SMS_NUM			0x0049			///监管平台特权短信号码
+/**0X004A----0X004F 保留*/
 
 ///报警屏蔽字，与位置信息汇报消息中的报警标志位相对应，相应位为1则相应报警被屏蔽
 #define	PARAM_ALARM_MASK				0x0050
@@ -212,17 +325,38 @@ typedef struct {
 #define	PARAM_PICCTRL_STORE_ONALARM		0x0053
 ///关键标志，与位置信息汇报消息中的报警标志位相对应，相应位为1则相应报警为关键报警
 #define	PARAM_KEYALARM_FLAG	 			0x0054
-#define	PARAM_MAXSPEED					0x0055	   ///最高速度，单位为公里每小时(km/h)#define	PARAM_OVERSPEED_LASTING_TIMEOUT		0x0056	///超速持续时间，单位为秒#define	PARAM_CONTINUOUS_DRV_TIMEOUT		0x0057	///连续驾驶时间门限，单位为秒#define	PARAM_DRV_TOTAL_EACHDAY_TIMEOUT		0x0058	///当天累计驾驶时间，单位为秒#define	PARAM_LEAST_REST_TIMEOUT			0x0059	///最小休息时间，单位为秒#define	PARAM_MAX_STOPPING_TIMEOUT			0x005A	///最长停车时间，单位为秒/**0X005B----0X006F */
+#define	PARAM_MAXSPEED					0x0055	   ///最高速度，单位为公里每小时(km/h)
+#define	PARAM_OVERSPEED_LASTING_TIMEOUT		0x0056	///超速持续时间，单位为秒
+#define	PARAM_CONTINUOUS_DRV_TIMEOUT		0x0057	///连续驾驶时间门限，单位为秒
+#define	PARAM_DRV_TOTAL_EACHDAY_TIMEOUT		0x0058	///当天累计驾驶时间，单位为秒
+#define	PARAM_LEAST_REST_TIMEOUT			0x0059	///最小休息时间，单位为秒
+#define	PARAM_MAX_STOPPING_TIMEOUT			0x005A	///最长停车时间，单位为秒
+/**0X005B----0X006F */
 #ifdef JTT808_Ver_2013
-#define	PARAM_OVERSPEED_PREALARM_DIF	0x005B	///超速报警预警差值，单位1/10Km/h#define	PARAM_FATIGE_PREALARM_DIF		0x005C	///疲劳驾驶预警差值，单位为秒，>0///b7-b0:碰撞时间，单位4ms；b15-b8:碰撞加速度，单位0.1g，设置范围0~79，默认10
+#define	PARAM_OVERSPEED_PREALARM_DIF	0x005B	///超速报警预警差值，单位1/10Km/h
+#define	PARAM_FATIGE_PREALARM_DIF		0x005C	///疲劳驾驶预警差值，单位为秒，>0
+///b7-b0:碰撞时间，单位4ms；b15-b8:碰撞加速度，单位0.1g，设置范围0~79，默认10
 #define	PARAM_COLLISION_SETTING			0x005D
 ///侧翻报警参数设置，侧翻角度，单位1度，默认30度
 #define	PARAM_SIDECOLLAPSE_SETTING		0x005E
 /**0X005F----0X0063 */
-#define	PARAM_PERIODIC_PHOTO_CTRL		0x0064	///定时拍照控制#define	PARAM_PERDIST_PHOTO_CTRL		0x0065	///定距拍照控制/**0X0066----0X006F */
-#endif///JTT808_Ver_2013
-#define	PARAM_VIDEO_QUALITY				0x0070		///图片/视频质量，1-10,1最好#define	PARAM_BRIGHTNESS				0x0071		///亮度，0-255#define	PARAM_CONTRASTNESS				0x0072		///对比度，0-127#define	PARAM_SATURATION				0x0073		///饱和度，0-127#define	PARAM_CHROMA					0x0074		///色度，0-255/**0X0075----0X007F*/
-#define	PARAM_VEHICLE_KILOMETRES		0x0080		///车辆里程表读数，1/10km#define	PARAM_VEHICLE_PROVINCE_ID		0x0081		///车辆所在地省域ID#define	PARAM_VEHICLE_CITY_ID			0x0082		///车辆所在地市域ID#define	PARAM_VEHICLE_ID 				0x0083		///车牌号码#define	PARAM_VEHICLE_ID_COLOR			0x0084		///车牌颜色#endif
+#define	PARAM_PERIODIC_PHOTO_CTRL		0x0064	///定时拍照控制
+#define	PARAM_PERDIST_PHOTO_CTRL		0x0065	///定距拍照控制
+/**0X0066----0X006F */
+#endif///JTT808_Ver_2013
+
+#define	PARAM_VIDEO_QUALITY				0x0070		///图片/视频质量，1-10,1最好
+#define	PARAM_BRIGHTNESS				0x0071		///亮度，0-255
+#define	PARAM_CONTRASTNESS				0x0072		///对比度，0-127
+#define	PARAM_SATURATION				0x0073		///饱和度，0-127
+#define	PARAM_CHROMA					0x0074		///色度，0-255
+/**0X0075----0X007F*/
+#define	PARAM_VEHICLE_KILOMETRES		0x0080		///车辆里程表读数，1/10km
+#define	PARAM_VEHICLE_PROVINCE_ID		0x0081		///车辆所在地省域ID
+#define	PARAM_VEHICLE_CITY_ID			0x0082		///车辆所在地市域ID
+#define	PARAM_VEHICLE_ID 				0x0083		///车牌号码
+#define	PARAM_VEHICLE_ID_COLOR			0x0084		///车牌颜色
+#endif
 
 #ifdef JTT808_Ver_2013
 /**以下为新协议增加的参数项*/
@@ -372,7 +506,8 @@ typedef struct {
 	u32 bit_distInterval;
 } tParam_PeriodicDistVideoCapture;
 
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 ///参数项头部
 typedef struct {
 	u32 u32Id;		///参数ID
@@ -490,7 +625,8 @@ typedef enum {
 #ifdef JTT808_Ver_2013
 /** 8.14 查询终端属性,消息ID：0x8107。*****************************************/
 /**查询终端属性消息体为空。*/
-#endif ///JTT808_Ver_2013
+#endif ///JTT808_Ver_2013
+
 /** 8.15 查询终端属性应答,消息ID：0x0107。*************************************/
 #ifdef JTT808_Ver_2013
 /**终端类型*/
@@ -504,7 +640,8 @@ typedef struct {
 	u16 bit_Integration :1;		///bit7，0：一体机，1：分体机。
 	u16 bit_reserved_8_15 :8;
 } tTerminalType;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /**GNSS 模块属性*/
 typedef struct {
 	u16 bit_Support_GPS :1;	///bit0，0：不支持GPS 定位， 1：支持GPS 定位；
@@ -543,7 +680,8 @@ typedef struct {
 
 } tMsg_TACK_QueryTerminalProperty;
 
-#endif	///JTT808_Ver_2013
+#endif	///JTT808_Ver_2013
+
 #ifdef JTT808_Ver_2013
 /** 8.16 下发终端升级包,消息ID：0x8108。***************************************/
 /**下发终端升级包消息体数据格式见表21。对该命令终端使用通用应答确认是否正确收
@@ -558,7 +696,8 @@ typedef struct {
 	u8 *pUpgPack;		///11+n 升级数据包
 } tMsg_SCMD_dispatchUpgPackage;
 
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 #ifdef JTT808_Ver_2013
 /** 8.17 终端升级结果通知,消息ID：0x0108。*************************************/
 /**终端在升级完成并重新连接后使用该命令通知监控中心。终端升级结果通知消息体数
@@ -569,7 +708,8 @@ typedef struct {
 	u8 upg_result;	/// 升级结果  0：成功，1：失败，2：取消
 } tMsg_TACK_UpgResult;
 
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /**报警标志位定义*/
 #define WARNING_Emergency		((u32)0x00000001)	///1：紧急报警，触动报警开关后触发 收到应答后清零
 #define WARNING_Overspeed		(((u32)0x00000001) << 1)	///1：超速报警 标志维持至报警条件解除
@@ -599,10 +739,13 @@ typedef struct {
 #define WARNING_Vechicle_Stolen		(((u32)0x00000001) << 26)	///26 1：车辆被盗(通过车辆防盗器) 标志维持至报警条件解除
 #define WARNING_Vechicle_Illegical_Launch	(((u32)0x00000001) << 27)	///27 1：车辆非法点火 收到应答后清零
 #define WARNING_Vechicle_Illegical_Moving	(((u32)0x00000001) << 28)	///28 1：车辆非法位移 收到应答后清零
-#define WARNING_Vechicle_PreCollision	(((u32)0x00000001) << 29)	///29 1：碰撞预警 标志维持至报警条件解除///#define warning_reserved_30_31	: 	2;	///30-31保留
+#define WARNING_Vechicle_PreCollision	(((u32)0x00000001) << 29)	///29 1：碰撞预警 标志维持至报警条件解除
+///#define warning_reserved_30_31	: 	2;	///30-31保留
 #ifdef JTT808_Ver_2013
 #define WARNING_Vechicle_PreSidestroke		(((u32)0x00000001) << 30)	///30 1：侧翻预警 标志维持至报警条件解除
-#define WARNING_Vechicle_Illegical_DoorOpen		(((u32)0x00000001) << 31)	///31 1：非法开门报警（终端未设置区域时，不判断非法开门）收到应答后清零#endif ///JTT808_Ver_2013
+#define WARNING_Vechicle_Illegical_DoorOpen		(((u32)0x00000001) << 31)	///31 1：非法开门报警（终端未设置区域时，不判断非法开门）收到应答后清零
+#endif ///JTT808_Ver_2013
+
 /**报警标志位定义*/
 typedef struct {
 	u32 warning_Emergency :1;	///1：紧急报警，触动报警开关后触发 收到应答后清零
@@ -625,7 +768,8 @@ typedef struct {
 	u32 warning_PreOverspeed :1;	///13 1：超速预警 标志维持至报警条件解除
 	u32 warning_PreFatigure :1;	///14 1：疲劳驾驶预警 标志维持至报警条件解除
 	u32 warning_reserved_15_17 :3;	///15-17 保留
-#endif///JTT808_Ver_2013	u32 warning_TOUT_Driving_day :1;	///18 1：当天累计驾驶超时 标志维持至报警条件解除
+#endif///JTT808_Ver_2013
+	u32 warning_TOUT_Driving_day :1;	///18 1：当天累计驾驶超时 标志维持至报警条件解除
 	u32 warning_TOUT_Stopping :1;	///19 1：超时停车 标志维持至报警条件解除
 	u32 warning_CrossBarrier :1;	///20 1：进出区域 收到应答后清零
 	u32 warning_CrossPath :1;	///21 1：进出路线 收到应答后清零
@@ -662,7 +806,8 @@ typedef struct {
 	u32 state_reserved_6_7 :2;	///保留
 	u32 state_Loading :2;	///00：空车；01：半载；10：保留；11：满载
 	///	（可用于客车的空、重车及货车的空载、满载状态表示，人工输入或传感器获取）
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 	u32 state_Oil :1;	///10 0：车辆油路正常；1：车辆油路断开
 	u32 state_ElectricCircuit :1;	///11 0：车辆电路正常；1：车辆电路断开
 	u32 state_DoorLock :1;	///12 0：车门解锁；1：车门加锁
@@ -681,7 +826,8 @@ typedef struct {
 	u32 state_GLONASS_Used :1;	///20 0：未使用GLONASS 卫星进行定位；1：使用GLONASS 卫星进行定位
 	u32 state_Galileo_Used :1;	///21 0：未使用Galileo 卫星进行定位；1：使用Galileo 卫星进行定位
 	u32 state_Reserved_22_31 :10;	/// 保留
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 } tSYSTEMSTATE;
 
 /**位置基本信息数据格式*/
@@ -754,7 +900,9 @@ typedef struct {
 /**15-31 保留*/
 
 /**IO 状态位*/
-#define VECHICLE_IOSTATE_DeepSleep	((u16)0x00000001)	///0 1：深度休眠状态#define VECHICLE_IOSTATE_Sleep		(((u16)0x00000001) << 1)	///1 1：休眠状态/**2-15 保留*/
+#define VECHICLE_IOSTATE_DeepSleep	((u16)0x00000001)	///0 1：深度休眠状态
+#define VECHICLE_IOSTATE_Sleep		(((u16)0x00000001) << 1)	///1 1：休眠状态
+/**2-15 保留*/
 
 /**位置附加信息项-未超速*/
 typedef struct {
@@ -883,7 +1031,8 @@ typedef struct {
 	u32 u32WarnType;	///报警类型
 } tMsg_SCMD_MannalVerifyWarning;
 
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /**8.23 文本信息下发 消息ID：0x8300。******************************************/
 typedef struct {
 	u8 flag_Emergency :1;	/// 0 1：紧急
@@ -894,7 +1043,8 @@ typedef struct {
 #ifdef JTT808_Ver_2013
 	u8 flag_MsgInfo :1;	///5 0：中心导航信息，1：CAN 故障码信息
 	u8 flag_Reserved_6_7 :2;	///6-7 保留
-#endif///JTT808_Ver_2013#ifdef JTT808_Ver_2011
+#endif///JTT808_Ver_2013
+#ifdef JTT808_Ver_2011
 	u8 flag_Reserved_5_7 : 3;	///5-7 保留
 #endif
 	u8 msg[0];	///文本信息 STRING 最长为1024 字节，经GBK 编码
@@ -914,7 +1064,6 @@ typedef struct {
 	u8 u8EventId;			///事件ID,若终端已有同ID的事件，则被覆盖
 	u8 u8EventLength;		///事件长度
 	u8 *sEventMsg;			///事件内容
-
 } tEventItem;
 
 /** 8.24 事件设置,消息ID：0x8301。********************************************/
@@ -933,7 +1082,8 @@ typedef struct {
 ///文本信息含义定义
 #define	QUESTION_TYPE_ERGENT			0X01	///紧急
 #define	QUESTION_TYPE_TTS_READ			0X08	///终端TTS播读
-#define	QUESTION_TYPE_DISPLAY			0X10	///广告屏显示
+#define	QUESTION_TYPE_DISPLAY			0X10	///广告屏显示
+
 ///提问下发候选答案消息体数据格式
 typedef struct {
 	u8 u8AnswerId;			///答案ID
@@ -958,13 +1108,17 @@ typedef struct {
 /** 8.28 信息点播菜单设置  ID：0x8303 *****************************************/
 ///信息点播菜单设置
 ///信息点播菜单设置类型
-#define	MSGOD_MENU_DELETE	0	///删除终端现有信息项#define	MSGOD_MENU_UPDATE	1	///更新菜单#define	MSGOD_MENU_APPEND	2	///追加菜单#define	MSGOD_MENU_CHANGE	3	///修改菜单
+#define	MSGOD_MENU_DELETE	0	///删除终端现有信息项
+#define	MSGOD_MENU_UPDATE	1	///更新菜单
+#define	MSGOD_MENU_APPEND	2	///追加菜单
+#define	MSGOD_MENU_CHANGE	3	///修改菜单
+
 ///信息点播信息项定义
 typedef struct {
 	u8 u8InfoType;				///信息类型
 	u16 u16InfoNameLength;		///信息名称长度
 	u8 aInfoName[0];			///信息名称
-} tMSGODMENUITEM;
+} _tMSGODMENUITEM;
 
 typedef struct {
 	u8 u8InfoOrderSetType;		///信息点播菜单设置类型
@@ -1017,7 +1171,9 @@ typedef struct {
 } T_SCMD_SetPhoneBook;
 
 /*************8.33 车辆控制 消息ID：0x8500*************/
-#define	VEHICLE_CTRL_UNLOCK		0	///车门解锁#define	VEHICLE_CTRL_LOCK		1	///车门加锁///控制命令消息体
+#define	VEHICLE_CTRL_UNLOCK		0	///车门解锁
+#define	VEHICLE_CTRL_LOCK		1	///车门加锁
+///控制命令消息体
 typedef struct {
 	u8 bit_DoorLock :1;	/// 0：车门解锁；1：车门加锁
 	u8 bit_vechical_reserved :7;
@@ -1056,7 +1212,8 @@ typedef struct {
 	u16 Property_Rerserved_9_13 :5;	///9-13 保留
 	u16 Property_CommModuleEnableOnEnterArea :1;///14 0：进区域开启通信模块；1：进区域关闭通信模块
 	u16 Property_GNSSDetailMsgEnableOnEnterArea :1;	///15 0：进区域不采集GNSS 详细定位数据；1：进区域采集GNSS 详细定位数据
-#endif///JTT808_Ver_2013} tAreaProperty;
+#endif///JTT808_Ver_2013
+} tAreaProperty;
 
 /**圆形区域项结构体定义*/
 typedef struct {
@@ -1153,9 +1310,18 @@ typedef struct {
 
 /** 8.41 设置路线 消息ID：0x8606。*********************************************/
 ///路线属性定义
-#define	ALARM_TIME					0x0001	///根据时间#define	ALARM_2DRIVER_IN_LINE		0x0004	///进路线报警给驾驶员#define	ALARM_2PLATFORM_IN_LINE		0x0008	///进路线报警给平台#define	ALARM_2DRIVER_OUT_LINE		0x0010	///出路线报警给驾驶员#define	ALARM_2PLATFORM_OUT_LINE	0x0020	///出路线报警给平台
+#define	ALARM_TIME					0x0001	///根据时间
+#define	ALARM_2DRIVER_IN_LINE		0x0004	///进路线报警给驾驶员
+#define	ALARM_2PLATFORM_IN_LINE		0x0008	///进路线报警给平台
+#define	ALARM_2DRIVER_OUT_LINE		0x0010	///出路线报警给驾驶员
+#define	ALARM_2PLATFORM_OUT_LINE	0x0020	///出路线报警给平台
+
 ///路段属性定义
-#define	ROADSECTION_DIRVE_TIME			0x01	///行驶时间#define	ROADSECTION_RESTRICT_SPEED		0x02	///限速#define	ROADSECTION_NORTH_LATITUDE		0x04	///0:北纬,1:南纬#define	ROADSECTION_EAST_LONGITUDE		0x08	///0:东经,1:西经
+#define	ROADSECTION_DIRVE_TIME			0x01	///行驶时间
+#define	ROADSECTION_RESTRICT_SPEED		0x02	///限速
+#define	ROADSECTION_NORTH_LATITUDE		0x04	///0:北纬,1:南纬
+#define	ROADSECTION_EAST_LONGITUDE		0x08	///0:东经,1:西经
+
 ///#define	MAX_INFLECTION_PT_NUMBER	20
 
 ///拐点项定义
@@ -1246,7 +1412,8 @@ typedef struct {
 	u8* pau8GovName;		///发证机构名称
 	u8 LicieceValidation[4];	///证件有效期 BCD[4] YYYYMMDD
 } tMsg_T_DriverInfoRpt;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /** 8.49 定位数据批量上传 消息ID：0x0704。*************************************/
 typedef struct {
 	u16 u16ItemAmount;	///0 数据项个数 WORD 包含的位置汇报数据项个数，>0
@@ -1275,15 +1442,33 @@ typedef struct {
 	u8 u8RevTime[5];	///2 CAN 总线数据接收时间 BCD[5] 第1 条CAN 总线数据的接收时间，hh-mm-ss-msms
 	tCANItem tItem[0];	///CAN数据项
 } tMsg_T_CANInfoUpload;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /** 8.51 多媒体事件信息上传 消息ID：0x0800。***********************************/
 ///多媒体类型
-#define	MEDIA_TYPE_PHOTO		0	///图像#define	MEDIA_TYPE_AUDIO		1	///音频#define	MEDIA_TYPE_VIDEO		2	///视频
+#define	MEDIA_TYPE_PHOTO		0	///图像
+#define	MEDIA_TYPE_AUDIO		1	///音频
+#define	MEDIA_TYPE_VIDEO		2	///视频
+
 ///多媒体格式编码
-#define	MEDIA_STRUCT_JPEG		0	///JPEG#define	MEDIA_STRUCT_TIF		1	///TIF#define	MEDIA_STRUCT_MP3		2	///MP3#define	MEDIA_STRUCT_WAV		3	///WAV#define	MEDIA_STRUCT_WMV		4	///WMV
+#define	MEDIA_STRUCT_JPEG		0	///JPEG
+#define	MEDIA_STRUCT_TIF		1	///TIF
+#define	MEDIA_STRUCT_MP3		2	///MP3
+#define	MEDIA_STRUCT_WAV		3	///WAV
+#define	MEDIA_STRUCT_WMV		4	///WMV
+
 ///事件项编码
-#define	MEDIA_EVT_PLATFORM			0	///平台下发指令#define	MEDIA_EVT_TIME				1	///定时动作#define	MEDIA_EVT_ROBBER			2	///抢劫报警出发#define	MEDIA_EVT_CRUSH				3	///碰撞侧翻报警触发#ifdef JTT808_Ver_2013
-#define	MEDIA_EVT_DOOROPEN_PIC		4	///门开拍照；#define	MEDIA_EVT_DOOCLOSE_PIC		5	///门关拍照；#define	MEDIA_EVT_DOOROPEN2CLOSE 	6	///车门由开变关，时速从＜20 公里到超过20 公里；#define	MEDIA_EVT_DIST_PIC			7	///定距拍照；其他保留#endif///JTT808_Ver_2013
+#define	MEDIA_EVT_PLATFORM			0	///平台下发指令
+#define	MEDIA_EVT_TIME				1	///定时动作
+#define	MEDIA_EVT_ROBBER			2	///抢劫报警出发
+#define	MEDIA_EVT_CRUSH				3	///碰撞侧翻报警触发
+#ifdef JTT808_Ver_2013
+#define	MEDIA_EVT_DOOROPEN_PIC		4	///门开拍照；
+#define	MEDIA_EVT_DOOCLOSE_PIC		5	///门关拍照；
+#define	MEDIA_EVT_DOOROPEN2CLOSE 	6	///车门由开变关，时速从＜20 公里到超过20 公里；
+#define	MEDIA_EVT_DIST_PIC			7	///定距拍照；其他保留
+#endif///JTT808_Ver_2013
+
 typedef struct {
 	u32 u32MediaDataId;		///多媒体数据ID
 	u8 u8MediaType;			///多媒体类型
@@ -1301,7 +1486,8 @@ typedef struct {
 	u8 u8ChannelId;	///通道ID
 #ifdef JTT808_Ver_2013
 	tMsg_Position_BaseInfo tPositionBaseInfo;	///基本位置信息
-#endif///JTT808_Ver_2013	u8 Data[0];	///多媒体数据包
+#endif///JTT808_Ver_2013
+	u8 Data[0];	///多媒体数据包
 } tMsg_T_Media_DataUpload;
 
 /** 8.53 多媒体数据上传应答 消息ID：0x8800。***********************************/
@@ -1327,7 +1513,8 @@ typedef struct {
 	u8 u8ReSendPackAmount;	///重传包总数 BYTE n
 	u8 IDList[0];	///重传包ID 列表 BYTE[2*n]	重传包序号顺序排列，如“包ID1 包ID2......包IDn”
 } tMsg_SACK_Media_AckData;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /** 8.54 摄像头立即拍摄命令 消息ID：0x8801。***********************************/
 ///分辨率定义
 #define	PIC_RESOLVE_320_240		0x01
@@ -1364,7 +1551,8 @@ typedef struct {
 	u16 u16MediaIdAmount;	///3 多媒体ID 个数 WORD n，拍摄成功的多媒体个数
 	u32 u32MediaId[0];	///4 多媒体ID 列表 BYTE[4*n]
 } tMsg_TACK_InstantlyTakePhone;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /** 8.56 存储多媒体数据检索 消息ID：0x8802。***********************************/
 ///注：不按时间范围则将起始时间/结束时间都设为00-00-00-00-00-00。
 typedef struct {
@@ -1416,14 +1604,19 @@ typedef struct {
 	u32 u32MediaId;		///多媒体ID DWORD >0
 	u8 u8DeleteFlag;	///删除标志 BYTE 0：保留；1：删除；
 } tMsg_SCMD_SingleStoredMediaUpload;
-#endif///JTT808_Ver_2013
+#endif///JTT808_Ver_2013
+
 /** 8.61 数据下行透传 消息ID： 0x8900。*****************************************/	/////////////////////////????????????未定义透传数据格式
 #ifdef JTT808_Ver_2013
 /**数据上行透传消息体数据格式*/
-#define TRANSPARENTMSGTYPE_GNSS		0x00	///GNSS 模块详细定位数据 0x00 GNSS 模块详细定位数据#define TRANSPARENTMSGTYPE_IC		0x0B	/**道路运输证IC 卡信息 0x0B 道路运输证IC 卡信息上传消息为64Byte，
+#define TRANSPARENTMSGTYPE_GNSS		0x00	///GNSS 模块详细定位数据 0x00 GNSS 模块详细定位数据
+#define TRANSPARENTMSGTYPE_IC		0x0B	/**道路运输证IC 卡信息 0x0B 道路运输证IC 卡信息上传消息为64Byte，
 												下传消息为24Byte。道路运输证IC卡认证透传超时时间为30s。超时后，不重发。*/
-#define TRANSPARENTMSG_UART1		0x41	///0x41 串口1 透传消息#define TRANSPARENTMSG_UART2		0x42	///0x42 串口2 透传消息///用户自定义透传 0xF0-0xFF 用户自定义透传消息
-#endif///JTT808_Ver_2013
+#define TRANSPARENTMSG_UART1		0x41	///0x41 串口1 透传消息
+#define TRANSPARENTMSG_UART2		0x42	///0x42 串口2 透传消息
+///用户自定义透传 0xF0-0xFF 用户自定义透传消息
+#endif///JTT808_Ver_2013
+
 typedef struct {
 	u8 u8MsgType;	///透传消息类型
 	u8 Data[0];	///透传消息内容

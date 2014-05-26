@@ -84,7 +84,8 @@ void putstr_reverse(char n[], int i, char *p) {
 	}
 }
 
-char *frac_to_str(char n[], double f) {
+char *
+frac_to_str(char n[], double f) {
 	int i = 0, j, ch;
 	f += PRE_CORRECT; /* 修正精度 */
 	n[i++] = '.';
@@ -93,7 +94,8 @@ char *frac_to_str(char n[], double f) {
 			ch = (int) (f * 10);
 			n[i++] = itoc(ch);
 			f = f * 10 - ch;
-		} else
+		}
+		else
 			n[i++] = '0';
 	}
 	n[i] = '\0';
@@ -108,7 +110,8 @@ u8 put_dox(unsigned int num, int sys, char *p) {
 	if (num == 0) {
 		PUTCHAR('0', p);
 		return 1;
-	} else {
+	}
+	else {
 		while (num) {
 			j = num % sys;
 			n[i++] = itoc(j);
@@ -172,7 +175,8 @@ void sprintf_(u8 *pBuf, const char *format, ...) {
 				PUTCHAR(ch, pMsg);
 				pMsg++;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -183,7 +187,8 @@ void sprintf_(u8 *pBuf, const char *format, ...) {
 				PUTSTRING(s, pMsg);
 				pMsg += strlen_(s);
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -198,7 +203,8 @@ void sprintf_(u8 *pBuf, const char *format, ...) {
 				len = put_dox(m, 10, pMsg);
 				pMsg += len;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -209,7 +215,8 @@ void sprintf_(u8 *pBuf, const char *format, ...) {
 				u8 len = put_dox(n, 8, pMsg);
 				pMsg += len;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -220,21 +227,23 @@ void sprintf_(u8 *pBuf, const char *format, ...) {
 				u8 len = put_dox(n, 16, pMsg);
 				pMsg += len;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
 		}
 		case 'f': { //不考虑浮点数
-		/*
-		 double n = va_arg(ap, double);
-		 put_f(dneg_to_pos(n));
-		 */
+			/*
+			 double n = va_arg(ap, double);
+			 put_f(dneg_to_pos(n));
+			 */
 			if (bTag) {
 				double n = va_arg(ap, double);
 
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -290,7 +299,8 @@ void TRACE_(u8 eState, QActive* pAO, const char *format, ...) {
 				PUTCHAR(ch, pMsg);
 				pMsg++;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -301,7 +311,8 @@ void TRACE_(u8 eState, QActive* pAO, const char *format, ...) {
 				PUTSTRING(s, pMsg);
 				pMsg += strlen_(s);
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -316,7 +327,8 @@ void TRACE_(u8 eState, QActive* pAO, const char *format, ...) {
 				len = put_dox(m, 10, pMsg);
 				pMsg += len;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -327,7 +339,8 @@ void TRACE_(u8 eState, QActive* pAO, const char *format, ...) {
 				u8 len = put_dox(n, 8, pMsg);
 				pMsg += len;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
@@ -338,21 +351,23 @@ void TRACE_(u8 eState, QActive* pAO, const char *format, ...) {
 				u8 len = put_dox(n, 16, pMsg);
 				pMsg += len;
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;
 		}
 		case 'f': { //不考虑浮点数
-		/*
-		 double n = va_arg(ap, double);
-		 put_f(dneg_to_pos(n));
-		 */
+			/*
+			 double n = va_arg(ap, double);
+			 put_f(dneg_to_pos(n));
+			 */
 			if (bTag) {
 				double n = va_arg(ap, double);
 
 				bTag = !bTag;
-			} else {
+			}
+			else {
 				*pMsg++ = c;
 			}
 			break;

@@ -120,8 +120,8 @@ void NFLASH_LowLevel_Init(void) {
 
 	/* Enable GPIOD, GPIOE, GPIOF, GPIOG and AFIO clocks */
 	RCC_AHB1PeriphClockCmd(
-			RCC_AHB1Periph_GPIOD | RCC_AHB1Periph_GPIOG | RCC_AHB1Periph_GPIOE |
-			RCC_AHB1Periph_GPIOF, ENABLE);
+	RCC_AHB1Periph_GPIOD | RCC_AHB1Periph_GPIOG | RCC_AHB1Periph_GPIOE |
+	RCC_AHB1Periph_GPIOF, ENABLE);
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
@@ -145,10 +145,9 @@ void NFLASH_LowLevel_Init(void) {
 
 	/*-- GPIO Configuration ------------------------------------------------------*/
 	/* SRAM Data lines,  NOE and NWE configuration */
-	GPIO_InitStructure.GPIO_Pin = GPIOD_FSMC_D0 | GPIOD_FSMC_D1 | GPIOD_FSMC_D2
-			| GPIOD_FSMC_D3 |
-			GPIOD_FSMC_ALE | GPIOD_FSMC_CLE | GPIOD_NF_RB | GPIOD_NF_CS |
-			GPIOD_FSMC_RD | GPIOD_FSMC_WR;
+	GPIO_InitStructure.GPIO_Pin = GPIOD_FSMC_D0 | GPIOD_FSMC_D1 | GPIOD_FSMC_D2 | GPIOD_FSMC_D3 |
+	GPIOD_FSMC_ALE | GPIOD_FSMC_CLE | GPIOD_NF_RB | GPIOD_NF_CS |
+	GPIOD_FSMC_RD | GPIOD_FSMC_WR;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -175,8 +174,7 @@ void NFLASH_LowLevel_Init(void) {
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-	GPIO_InitStructure.GPIO_Pin = GPIOE_FSMC_D4 | GPIOE_FSMC_D5 | GPIOE_FSMC_D6
-			| GPIOE_FSMC_D7;
+	GPIO_InitStructure.GPIO_Pin = GPIOE_FSMC_D4 | GPIOE_FSMC_D5 | GPIOE_FSMC_D6 | GPIOE_FSMC_D7;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 
 }
@@ -243,7 +241,7 @@ void NAND_FSMCConfig(void) {
 u8 NandFlashReadId(u8 *pu8Buf) {
 	u8 i = 0;
 	//片选							 
-//	GPIO_ResetBits(GPIOD,GPIOD_NF_CS);
+	GPIO_ResetBits(GPIOD,GPIOD_NF_CS);
 //	while(i++ < 10)
 	NF_CMD = NF_READID;
 
@@ -254,8 +252,9 @@ u8 NandFlashReadId(u8 *pu8Buf) {
 	*(pu8Buf + 2) = NF_DATA;
 	*(pu8Buf + 3) = NF_DATA;
 	*(pu8Buf + 4) = NF_DATA;
+
 	//去片选	
-//	GPIO_SetBits(GPIOD,GPIOD_NF_CS);
+	GPIO_SetBits(GPIOD,GPIOD_NF_CS);
 
 	return TRUE;
 }
@@ -287,8 +286,7 @@ u32 NF_GetAddrByBlockPageAndOffset(u16 u16Block, u8 u8Page, u16 u16Offset) {
 	u32 u32Addr = 0;
 
 	//根据块号、页号、页内偏移地址计算出要读取的数据地址
-	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_)
-			| (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
+	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_) | (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
 
 	return u32Addr;
 }
@@ -304,18 +302,15 @@ u32 NF_GetAddrByBlockPageAndOffset(u16 u16Block, u8 u8Page, u16 u16Offset) {
  * 说    明：	页读操作，首先写入命令字0x00,然后写入32位的地址，再写入命令字0x30,等待操作完成Tr(小于25us)
  后(通过读取R/B管脚状态来确定是否操作完成)，再从总线上读取数据
  *************************************************************************************************/
-_eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size,
-		u8* pData) {
+_eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size, u8* pData) {
 	u32 u32Addr = 0;
 	//判断参数是否有效
-	if (pData
-			== 0|| u16Block >= _NF_MAX_BLOCK_NUM_ || u8Page >= _NF_MAX_PAGE_NUM_ ||
-			u16Offset > _NF_PAGE_SIZE_ || u16Size > _NF_PAGE_SIZE_) {
+	if (pData == 0 || u16Block >= _NF_MAX_BLOCK_NUM_ || u8Page >= _NF_MAX_PAGE_NUM_ || u16Offset > _NF_PAGE_SIZE_
+			|| u16Size > _NF_PAGE_SIZE_) {
 		return _INVALID_PARAM_;
 	}
 	//根据块号、页号、页内偏移地址计算出要读取的数据地址
-	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_)
-			| (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
+	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_) | (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
 
 	return NF_RawPageRead(u32Addr, u16Size, pData);
 
@@ -331,18 +326,15 @@ _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size,
  再写入命令字0x10,然后检查R/B引脚状态，判断操作是否完成，然后读取状态字节
  判断此操作是否成功
  *************************************************************************************************/
-_eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size,
-		u8* pData) {
+_eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size, u8* pData) {
 	u32 u32Addr = 0;
 	//判断参数是否有效
-	if (pData
-			== 0|| u16Block >= _NF_MAX_BLOCK_NUM_ || u8Page >= _NF_MAX_PAGE_NUM_ ||
-			u16Offset > _NF_PAGE_SIZE_ || u16Size > _NF_PAGE_SIZE_) {
+	if (pData == 0 || u16Block >= _NF_MAX_BLOCK_NUM_ || u8Page >= _NF_MAX_PAGE_NUM_ || u16Offset > _NF_PAGE_SIZE_
+			|| u16Size > _NF_PAGE_SIZE_) {
 		return _INVALID_PARAM_;
 	}
 	//根据块号、页号、页内偏移地址计算出要读取的数据地址
-	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_)
-			| (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
+	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_) | (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
 
 	return NF_RawPageWrite(u32Addr, u16Size, pData);
 }
@@ -502,8 +494,7 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	if (u8Tmp > 4)
 		return _WRITE_ERR_;
 
-	if ((NandFlashStatus() & _NF_STATUS_ERASE_FAILURE_)
-			== _NF_STATUS_ERASE_FAILURE_)
+	if ((NandFlashStatus() & _NF_STATUS_ERASE_FAILURE_) == _NF_STATUS_ERASE_FAILURE_)
 		return _WRITE_ERR_;
 
 	//片选
@@ -619,8 +610,7 @@ _eERRType NF_BlockErase(u16 u16Block) {
 		return _WRITE_ERR_;
 	}
 
-	if ((NandFlashStatus() & _NF_STATUS_ERASE_FAILURE_)
-			== _NF_STATUS_ERASE_FAILURE_) {
+	if ((NandFlashStatus() & _NF_STATUS_ERASE_FAILURE_) == _NF_STATUS_ERASE_FAILURE_) {
 		return _WRITE_ERR_;
 	}
 
@@ -743,8 +733,7 @@ _eERRType NFLASH_Program(u16 u16Block, u8 u8Page, u8* pDataArr, u16 u16Size) {
  * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
  * 说    明：	调用拷贝函数之前，要确保拷贝的目的地址是空数据，否则拷贝肯定失败
  ***********************************************************************************************/
-_eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress,
-		u16 u16Size) {
+_eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress, u16 u16Size) {
 	/*
 	 _eERRType	err = _NO_ERR_;
 	 u8	u8Data[_EFLASH_WRITE_SIZE_];
@@ -792,9 +781,8 @@ _eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress,
  * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
  * 说    明：	调用NAND FLASH的写参数操作接口函数实现，与L41的接口函数尽量保持一致
  ************************************************************************************************/
-_eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock,
-		u8 u8SourceStartPage, u8 u8DestStartPage, u8 u8PageNum, u16 u16Offset,
-		u8* pDataArr, u16 u16DataSize) {
+_eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock, u8 u8SourceStartPage, u8 u8DestStartPage,
+		u8 u8PageNum, u16 u16Offset, u8* pDataArr, u16 u16DataSize) {
 
 	u16 u16ChangPos;
 	u8 u8CurCopyPage = 0;
@@ -802,8 +790,7 @@ _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock,
 	u8 u8Data[_NF_PAGE_SIZE_];
 
 	//判断参数是否合法
-	if ((u8SourceStartPage + u8PageNum >= _NF_MAX_PAGE_NUM_)
-			|| (u8DestStartPage + u8PageNum >= _NF_MAX_PAGE_NUM_)
+	if ((u8SourceStartPage + u8PageNum >= _NF_MAX_PAGE_NUM_) || (u8DestStartPage + u8PageNum >= _NF_MAX_PAGE_NUM_)
 			|| pDataArr == 0) {
 		return _INVALID_PARAM_;
 	}
@@ -812,16 +799,14 @@ _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock,
 	u16CurPageStart = 0;
 	while (u8PageNum--) {
 		//先读取待拷贝的数据
-		NF_PageRead(u16SourceBlock, u8SourceStartPage + u8CurCopyPage, 0,
-				_NF_PAGE_SIZE_, (u8*) &u8Data);
+		NF_PageRead(u16SourceBlock, u8SourceStartPage + u8CurCopyPage, 0, _NF_PAGE_SIZE_, (u8*) &u8Data);
 
 		//判断读取的数据是否需要修改
-		if (((u16CurPageStart + _NF_PAGE_SIZE_) < u16Offset)
-				|| (u16CurPageStart > u16Offset)) {
+		if (((u16CurPageStart + _NF_PAGE_SIZE_) < u16Offset) || (u16CurPageStart > u16Offset)) {
 			//不需要修改数据，直接写到目的块页处
-			NF_PageWrite(u16DestBlock, u8DestStartPage + u8CurCopyPage, 0,
-					_NF_PAGE_SIZE_, (u8*) &u8Data);
-		} else {
+			NF_PageWrite(u16DestBlock, u8DestStartPage + u8CurCopyPage, 0, _NF_PAGE_SIZE_, (u8*) &u8Data);
+		}
+		else {
 			//需要修改数据
 			//先修改需要改变的数据内容
 			//页内待修改的起始位置
@@ -833,8 +818,7 @@ _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock,
 				u16DataSize--;
 			}
 			//把修改后的数据写到目的块页处
-			NF_PageWrite(u16DestBlock, u8DestStartPage + u8CurCopyPage, 0,
-					_NF_PAGE_SIZE_, (u8*) &u8Data);
+			NF_PageWrite(u16DestBlock, u8DestStartPage + u8CurCopyPage, 0, _NF_PAGE_SIZE_, (u8*) &u8Data);
 		}
 		u8CurCopyPage++;
 
