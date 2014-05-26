@@ -64,23 +64,6 @@ typedef struct {
 	u32 u32Offset;		///在存储介质中的起始偏移位置
 } tPARAM_ST;
 
-#define EEPROM_ADDR_FACTORYPARAM		0x3333	///出厂参数在EEPROM中首地址
-#define EEPROM_ADDR_DEVICE		0x3333	///设备参数在EEPROM中首地址
-#define EEPROM_ADDR_SYSTEM		0x3333	///系统参数在EEPROM中首地址
-#define EEPROM_ADDR_RUNTIME		0x3333	///运行参数在EEPROM中首地址
-#define EEPROM_ADDR_DRIVER		0x3333	///驾驶人信息在EEPROM中首地址
-#define EEPROM_ADDR_UPGRADE		0x3333	///升级参数在EEPROM中首地址
-
-#define EEPROM_ADDR_EVENT		0x3333	///事件信息在EEPROM中首地址
-#define EEPROM_ADDR_MSGOD_MENU	0x3333	///点播菜单信息在EEPROM中首地址
-#define EEPROM_ADDR_MSGOD_MSG	0x3333	///点播信息在EEPROM中首地址
-#define EEPROM_ADDR_PHONEBOOK	0x3333	///电话本在EEPROM中首地址
-
-#define EEPROM_ADDR_ROUND		0x3333	///圆形区域在EEPROM中首地址
-#define EEPROM_ADDR_RECTANGLE	0x3333	///矩形区域在EEPROM中首地址
-#define EEPROM_ADDR_POLYGON		0x3333	///多边形区域在EEPROM中首地址
-#define EEPROM_ADDR_ROUTE		0x3333	///路线在EEPROM中首地址
-
 ///参数配置定义，与ENUM值顺序严格一致
 static tPARAM_ST tParams_System[] = {
 		{ .ptParam_St = (void*)&tParam_Factory_St,
@@ -100,18 +83,6 @@ static tPARAM_ST tParams_System[] = {
 				.u32Offset = EEPROM_ADDR_UPGRADE},
 };
 
-
-//typedef struct {
-//	u8 u8Type;
-//	u16 u16StorageSize;
-//	u32 u32EEPROMAddress;
-//	u8 u8ItemSize;
-//	u8 u8ItemAmount;
-//	u8 *pStorageAddr;
-//} tINDEXPROPERTY;
-
-
-
 typedef struct {
 	u32 u32EEPROMAddr;
 	u8 *pStorageAddr;
@@ -119,19 +90,6 @@ typedef struct {
 	u16 u16ItemSize;
 	u8 u8ItemAmount;
 } PARAM_CONFIG;
-
-/*
-
-PARAM_MSGODMENU,		////点播菜单
-PARAM_MSGODINFO,		////点播消息
-PARAM_EVENT,			///事件
-PARAM_AREA_RECTANGLE,	///矩形
-PARAM_AREA_ROUND,		///圆形
-PARAM_AREA_POLYGON,		///多边形
-PARAM_AREA_ROUTE,		///路线
-PARAM_DRIVER,			///驾驶人信息
-PARAM_PHONEBOOK,		///电话本
-*/
 
 static PARAM_CONFIG tConf[] = {
 		///点播菜单
@@ -164,15 +122,6 @@ static PARAM_CONFIG tConf[] = {
 
 };
 
-
-///项在EEPROM中的偏移位置，相对于头
-//#define ITEM_EEPROM_OFFSET(i, type) (i * tIndexProp[type].u8ItemSize)
-
-///项实际条目数
-//#define	ITEM_AMOUNT(type) (*(tIndexProp[type].pStorageAddr + 1))
-
-///索引头CRC字段相对于头偏移位置
-//#define CRC_STORAGE_OFFSET(type) (1 + tIndexProp[type].u8ItemAmount * sizeof(tITEMINDEX))
 
 ///取项中第一个字节，有效标志
 #define IS_VALID(type, i)	(*(tConf[type].pStorageAddr + PREFIX_SIZE + 1 + i * tConf[type].u16ItemSize))
