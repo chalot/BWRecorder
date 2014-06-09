@@ -26,6 +26,7 @@
 #include <board.h>
 #include <systimer.h>
 #include <qevt.h>
+#include <nandflash.h>
 
 Q_DEFINE_THIS_MODULE("gps.c")
 
@@ -63,11 +64,14 @@ static u8 aMsg_Buffer[_GPS_NMEA_MSG_LEN_MAX_];	//NMEA协议数据帧临时缓存
 static u8 *rpcGPSMessage = NULL;
 
 //串口收发缓区
-#define RX_BUF_SIZE		1024	//接收缓区长度
+#define RX_BUF_SIZE		512		//接收缓区长度
 static u8 buf_Rx[RX_BUF_SIZE];	//接收缓区
 static tCOMM Comm_Rx;  			//接收缓区
 
 static _tGPSInfo tGpsInfo;	//GPS实时数据
+
+#define GPS_BLINDPOS_BUFSIZE	2048  ///页大小(2k+48)B
+static u8 aBlindPosBuf[GPS_BLINDPOS_BUFSIZE]; ///盲区定位数据读写缓区
 
 //速度平滑窗口
 typedef struct {
@@ -1692,3 +1696,64 @@ void GPS_Lowlevel_Init() {
 	USART_Configuration(COM_GPS, 9600);
 
 }
+
+/**
+ * 盲区数据保存，满页写
+ *
+ * @return 0 = 成功，否则错误代码
+ */
+int GPS_BlindGpsInfo_Save() {
+
+	tBLINDPOSITEM tPosItem;
+	u16 u16Len = 0;
+	_eERRType ret;
+
+	u16Len = Protocol_GetPositionInfo((u8*)&tPosItem.tInfo);	///取位置信息
+	tPosItem.u16Len = sizeof(tMsg_T_PositionInfo);
+
+	if(u16Len <= GPS_BLINDPOS_BUFSIZE - ptBlandPos->u16WCursor) ///页未满，只填入缓区
+	{
+		memcpy(aBlindPosBuf + ptBlandPos->u16WCursor, (u8*)&tPosItem, GPS_BLINDITEM_SIZE);
+		ptBlandPos->u16WCursor += GPS_BLINDITEM_SIZE;
+	}
+
+	/**页满，或剩余空间不够存放一个数据帧，写页*/
+	if(GPS_BLINDITEM_SIZE <= GPS_BLINDPOS_BUFSIZE - ptBlandPos->u16WCursor)
+	{
+		ret = NF_PageWrite(ptBlandPos->u16WriteBlockId, ptBlandPos->u8WritePageId,
+				0, GPS_BLINDPOS_BUFSIZE, (u8*)&tPosItem);
+		if(ret != _NO_ERR_) {
+			return -ERR_NFLASH_RW;
+		}
+
+		ptBlandPos->u8WritePageId ++;
+		if(ptBlandPos->u8WritePageId >= _NF_MAX_PAGE_NUM_)
+		{
+			ptBlandPos->u8WritePageId = 0;
+			ptBlandPos->u16WriteBlockId ++;
+			if(ptBlandPos->u16WriteBlockId >= NFLASH_BLINDPOS_END_BLOCK) {
+				ptBlandPos->u16WriteBlockId = NFLASH_BLINDPOS_START_BLOCK;
+				ret = NF_BlockErase(ptBlandPos->u16WriteBlockId);
+				if(ret != _NO_ERR_) {
+					return -ERR_NFLASH_RW;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * 盲区数据读，按页读，每次读
+ *
+ * @return	0 = 成功，否则错误代码
+ */
+int GPS_BlindGpsInfo_Read()	{
+
+
+
+	return 0;
+}
+
+

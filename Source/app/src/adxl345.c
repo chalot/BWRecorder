@@ -7,9 +7,8 @@
 //初始化ADXL345.
 //返回值:0,初始化成功;1,初始化失败.
 u8 ADXL345_Init(void) {
-	IIC_Init();							//初始化IIC总线	
-	if (ADXL345_RD_Reg(DEVICE_ID) == 0XE5)	//读取器件ID
-			{
+	IIC_Init();		//初始化IIC总线
+	if (ADXL345_RD_Reg(DEVICE_ID) == 0XE5)	{	//读取器件ID
 		ADXL345_WR_Reg(DATA_FORMAT, 0X2B);	//低电平中断输出,13位全分辨率,输出数据右对齐,16g量程 
 		ADXL345_WR_Reg(BW_RATE, 0x0A);		//数据输出速度为100Hz
 		ADXL345_WR_Reg(POWER_CTL, 0x28);	   	//链接使能,测量模式

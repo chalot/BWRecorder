@@ -221,7 +221,19 @@ typedef struct {
 /** 8.5 终端注册 消息ID：0x0100。**************************************************/
 ///终端注册消息结构体定义
 typedef struct {
-	tTerminalInfo_Base tBase;
+	u16 u16ProviceId;		///省域ID
+	u16 u16CountyId;		///市县域ID
+	u8 au8FactoryId[5];	///制造商ID
+#ifdef JTT808_Ver_2011
+	u8 aType[8];	///终端型号，8个字节，此终端型号由制造商自行定义，位数不	足时，补空格。
+	u8 aTId[7];///终端ID,7 个字节，由大写字母和数字组成，此终端ID 由制造商自行定义，位数不足时，后补“0X00”。
+	u8 u8PlateColor;///车牌颜色，按照JT/T415-2006 的5.4.12
+#endif
+#ifdef JTT808_Ver_2013
+	u8 aType[20];		///终端型号20 个字节，此终端型号由制造商自行定义，位数不足时，后补“0X00”。
+	u8 aTId[7];		///终端ID
+	u8 u8PlateColor;		///车牌颜色，按照JT/T415-2006 的5.4.12。未上牌时，取值为0。
+#endif///JTT808_Ver_2013
 	u8 aPlate[0]; /**V2011： 机动车号牌;
 	 V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安
 	 交通管理部门颁发的机动车号牌。*/
@@ -253,7 +265,7 @@ typedef struct {
 	u8 u8BcdSecond;
 } tBCDTime;
 
-#if 1
+
 ///参数项ID定义
 #define	PARAM_ALIVE_INTERVAL			0x0001		///终端心跳发送间隔，单位为s
 #define	PARAM_TCPACK_TIMEOUT			0x0002		///TCP应答超时，单位为s
@@ -282,7 +294,7 @@ typedef struct {
 #endif///JTT808_Ver_2013
 
 /**终端位置汇报策略，0:定时汇报，1:定距汇报，2:定时和定距汇报*/
-#define	PARAM_POSRPT_STRATEGE		0x0020
+#define	PARAM_POSRPT_STRATEGE			0x0020
 /**终端汇报方案，0:根据ACC状态，1:根据登录状态和ACC状态，先判断登录状态，
  若登录再根据ACC状态*/
 #define	PARAM_POSRPT_METHOD				0x0021
@@ -356,7 +368,7 @@ typedef struct {
 #define	PARAM_VEHICLE_CITY_ID			0x0082		///车辆所在地市域ID
 #define	PARAM_VEHICLE_ID 				0x0083		///车牌号码
 #define	PARAM_VEHICLE_ID_COLOR			0x0084		///车牌颜色
-#endif
+
 
 #ifdef JTT808_Ver_2013
 /**以下为新协议增加的参数项*/
@@ -423,6 +435,14 @@ typedef struct {
  bit29 表示数据采集方式，0：原始数据，1：采集区间的计算值；
  bit28-bit0 表示CAN 总线ID。
  */
+typedef struct {
+	u32	CAN_ID			:	29;
+	u32	CAN_DataType	:	1;
+	u32	CAN_FrameType	:	1;
+	u32	CAN_Channel		:	1;
+	u32	CAN_TimeInterval;
+} tCONF_CAN;
+
 #define PARAM_CAN_SOLORETRIEVE	0x0110
 
 /**0x0111-0x01FF BYTE[8] 用于其他CAN 总线ID 单独采集设置*/
@@ -644,11 +664,11 @@ typedef struct {
 
 /**GNSS 模块属性*/
 typedef struct {
-	u16 bit_Support_GPS :1;	///bit0，0：不支持GPS 定位， 1：支持GPS 定位；
-	u16 bit_Support_Beidou :1;	///bit1，0：不支持北斗定位， 1：支持北斗定位；
-	u16 bit_Support_GLONASS :1;	///bit2，0：不支持GLONASS 定位， 1：支持GLONASS 定位；
-	u16 bit_Support_GALILEO :1;	///bit3，0：不支持Galileo 定位， 1：支持Galileo 定位。
-	u16 bit_Property_reserved_4_15 :12;
+	u8 bit_Support_GPS :1;	///bit0，0：不支持GPS 定位， 1：支持GPS 定位；
+	u8 bit_Support_Beidou :1;	///bit1，0：不支持北斗定位， 1：支持北斗定位；
+	u8 bit_Support_GLONASS :1;	///bit2，0：不支持GLONASS 定位， 1：支持GLONASS 定位；
+	u8 bit_Support_GALILEO :1;	///bit3，0：不支持Galileo 定位， 1：支持Galileo 定位。
+	u8 bit_Property_reserved_4 :4;
 } tGNSSModule_Property;
 
 /**通信模块属性 BYTE*/
@@ -672,9 +692,9 @@ typedef struct {
 	u8 tid[7];			///终端ID 由大写字母和数字组成，此终端ID 由制造商自行定义，位数不足时，后补“0X00”。
 	u8 ICCID[10];		///终端SIM 卡ICCID BCD[10] 终端SIM 卡ICCID 号
 	u8 ver_hardware_len;	///终端硬件版本号长度
-	u8* ver_hardware;	///终端硬件版本号 STRING
+	char ver_hardware[0];	///终端硬件版本号 STRING
 	u8 ver_software_len;	///终端硬软件版本号长度
-	u8* ver_software;	///终端软件版本号 STRING
+	char ver_software[0];	///终端软件版本号 STRING
 	tGNSSModule_Property tGNSSProperty; ///GNSS 模块属性 BYTE
 	tCommModule_Property tCommProperty; ///通信模块属性 BYTE
 
@@ -830,36 +850,42 @@ typedef struct {
 
 } tSYSTEMSTATE;
 
-/**位置基本信息数据格式*/
+/**GPS位置信息*/
 typedef struct {
-	tWARNINGSTATE tWarningState; /**u32 报警标志位定义*/
-	tSYSTEMSTATE tSysState; /**状态位*/
-
 	u32 u32Lat;		///8 纬度 DWORD 以度为单位的纬度值乘以10 的6 次方，精确到百万分之一度
 	u32 u32Long;	///12 经度 DWORD 以度为单位的经度值乘以10 的6 次方，精确到百万分之一度
 	u16 u16Height;	///16 高程 WORD 海拔高度，单位为米（m）
 	u16 u16Speed;	///18 速度 WORD 1/10km/h
 	u16 u16Direct;	///20 方向 WORD 0-359，正北为0，顺时针
+//	u8 time[6];	///21 时间 BCD[6] YY-MM-DD-hh-mm-ss（GMT+8 时间，本标准中之后涉及的时间均采用此时区）
+} tGPSINFO;
+
+/**位置基本信息数据格式*/
+typedef struct {
+	tWARNINGSTATE tWarningState; /**u32 报警标志位定义*/
+	tSYSTEMSTATE tSysState; /**状态位*/
+
+	tGPSINFO tGpsInfo;
 	u8 time[6];	///21 时间 BCD[6] YY-MM-DD-hh-mm-ss（GMT+8 时间，本标准中之后涉及的时间均采用此时区）
 } tMsg_Position_BaseInfo;
 
 ///超速或区域/路线报警时的类型定义
 typedef enum {
-	eNORMAL = 0,	///无特定位置
-	eROUND_AREA = 1,	///圆形区域
-	eRECT_AREA = 2,	///矩形区域
-	eMULTIMEDIA_AREA = 3,	///多边形区域
-	eLINE = 4		///路段
+	eNORMAL 			= 0,	///无特定位置
+	eROUND_AREA 		= 1,	///圆形区域
+	eRECT_AREA 			= 2,	///矩形区域
+	eMULTIMEDIA_AREA 	= 3,	///多边形区域
+	eLINE 				= 4		///路段
 } ePOSType;
 
 ///无超速报警附加信息消息体数据格式
 typedef struct {
-	ePOSType ePosType;				///位置类型
+	u8 u8PosType;				///位置类型
 } tAppendInfo_NonOverspeedWarning;
 
 ///超速报警附加信息消息体数据格式
 typedef struct {
-	ePOSType ePosType;				///位置类型
+	u8 u8PosType;				///位置类型
 	u32 u32AreaOrLineId;		///区域或者路段ID
 } tAppendInfo_OverspeedWarning;
 
@@ -869,7 +895,7 @@ typedef struct {
 
 ///进出区域/路线报警附加信息消息体数据格式
 typedef struct {
-	ePOSType ePosType;				///位置类型
+	u8 u8PosType;				///位置类型
 	u32 u32AreaOrLineId;		///区域或路线ID
 	u8 u8EnterOrLeave;			///方向
 } tAppendInfo_BarrierAndPathWarning;
@@ -906,71 +932,101 @@ typedef struct {
 
 /**位置附加信息项-未超速*/
 typedef struct {
-	u8 msgId;	///附加信息ID BYTE 1-255
-	u8 msgLen;	///附加信息长度 BYTE
-	u8 tag_1;
-	u32 kilemeters;	///0x01 4 里程，DWORD，1/10km，对应车上里程表读数
-	u8 tag_2;
-	u16 oil; 	///0x02 2 油量，WORD，1/10L，对应车上油量表读数
-	u8 tag_3;
-	u16 speed;	///0x03 2 行驶记录功能获取的速度，WORD，1/10km/h
-	u8 tag_4;
-	u16 warningEvtId; 	///0x04 2 需要人工确认报警事件的ID，WORD，从1 开始计数
+	u8 ID_1;
+	u8 ID_1_len;
+	u32 u32Kilemeters;	///0x01 4 里程，DWORD，1/10km，对应车上里程表读数
+	u8 ID_2;
+	u8 ID_2_len;
+	u16 u16Oil; 	///0x02 2 油量，WORD，1/10L，对应车上油量表读数
+	u8 ID_3;
+	u8 ID_3_len;
+	u16 u16Speed;	///0x03 2 行驶记录功能获取的速度，WORD，1/10km/h
+#ifdef JTT808_Ver_2013
+	u8 ID_4;
+	u8 ID_4_len;
+	u16 u16WarningEvtId; 	///0x04 2 需要人工确认报警事件的ID，WORD，从1 开始计数
+#endif
 	/**0x05-0x10 保留*/
-	u8 tag_11;
+	u8 ID_11;
+	u8 ID_11_len;
 	tAppendInfo_NonOverspeedWarning tNonOverspeedWarn; ///1 或5 超速报警附加信息见表28
-	u8 tag_12;
+	u8 ID_12;
+	u8 ID_12_len;
 	tAppendInfo_BarrierAndPathWarning tBarrierWarn; ///6 进出区域/路线报警附加信息见表29
-	u8 tag_13;
+	u8 ID_13;
+	u8 ID_13_len;
 	tAppendInfo_DrivingTimeInadequetWarning tDrvTimeWarn; ///0x13 7 路段行驶时间不足/过长报警附加信息见表30
 	/**0x14-0x24 保留*/
-	u8 tag_25;
-	u32 vechicalExtraSignal;	///0x25 4 扩展车辆信号状态位，定义见表31
-	u8 tag_2A;
-	u16 IOState;	///0x2A 2 IO状态位，定义见表32
-	u8 tag_2B;
-	u32 ADValue;	///0x2B 4 模拟量，bit0-15，AD0；bit16-31，AD1。
-	u8 tag_30;
-	u8 csq;	///0x30 1 BYTE，无线通信网络信号强度
-	u8 tag_31;
-	u8 GNSS_Satellites; ///0x31 1 BYTE，GNSS 定位卫星数
-	u8 tag_E0;	///0xE0 后续信息长度 后续自定义信息长度
-	u8 extraInfoLen;
+#ifdef JTT808_Ver_2013
+	u8 ID_25;
+	u8 ID_25_len;
+	u32 u32ExtSignalState;	///0x25 4 扩展车辆信号状态位，定义见表31
+	u8 ID_2A;
+	u8 ID_2A_len;
+	u16 u16IOState;	///0x2A 2 IO状态位，定义见表32
+	u8 ID_2B;
+	u8 ID_2B_len;
+	u32 u32ADValue;	///0x2B 4 模拟量，bit0-15，AD0；bit16-31，AD1。
+	u8 ID_30;
+	u8 ID_30_len;
+	u8 u8Csq;	///0x30 1 BYTE，无线通信网络信号强度
+	u8 ID_31;
+	u8 ID_31_len;
+	u8 u8GNSS_Satellites; ///0x31 1 BYTE，GNSS 定位卫星数
+	u8 ID_E0;	///0xE0 后续信息长度 后续自定义信息长度
+	u8 ID_E0_len;
+	u8 u8ExtraInfoLen;
+#endif
 /**0xE1-0xFF 自定义区域*/
 } tMsg_Position_AppendInfo_NonOverSpeed;
 
 /**位置附加信息项-超速*/
 typedef struct {
-	u8 msgId;	///附加信息ID BYTE 1-255
-	u8 msgLen;	///附加信息长度 BYTE
-	u8 tag_1;
-	u32 kilemeters;	///0x01 4 里程，DWORD，1/10km，对应车上里程表读数
-	u8 tag_2;
-	u16 oil; 	///0x02 2 油量，WORD，1/10L，对应车上油量表读数
-	u8 tag_3;
-	u16 speed;	///0x03 2 行驶记录功能获取的速度，WORD，1/10km/h
-	u8 tag_4;
-	u16 warningEvtId; 	///0x04 2 需要人工确认报警事件的ID，WORD，从1 开始计数
+	u8 ID_1;
+	u8 ID_1_len;
+	u32 u32Kilemeters;	///0x01 4 里程，DWORD，1/10km，对应车上里程表读数
+	u8 ID_2;
+	u8 ID_2_len;
+	u16 u16Oil; 	///0x02 2 油量，WORD，1/10L，对应车上油量表读数
+	u8 ID_3;
+	u8 ID_3_len;
+	u16 u16Speed;	///0x03 2 行驶记录功能获取的速度，WORD，1/10km/h
+#ifdef JTT808_Ver_2013
+	u8 ID_4;
+	u8 ID_4_len;
+	u16 u16WarningEvtId; 	///0x04 2 需要人工确认报警事件的ID，WORD，从1 开始计数
+#endif
 	/**0x05-0x10 保留*/
-	u8 tag_11;
-	tAppendInfo_NonOverspeedWarning tNonOverspeedWarn; ///1 或5 超速报警附加信息见表28
-	u8 tag_12;
+	u8 ID_11;
+	u8 ID_11_len;
+	tAppendInfo_OverspeedWarning tOverspeedWarn; ///1 或5 超速报警附加信息见表28
+	u8 ID_12;
+	u8 ID_12_len;
 	tAppendInfo_BarrierAndPathWarning tBarrierWarn; ///6 进出区域/路线报警附加信息见表29
-	u8 tag_13;
+	u8 ID_13;
+	u8 ID_13_len;
 	tAppendInfo_DrivingTimeInadequetWarning tDrvTimeWarn; ///0x13 7 路段行驶时间不足/过长报警附加信息见表30
 	/**0x14-0x24 保留*/
-	u8 tag_25;
-	u32 vechicalExtraSignal;	///0x25 4 扩展车辆信号状态位，定义见表31
-	u8 tag_2A;
-	u16 IOState;	///0x2A 2 IO状态位，定义见表32
-	u8 tag_2B;
-	u32 ADValue;	///0x2B 4 模拟量，bit0-15，AD0；bit16-31，AD1。
-	u8 tag_30;
-	u8 csq;	///0x30 1 BYTE，无线通信网络信号强度
-	u8 tag_31;
-	u8 GNSS_Satellites; ///0x31 1 BYTE，GNSS 定位卫星数
-	u8 tag_E0;	///0xE0 后续信息长度 后续自定义信息长度
-	u8 extraInfoLen;
+#ifdef JTT808_Ver_2013
+	u8 ID_25;
+	u8 ID_25_len;
+	u32 u32ExtSignalState;	///0x25 4 扩展车辆信号状态位，定义见表31
+	u8 ID_2A;
+	u8 ID_2A_len;
+	u16 u16IOState;	///0x2A 2 IO状态位，定义见表32
+	u8 ID_2B;
+	u8 ID_2B_len;
+	u32 u32ADValue;	///0x2B 4 模拟量，bit0-15，AD0；bit16-31，AD1。
+	u8 ID_30;
+	u8 ID_30_len;
+	u8 u8Csq;	///0x30 1 BYTE，无线通信网络信号强度
+	u8 ID_31;
+	u8 ID_31_len;
+	u8 u8GNSS_Satellites; ///0x31 1 BYTE，GNSS 定位卫星数
+	u8 ID_E0;	///0xE0 后续信息长度 后续自定义信息长度
+	u8 ID_E0_len;
+	u8 u8ExtraInfoLen;
+#endif
 /**0xE1-0xFF 自定义区域*/
 } tMsg_Position_AppendInfo_OverSpeed;
 
@@ -1124,26 +1180,26 @@ typedef struct {
 	u8 u8InfoOrderSetType;		///信息点播菜单设置类型
 	u8 u8SetCount;				///设置总数
 	tMSGODMENUITEM tInfoOrderItem[0];	///信息点播菜单
-} T_SCMD_InfoOrder;
+} tMsg_SCMD_InfoOrder;
 
 /** 8.29 信息点播/取消 ID：0x0303 *********************************************/
 typedef struct {
 	u8 u8InfoOrderSetType;		///信息类型
 	u8 u8OrderOrCancel;		///点播/取消标志，0:取消；1:点播
-} T_SCMD_InfoOrderCtrl;
+} tMsg_T_InfoOrderCtrl;
 
 /** 8.30 信息服务 消息ID：0x8304 **********************************************/
 typedef struct {
 	u8 u8InfoType;				///信息类型
 	u16 u16InfoTotalLength;		///信息总长度
 	u8 aInfo[0];			///信息内容，经GBK编码
-} T_SCMD_InfoService;
+} tMsg_SCMD_InfoService;
 
 /** 8.31 电话回拨 消息ID：0x8400 **********************************************/
 typedef struct {
 	u8 u8Flag;			///标志，0:普通通话;1:监听
 	u8 aPhoneNum[0];		///电话号码。最长20字节
-} T_SCMD_ReverseDial;
+} tMsg_SCMD_ReverseDial;
 
 /** 8.32 设置电话本 消息ID：0x8401 ********************************************/
 ///电话本设置类型
@@ -1378,6 +1434,7 @@ typedef struct {
 ///上报驾驶员身份信息请求消息体为空。
 
 /** 8.48 驾驶员身份信息采集上报 消息ID：0x0702。********************************/
+
 #ifdef JTT808_Ver_2011
 ///驾驶员身份信息采集上报
 typedef struct
@@ -1419,8 +1476,8 @@ typedef struct {
 	u16 u16ItemAmount;	///0 数据项个数 WORD 包含的位置汇报数据项个数，>0
 	u8 u8Type;		///1 位置数据类型 BYTE 0：正常位置批量汇报，1：盲区补报
 	u16 u16ItemBlockLen;	/// 位置汇报数据体长度 WORD 位置汇报数据体长度，n
-	tMsg_T_PositionInfo tPositionBlock;	///t2 位置汇报数据体 BYTE[n] 定义见8.12 位置信息汇报
-} tMsg_T_PositionInfoBatch;
+	tMsg_T_PositionInfo atPosInfo[0];	///t2 位置汇报数据体 BYTE[n] 定义见8.12 位置信息汇报
+} tMsg_T_PositionInfoBatchRpt;
 
 #ifdef JTT808_Ver_2013
 /** 8.50 CAN 总线数据上传 消息ID：0x0705。*************************************/

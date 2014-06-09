@@ -54,10 +54,10 @@
 //数据块大小定义
 #define			_NF_BLOCK_SIZE_					(u32)(128 << 10)
 //每次写入的数据页大小
-#define			_NF_PAGE_SIZE_					2048					//2048B(Data) + 1B(CRC)
+#define			_NF_PAGE_SIZE_					2048	//2048B(Data) + 1B(CRC)
 //FLASH总的数据块定义
 #define			_NF_MAX_BLOCK_NUM_					1024
-#define			_NF_MAX_PAGE_NUM_					64					//每个块内的页数母，64页
+#define			_NF_MAX_PAGE_NUM_					64	//每个块内的页数母，64页
 
 #define			_NF_BLOCK_OFFSET_					22
 #define			_NF_PAGE_OFFSET_  					16
@@ -125,8 +125,14 @@
 
 /******************************************END of升级程序********************************************/
 
+/**盲区补传定位数据存储， 10，000 * 100B ~ 1MB */
+#define NFLASH_BLINDPOS_START_BLOCK		2  		///盲区补传定位信息起始块号
+#define NFLASH_BLINDPOS_END_BLOCK		10  	///盲区补传定位信息结束块号
+
+
+
 //定义系统擦除操作最大次数
-#define		_EFLASH_ERASE_TIMEMAX_						3
+#define		_EFLASH_ERASE_TIMEMAX_		3
 
 #pragma pack(1)
 

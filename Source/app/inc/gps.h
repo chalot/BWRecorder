@@ -46,6 +46,12 @@ typedef struct {
 	u8 bAntenaState;			//天线状态，1=拔出，0=正常
 } _tGPSInfo;
 
+///定位数据存储结构体
+typedef struct {
+	u16 u16Len;	///数据长度
+	tMsg_T_PositionInfo tInfo;	///定位数据
+} tBLINDPOSITEM;
+#define GPS_BLINDITEM_SIZE	(sizeof(tBLINDPOSITEM))
 
 /*********************** GPS模块电源控制 *****************************************************/
 #define GPS_POWER_ON	GPIO_SetBits(GPIOC,GPIOC_GPS_CTRL_)  //模块开电
@@ -77,6 +83,10 @@ BOOL GPS_IsLocated();	//是否定位成功
 void TRACE_GPSINFO(/*_tGPSInfo *pGpsInfo*/); //打印GPS信息
 void GPS_DumpInfo();	//存储GPS数据
 void GPS_Lowlevel_Init();
+
+/**盲区定位数据读写*/
+int GPS_BlindGpsInfo_PageSave();	///盲区数据保存，满页写
+int GPS_BlindGpsInfo_PageRead();	///盲区数据读，按页读
 
 void ISR_UART_GPS(void); //串口中断入口
 

@@ -193,7 +193,8 @@ static u8 u8PDUSMSRx_LenCount = 0;
 static u8 fGPRS_7bitDecode_Skip = 0;
 
 #if		_MSG_
-#define		GPRS_SMG_CNT				30					//短信数组长度/*GPRS已收短信息处理状态*/typedef enum {_eGPRS_SMG_IDLE = 0,					//空闲态
+#define		GPRS_SMG_CNT				30					//短信数组长度/*GPRS已收短信息处理状态*/typedef enum {
+	_eGPRS_SMG_IDLE = 0,					//空闲态
 	_eGPRS_SMG_READ_REQ,				//已经发送短消息阅读请求
 	_eGPRS_SMG_READ_OK,					//短消息已经阅读
 	_eGPRS_SMG_READ_TIMEOUT,			//短消息阅读请求超时没有应答
@@ -1531,75 +1532,6 @@ WRAP_AROUND(_read, RX_BUF_SIZE);
 
 return 0;
 }
-
-#if 0
-
-while(start_cursor != end)
-{
-					//跳过非前缀字符
-if((*(Comm_Rx.pBuf + start_cursor) != CHAR_CR) && (*(Comm_Rx.pBuf + start_cursor) != CHAR_LF))
-{
-start_cursor++;
-}
-else if()
-
-					//跳过<CR><LF>前缀字符
-if(memcmp_wrap_(Comm_Rx.pBuf, start_cursor, end, RX_BUF_SIZE, "\r\n"))
-{
-start_cursor += 2;
-}
-else
-{
-break;
-}
-
-/*
- //跳过<CR><LF>前缀字符
- if((*(Comm_Rx.pBuf + start_cursor) != CHAR_CR) && (*(Comm_Rx.pBuf + start_cursor) != CHAR_LF))
- {
- start_cursor++;
- }
- */
-}
-
-//错误
-if(start_cursor == end)
-{
-Comm_Rx.read = start_cursor;
-return 0;
-}
-
-//开始接收数据内容
-start_cursor++;
-WRAP_AROUND(start_cursor, RX_BUF_SIZE);
-
-//转储数据内容，直至匹配到后缀停止
-while(start_cursor != end)
-{
-flag_cur = *(Comm_Rx.pBuf + start_cursor);
-
-					//后缀出现，退出拷贝
-if((flag_former == CHAR_CR) && (flag_cur == CHAR_LF))
-break;
-
-*pu8Buffer++ = *(Comm_Rx.pBuf + start_cursor++);
-WRAP_AROUND(start_cursor, RX_BUF_SIZE);
-dataLen++;
-
-flag_former = flag_cur;
-}
-
-//读位置最后跳过帧后缀<LF>
-start_cursor++;
-WRAP_AROUND(start_cursor, RX_BUF_SIZE);
-
-//更新读位置，指向尾缀下一字符
-Comm_Rx.read = start_cursor;
-
-//返回实际数据长度，去掉一个后缀<CR>
-return dataLen - 1;
-
-#endif
 
 /************************************************************************************************************
  *功能描述：		得到GPRS接收数据帧类型

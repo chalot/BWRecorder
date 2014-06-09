@@ -17,30 +17,34 @@ struct ERRDESP {
 /**
  * ¥ÌŒÛ√Ë ˆ
  */
-static const struct ERRDESP ErrString[] = { { ERR_COMMAND_NOT_SUPPORT, "command not supported" }, { ERR_PARAM_INVALID,
-		"param invalid" }, { ERR_MSG_INVALID, "Host cmd not invalid" },
-
-{ ERR_PARAM_DEVICEID_INVALID, "device ID is invalid" },
-
-{ ERR_PARAM_PROGRAM_FAILED, "EE2PROM program failed" },
-
-{ ERR_UPG_BLOCK_CHECKSUM, "upgrade file block crc checksum error" }, { ERR_UPD_FLASH_WRITE,
-		"write upg block to flash error" },
-
-/*
- {0, "xxx"},
- {0, "xxx"},
- {0, "xxx"},
- {0, "xxx"},
- {0, "xxx"},
- */
-
+static const struct ERRDESP ErrString[] = {
+		{ ERR_COMMAND_NOT_SUPPORT, "command not supported" },
+		{ ERR_PARAM_INVALID,	"param invalid" },
+		{ ERR_MSG_INVALID, "Host cmd not invalid" },
+		{ ERR_PARAM_DEVICEID_INVALID, "device ID is invalid" },
+		{ ERR_PARAM_PROGRAM_FAILED, "EE2PROM program failed" },
+		{ ERR_UPG_BLOCK_CHECKSUM, "upgrade file block crc checksum error" },
+		{ ERR_UPD_FLASH_WRITE,	"write upg block to flash error" },
 /*SDø®¥Ê»°*/
-{ ERR_SDCARD_NOTEXISTED, "SDcard does not existed." }, { ERR_SDCARD_INIT, "SDcard init failed." }, { ERR_SD_READ,
-		"SD card can not read" }, { ERR_SD_WRITE, "SD card can not write to" }, { ERR_SD_FILENOTEXISTED,
-		"the file you read does not existed" }, { ERR_SD_FILECREATEFAILED, "the file can not be created" },
+		{ ERR_SDCARD_NOTEXISTED, "SDcard does not existed." },
+		{ ERR_SDCARD_INIT, "SDcard init failed." },
+		{ ERR_SD_READ,	"SD card can not read" },
+		{ ERR_SD_WRITE, "SD card can not write to" },
+		{ ERR_SD_FILENOTEXISTED, "the file you read does not existed" },
+		{ ERR_SD_FILECREATEFAILED, "the file can not be created" },
+/*EEPROM ¥ÌŒÛ¥˙¬Î*/
+		{ ERR_EEPROM_INITFAILED, "EEPROM Init failed" },	///≥ı ºªØ ß∞‹
+		{ ERR_EEPROM_RW, "EEPROM R/W error" }, ///∂¡–¥¥ÌŒÛ
+		{ ERR_EEPROM_CRC, "EEPROM CRC check error" }, ///CRC–£—È¥Ì
 
-{ ERR_UNSUPPORT, "unsurpported error code" },
+
+		/**NANDFLASH ¥ÌŒÛ¥˙¬Î*/
+		{ ERR_NFLASH_RW, "NandFlash R/W error"	}, ///∂¡–¥¥ÌŒÛ
+
+
+
+
+		{ ERR_UNSUPPORT, "unsurpported error code" },
 
 };
 

@@ -162,6 +162,8 @@ enum Signals {
 
 /** 系统事件 =====================================================*/
 
+#define TASK_INBUF_SIZE		20	///发送任务内部缓区最大长度
+
 ///发送任务事件
 /* @(/2/0) .................................................................*/
 typedef struct TaskEvtTag {
@@ -171,15 +173,15 @@ typedef struct TaskEvtTag {
 	/* public: */
 	uint16_t cmd;
 	uint16_t sequence;
-	int8_t ret;
 	uint16_t resCmd;
 	uint16_t resSeqence;
+	int8_t ret;
 	union {
 		struct {
 			u32 address;
 			uint16_t dataSize;
 		} mem;
-		u8 arr[10];
+		u8 arr[20];
 	} U;
 } TaskEvt;
 

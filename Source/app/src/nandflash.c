@@ -1,14 +1,14 @@
 /***********************************************************************************************************
- * ��    ����	NANDFLASH.C
- * ��    ����	Ƭ��FLASH�����ӿڼ�Ӧ�ô���
- * �޸ļ�¼��	1)	��  �ڣ�2009-01-19
- *					��  ����V1.0
- *					��  ����
- *               2)  ��  �ڣ�
- *					��  ����
- *					�޸��ߣ�
- *					��  �⣺
- *					��  �ģ�
+ * 文    件：	NANDFLASH.C
+ * 描    述：	片外FLASH操作接口及应用处理
+ * 修改记录：	1)	日  期：2009-01-19
+ *					版  本：V1.0
+ *					创  建：
+ *               2)  日  期：
+ *					版  本：
+ *					修改者：
+ *					问  题：
+ *					修  改：
  ***********************************************************************************************************/
 
 #include "NandFlash.h"
@@ -17,76 +17,141 @@
 #include "board.h"
 //#include	"periph.h"
 
-//extern	BARRIER			tBarrier;									//����դ��
-//extern	MSGTEMPLATE		tMsgTmpl;									//����ģ��
+/**
+ *
+NANDFLASH:k9f1g08
+128MB
+1 block = 64Pages = (128K + 4K)B
+1 Page = (2K+64)B
+1 Device = (2K+64)B * 64Pages * 1024Blocks
+ *
+ * NAND Flash Memory的同1個page不能做重覆寫入的行為。再者，在寫入1個sector資料之前，必須要有抹除1個Block的資料才能做寫入的動作，
+ * 但抹除 1個Block的動作需要耗費相當多的時間，此舉造成了NAND Flash效能下降的最大原因。為了改善效能，最有效的方法就是減少Erase的次數，
+ * 因此有了Mapping Table。
+ *
+ *
+ * NAND Flash的坏块处理 
+   
+    产生坏块的原因是因为NAND Flash的工艺不能保证NAND的Memory Array
+在其生命周期中保持性能的可靠，所以，在NAND的生产中及使用过程中会产生坏块。 
+一、坏块的具体表现： 
+当编程/擦除这个块时，不能将某些位拉高，这会造成Page Program和Block Erase操作时的错误，相应地反映到Status Register的相应位。 
+二、坏块的种类： 
+1.先天性坏块 
+ 这种坏块是在生产过程中产生的，一般芯片原厂都会在出厂时都会将坏块第一个page的spare area的第6个byte标记为不等于0xff的值。 
+2. 后天性坏块 
+这种坏块是在NAND Flash使用过程中产生的，如果Block Erase或者Page Program错误，就可以简单地将这个块作为坏块来处理，这个时候需要把坏块标记起来。
+为了和先天性坏块信息保持一致，将新发现的坏块的第一个page的spare area的第6个Byte标记为非0xff的值。 
+三、坏块的处理 
+  理解了先天性坏块和后天性坏块后，我们已明白NAND Flash出厂时在spare area中已经反映出了坏块信息，因此，如果在擦除一个块之前，一定要先check一下spare area
+的第6个byte是否是0xff，如果是就证明这是一个好块，可以擦除；如果是非0xff，那么就不能擦除。不过，这样处理可能会错杀伪坏块，因为在芯片操作过程中可能由于电压不稳定
+等偶然因素会造成NAND操作的错误。但是，为了数据的可靠性及软件设计的简单化，坏块一个也不能放过。 
+四、错杀坏块的补救方法 
+  如果在对一个块的某个page进行编程的时候发生了错误就要把这个块标记为坏块，首先就要把其他好的page里面的内容备份到另外一个空的好块里面，然后，把这个块标记为坏块。
+当发生"错杀"之后，我们可以在进行完页备份之后，再将这个块擦除一遍，如果Block Erase发生错误，那就证明这个块是个真正的坏块，放心的做好标记吧！
+
+最后需要补充说明的是，之所以要使用spare area的第六个byte作为坏块标记，是因为NAND Flash生产商的默认约定，例如：
+Samsung,Toshiba,STMicroelectronics都是使用这个Byte作为坏块标记的。  
+NAND Flash大容量存储器K9F1G08U的坏块管理方法 
+在进行数据存储的时候，我们需要保证数据的完整性，而NAND Flash大容量存储器K9F1G08U芯片由于工艺上问题，不可避免就会出现有的Block中就是某个位或某些位是块的，
+就是用块擦除命令也是无法擦除的，K9F1G08U数据手册也讲了坏块是存在的，对于K9F1G08U最多有20个坏块。如果数据存储到这个坏块中，就无法保证该数据存储的完整性。
+对于坏块的管理K9F1G08U数据手册也有它的方法去处理该坏块的方法，我根据实际经验总结出自己的一种方法。
+首先我们要定义一个坏块管理表：unsigned char BadBlockTable[128]，此数组可以存储1024个Block状态，即每一个字节存储8个Block状态。
+我们要存储一批数据到NAND Flash中去某个Block时，先执行Block擦除操作，然后分析该Block的1st Page和2st Page中的每个位是否全是FFH，
+如果全是FFH，则在BadBlockTable数组当前Block对应的字节位给置0，否则置1。如果是1表示当前的块是不能存储数据的，这时需要更换下一个Block来存储这些数据，
+这样我们重复上面的动作分析再进行分析是否可以存储数据，该块能存储就存储到该块中去。 
+    具体实现的算法程序如下： 
+Flag=TRUE; 
+while(TRUE==Flag) {                        
+Erase_K9F1G08U_Block(K9F1G08U.HighAddress,K9F1G08U.LowAddress);               
+Flag=Check_K9F1G08U_Block(K9F1G08U.HighAddress/64);                   
+if(TRUE==Flag)//is invalid block {                          
+BadBlockTable[K9F1G08U.HighAddress/512]|= (1<<(K9F1G08U.HighAddress%8)); 
+  K9F1G08U.HighAddress+=64;//Point to Next Block 
+} 
+else// is valid block ,record to BadBlockTable   {                
+BadBlockTable[K9F1G08U.HighAddress/512]&= ~(1<<(K9F1G08U.HighAddress%8));   
+} 
+} 
+for(i=0;i<SIZEOF(BADBLOCKTABLE);I++)
+Write_RAM(RAM_BANK_0,K9F1G08U_BAD_BLOCK+i,BadBlockTable[i]); 
+
+
+
+
+
+ */
+
+//extern	BARRIER			tBarrier;									//电子栅栏
+//extern	MSGTEMPLATE		tMsgTmpl;									//短信模板
 //
-////�����ļ���д����
+////程序文件读写控制
 //_tEFLASH_DBAK	tUpdProgram;
 
 /***********************************************************************************************************
- �����������������Щ�������������������������������������������������������������������������
- �� �ܽ�����     ���ܽŹ���												                   ��
- �����������������੤������������������������������������������������������������������������
- ��IO0~IO7       ��IO�ܽ����������������ַ�����ݵģ�Ҳ�����ڶ�ʱ���������              ��
- �����������������੤������������������������������������������������������������������������
- �� CLE          ��CLE����������ʹ�ܣ�����Ч����WE�������ذ�����ͨ��IO��д�뵽����Ĵ����� ��
- �����������������੤������������������������������������������������������������������������
- �� ALE          ��ALE�ǵ�ַ����ʹ�ܣ���ALEΪ��ʱ����WE������������                        �� 
- �����������������੤������������������������������������������������������������������������
- �� CE           ��Ƭѡʹ�ܣ�����Ч                                                        ��
- �����������������੤������������������������������������������������������������������������
- �� RE           ����ʹ�ܣ�����Ч	                                                       ��
- �����������������੤������������������������������������������������������������������������
- �� WE           ��дʹ�ܣ�����Ч                                                          ��
- �����������������੤������������������������������������������������������������������������
- �� WP           ��д����������Ч                                                          ��
- �����������������੤������������������������������������������������������������������������
- �� R/B          ������/æ�������ʱ����ʾ�ڽ��б�̡��������������ȡ��������ʱ��ʾ������ ��
- �����������������੤������������������������������������������������������������������������
- �� Vcc          ������												                       ��
- �����������������੤������������������������������������������������������������������������
- �� Vss          ���� 												                       �� 
- �����������������੤������������������������������������������������������������������������
- �� NC           ������												                       ��
- �����������������ة�������������������������������������������������������������������������
+ ┌───────┬────────────────────────────────────┐
+ │ 管脚名称     │管脚功能												                   │
+ ├───────┼────────────────────────────────────┤
+ │IO0~IO7       │IO管脚是用来输入命令、地址和数据的，也可以在读时候输出数据              │
+ ├───────┼────────────────────────────────────┤
+ │ CLE          │CLE是命令锁存使能，高有效，在WE腿上升沿把数据通过IO口写入到命令寄存器中 │
+ ├───────┼────────────────────────────────────┤
+ │ ALE          │ALE是地址锁存使能，当ALE为高时，在WE腿上升沿锁存                        │
+ ├───────┼────────────────────────────────────┤
+ │ CE           │片选使能，低有效                                                        │
+ ├───────┼────────────────────────────────────┤
+ │ RE           │读使能，低有效	                                                       │
+ ├───────┼────────────────────────────────────┤
+ │ WE           │写使能，低有效                                                          │
+ ├───────┼────────────────────────────────────┤
+ │ WP           │写保护，低有效                                                          │
+ ├───────┼────────────────────────────────────┤
+ │ R/B          │就绪/忙输出，低时，表示在进行编程、擦除或者随机读取操作，高时表示操作完 │
+ ├───────┼────────────────────────────────────┤
+ │ Vcc          │供电												                       │
+ ├───────┼────────────────────────────────────┤
+ │ Vss          │低 												                       │
+ ├───────┼────────────────────────────────────┤
+ │ NC           │悬空												                       │
+ └───────┴────────────────────────────────────┘
 
 
- �����������������Щ����������������������Щ�������������������
- �� ��ַ/ƫ��    ��       ��С           ��        ����      ��
- �����������������੤���������������������੤������������������
- ��  0x000000    ��       256K           ��    ��������      ��
- �����������������੤���������������������੤������������������
- ��  0x040000    ��      4K              ��   ���ò���       ��
- ��  0x040000    ��      256�ֽ�         ��   �豸����       ��
- ��  0x040100    ��      256�ֽ�         ��   ��������       ��
- ��  0x040200    ��      256�ֽ�         ��   ͨѶ����       ��
- ��  0x040300    ��      256�ֽ�         ��   ͳ�Ʋ���       ��
- ��  0x040400    ��      256�ֽ�         ��   ���в���       ��
- �����������������੤���������������������੤������������������
- ��  0x04100     ��      4K              ��   ����դ��       ��
- �����������������ة����������������������ة�������������������
- *************************************************д������дդ����������ƿ���*****************************************
- 1.NAND FLASH�Ĳ����ص㿼�ǣ�
- 1)оƬ���õ���K9F1G08U0B��оƬ��СΪ128MB����Ϊ1024��BLOCK(��)��ÿ���СΪ128KB��ÿ��ֳ�64ҳ��ÿҳ��СΪ2KB��
- 2)оƬ�Ĳ����������Կ�Ϊ��λ�ġ�
- 3)оƬ��д�������ҳΪ��λ��
- 4)NAND FLASH����Ҳ�д������ƣ������ٲ�����
+ ┌───────┬───────────┬─────────┐
+ │ 地址/偏移    │       大小           │        内容      │
+ ├───────┼───────────┼─────────┤
+ │  0x000000    │       256K           │    升级程序      │
+ ├───────┼───────────┼─────────┤
+ │  0x040000    │      4K              │   配置参数       │
+ │  0x040000    │      256字节         │   设备参数       │
+ │  0x040100    │      256字节         │   工作参数       │
+ │  0x040200    │      256字节         │   通讯参数       │
+ │  0x040300    │      256字节         │   统计参数       │
+ │  0x040400    │      256字节         │   运行参数       │
+ ├───────┼───────────┼─────────┤
+ │  0x04100     │      4K              │   电子栅栏       │
+ └───────┴───────────┴─────────┘
+ *************************************************写参数、写栅栏参数的设计考虑*****************************************
+ 1.NAND FLASH的操作特点考虑：
+ 1)芯片采用的是K9F1G08U0B，芯片大小为128MB，分为1024个BLOCK(块)，每块大小为128KB。每块分成64页，每页大小为2KB。
+ 2)芯片的擦除操作是以块为单位的。
+ 3)芯片的写入操作以页为单位。
+ 4)NAND FLASH擦除也有次数限制，尽量少擦除。
 
- 2.�洢���ݽṹ�ص㣺
- 1)�洢�Ĳ�����Ҫ�У����ò���(�����豸����������������ͨѶ������ͳ�Ʋ��������в�����)����λ��Ϣ�ȡ�
- 2)���ò�����Ҫ�ڳ������й��������޸ġ�
+ 2.存储数据结构特点：
+ 1)存储的参数主要有：配置参数(包括设备参数、工作参数、通讯参数、统计参数、运行参数等)、点位信息等。
+ 2)配置参数需要在程序运行过程中作修改。
 
- �������Ǹ��ݲ�����С�Ŀ��ǣ�Ϊ������Ϣ��������BLOCK����256K�ֽڴ�С(��ʵ���󲿷ֵĿռ䶼�����õ�)��
- BLOCK1Ϊ���ݻ�������BLOCK2Ϊ���ݻ�������
- ��һ��BLOCK(128K)�ֳ�8���ӿ飬ÿ���СΪ16K(ʵ����Ҳ���Կ��Ƿ�Ϊ16���ӿ飬ÿ���ӿ��С8K)��
- 1)	ÿ���ӿ�ǰ0x100���ֽڱ�����������ǰ8���ֽ�λ�ô洢���Ƿ�д���־�����д�����ò����ˣ���ǰ8���ֽ���ϢΪ0x12345678��0x55AAAA55��
- ��һ�ε����ò�������д���ӿ�λ��0����һ��Ҫ�޸�ĳд���ݵĻ�������ӿ�0��δ�޸ĵ����ݶ�������д�뵽�ӿ�1�У�Ҫ�޸ĵĲ�������
- �޸ĺ�д�뵽�ӿ�1�У�д����ɣ������ӿ�1ռ�ñ�־���������ơ�
- 2)	�����е��ӿ鶼��ռ�ú�����BLOCK2�в���һ�����е��ӿ飬Ȼ���BLOCK1�����һ���ӿ�����ݿ�����BLOCK2�У��޸ĵ�����Ҳ������BLOCK2
- �еĿ����ӿ鴦��Ȼ�����BLOCK1���ٰ�BLOCK2��д�������д�ص�BLOCK1�ĵ�һ���ӿ�λ�ã�Ȼ������д��ɱ�־��
- 3)	��BLOCK2�еĿ����ӿ�Ҳ����ռ�ú������Ȳ���BLOCK2��Ȼ���ٽ���2)������
+ 所以我们根据参数大小的考虑，为参数信息分配两个BLOCK，共256K字节大小(其实，大部分的空间都是闲置的)。
+ BLOCK1为数据缓冲区，BLOCK2为备份缓冲区。
+ 把一个BLOCK(128K)分成8个子块，每块大小为16K(实际中也可以考虑分为16个子块，每个子块大小8K)。
+ 1)	每个子块前0x100个字节保留，在其中前8个字节位置存储块是否写入标志，如果写入配置参数了，则前8个字节信息为0x12345678和0x55AAAA55。
+ 第一次的配置参数首先写入子块位置0，下一次要修改某写数据的话，则把子块0中未修改的数据读出来，写入到子块1中，要修改的部分数据
+ 修改后，写入到子块1中，写入完成，设置子块1占用标志，依次类推。
+ 2)	当所有的子块都被占用后，则在BLOCK2中查找一个空闲的子块，然后把BLOCK1中最后一个子块的数据拷贝到BLOCK2中，修改的数据也拷贝到BLOCK2
+ 中的空闲子块处，然后擦除BLOCK1，再把BLOCK2中写入的数据写回到BLOCK1的第一个子块位置，然后设置写完成标志。
+ 3)	当BLOCK2中的空闲子块也都被占用后，则首先擦除BLOCK2，然后再进行2)操作。
 
- **************************************************д������дդ����������ƿ���**********************************/
+ **************************************************写参数、写栅栏函数的设计考虑**********************************/
 
 /****************************************************************************************************************/
 
@@ -115,8 +180,8 @@ void NFLASH_LowLevel_DeInit(void) {
 void NFLASH_LowLevel_Init(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	//DO-D7 RD WR ALE CLE��IO���Ѿ���LED��ʼ��������
-	//NFLASH_LowLevel_Initֻ��Ҫ����FLASH����ʹ�õ�IO��
+	//DO-D7 RD WR ALE CLE等IO口已经在LED初始化中配置
+	//NFLASH_LowLevel_Init只需要配置FLASH单独使用的IO口
 
 	/* Enable GPIOD, GPIOE, GPIOF, GPIOG and AFIO clocks */
 	RCC_AHB1PeriphClockCmd(
@@ -211,36 +276,36 @@ void NAND_FSMCConfig(void) {
 }
 
 /***********************************************************************************************
- * ����������	��ȡNAND FLASH ��ID
- * ��    �ڣ�	��			
- * ��    �ڣ�	pu8Buf,���ص�ID��Ϣ����ʼ��ַ�����ص�ID��Ϣ�����ĸ��ֽڣ�����Ϊ
- ��һ�ֽ�		�����̴���
- �ڶ��ֽ�		�豸����
- �����ֽ�		�޹ؽ�Ҫ
- �����ֽ�		����ҳ��С�����С������ռ��С�Լ���ȡʱ�����Ϣ
- ��δ����Ϊ  
- Bit 1��Bit 0   ����ҳ��С
- Bit  1    0  	0    0  ��ʾҳ��СΪ1K
- 0    1  ��ʾҳ��СΪ2K
- 1    0  ����
- 1    1  ����
- Bit 5��Bit 4���ƿ��С
- Bit  5    4     0    0  ��ʾ���СΪ64K
- 0    1  ��ʾ���СΪ128K
- 1    0  ��ʾ���СΪ256K
- 1	 1  ����
- Bit 2�������������С(ÿ512�ֽ�)
- Bit 2           0  	     ���������СΪ8�ֽ�
- 1		 ���������СΪ16�ֽ�
+ * 功能描述：	读取NAND FLASH 的ID
+ * 入    口：	无
+ * 出    口：	pu8Buf,返回的ID信息的起始地址，返回的ID信息包含四个字节，含义为
+ 第一字节		制造商代码
+ 第二字节		设备代码
+ 第三字节		无关紧要
+ 第四字节		包含页大小，块大小，额外空间大小以及获取时间等信息
+ 其未定义为
+ Bit 1与Bit 0   控制页大小
+ Bit  1    0  	0    0  表示页大小为1K
+ 0    1  表示页大小为2K
+ 1    0  保留
+ 1    1  保留
+ Bit 5与Bit 4控制块大小
+ Bit  5    4     0    0  表示块大小为64K
+ 0    1  表示块大小为128K
+ 1    0  表示块大小为256K
+ 1	 1  保留
+ Bit 2控制冗余区域大小(每512字节)
+ Bit 2           0  	     冗余区域大小为8字节
+ 1		 冗余区域大小为16字节
  
- Bit 6�������߿���
- Bit 6			0        8λ
- 1		 16λ
- Bit 7 ��Bit 3��ʾ���л�ȡʱ��
+ Bit 6控制总线宽度
+ Bit 6			0        8位
+ 1		 16位
+ Bit 7 与Bit 3表示串行获取时间
  *************************************************************************************************/
 u8 NandFlashReadId(u8 *pu8Buf) {
 	u8 i = 0;
-	//Ƭѡ							 
+	//片选
 	GPIO_ResetBits(GPIOD,GPIOD_NF_CS);
 //	while(i++ < 10)
 	NF_CMD = NF_READID;
@@ -253,21 +318,21 @@ u8 NandFlashReadId(u8 *pu8Buf) {
 	*(pu8Buf + 3) = NF_DATA;
 	*(pu8Buf + 4) = NF_DATA;
 
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD,GPIOD_NF_CS);
 
 	return TRUE;
 }
 
 /*************************************************************************************************
- * ����������	��״̬�����ز�����״̬��Ϣ
- * ��    �ڣ�	��			
- * ��    �ڣ�	���ص�״̬�ֽ� D[0]=1��дʧ�ܡ�D[1]=1������дʧ�ܡ�D[6]=1��æ��D[7]=1û��д����
+ * 功能描述：	读状态，返回操作的状态信息
+ * 入    口：	无
+ * 出    口：	返回的状态字节 D[0]=1擦写失败、D[1]=1缓冲区写失败、D[6]=1不忙、D[7]=1没有写保护
  *************************************************************************************************/
 u8 NandFlashStatus(void) {
 	u8 u8status;
 
-	//Ƭѡ
+	//片选
 	GPIO_ResetBits(GPIOD, GPIOD_NF_CS);
 
 	Delay_1us(1);
@@ -276,7 +341,7 @@ u8 NandFlashStatus(void) {
 
 	u8status = NF_DATA;
 
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	return u8status;
@@ -285,31 +350,31 @@ u8 NandFlashStatus(void) {
 u32 NF_GetAddrByBlockPageAndOffset(u16 u16Block, u8 u8Page, u16 u16Offset) {
 	u32 u32Addr = 0;
 
-	//���ݿ�š�ҳ�š�ҳ��ƫ�Ƶ�ַ�����Ҫ��ȡ�����ݵ�ַ
+	//根据块号、页号、页内偏移地址计算出要读取的数据地址
 	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_) | (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
 
 	return u32Addr;
 }
 
 /************************************************************************************************
- * ����������	ҳ������
- * ��    �ڣ�	u16Block,Ҫ��ȡ��ҳ���
- u8Page,Ҫ��ȡ��ҳҳ��
- u16Offset��ҳ��ƫ�Ƶ�ַ
- u16Size��Ҫ��ȡ�����ݳ��ȡ�
- pData[OUT]����ȡ��������RAM�б������ʼ��ַ				
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	ҳ������������д��������0x00,Ȼ��д��32λ�ĵ�ַ����д��������0x30,�ȴ��������Tr(С��25us)
- ��(ͨ����ȡR/B�ܽ�״̬��ȷ���Ƿ�������)���ٴ������϶�ȡ����
+ * 功能描述：	页读操作
+ * 入    口：	u16Block,要读取的页块号
+ u8Page,要读取的页页号
+ u16Offset，页内偏移地址
+ u16Size，要读取的数据长度、
+ pData[OUT]，读取得数据在RAM中保存的起始地址
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	页读操作，首先写入命令字0x00,然后写入32位的地址，再写入命令字0x30,等待操作完成Tr(小于25us)
+ 后(通过读取R/B管脚状态来确定是否操作完成)，再从总线上读取数据
  *************************************************************************************************/
 _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size, u8* pData) {
 	u32 u32Addr = 0;
-	//�жϲ����Ƿ���Ч
+	//判断参数是否有效
 	if (pData == 0 || u16Block >= _NF_MAX_BLOCK_NUM_ || u8Page >= _NF_MAX_PAGE_NUM_ || u16Offset > _NF_PAGE_SIZE_
 			|| u16Size > _NF_PAGE_SIZE_) {
 		return _INVALID_PARAM_;
 	}
-	//���ݿ�š�ҳ�š�ҳ��ƫ�Ƶ�ַ�����Ҫ��ȡ�����ݵ�ַ
+	//根据块号、页号、页内偏移地址计算出要读取的数据地址
 	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_) | (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
 
 	return NF_RawPageRead(u32Addr, u16Size, pData);
@@ -317,51 +382,51 @@ _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size, u8* p
 }
 
 /************************************************************************************************
- * ����������	ҳд����
- * ��    �ڣ�	u32Addr,Ҫд���������NAND FLASH��ŵĵ�ַ
- u16Length,Ҫд��������ֽ���Ŀ	
- pu8Buf����д������ݻ������׵�ַ		
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	ҳд�����������д��������0x80,Ȼ��д��32λ�ĵ�ַ����д���д�������
- ��д��������0x10,Ȼ����R/B����״̬���жϲ����Ƿ���ɣ�Ȼ���ȡ״̬�ֽ�
- �жϴ˲����Ƿ�ɹ�
+ * 功能描述：	页写操作
+ * 入    口：	u32Addr,要写入的数据在NAND FLASH存放的地址
+ u16Length,要写入的数据字节数目
+ pu8Buf，待写入的数据缓冲区首地址
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	页写入操作，首先写入命令字0x80,然后写入32位的地址，再写入待写入的数据
+ 再写入命令字0x10,然后检查R/B引脚状态，判断操作是否完成，然后读取状态字节
+ 判断此操作是否成功
  *************************************************************************************************/
 _eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size, u8* pData) {
 	u32 u32Addr = 0;
-	//�жϲ����Ƿ���Ч
+	//判断参数是否有效
 	if (pData == 0 || u16Block >= _NF_MAX_BLOCK_NUM_ || u8Page >= _NF_MAX_PAGE_NUM_ || u16Offset > _NF_PAGE_SIZE_
 			|| u16Size > _NF_PAGE_SIZE_) {
 		return _INVALID_PARAM_;
 	}
-	//���ݿ�š�ҳ�š�ҳ��ƫ�Ƶ�ַ�����Ҫ��ȡ�����ݵ�ַ
+	//根据块号、页号、页内偏移地址计算出要读取的数据地址
 	u32Addr = (((u32) u16Block) << _NF_BLOCK_OFFSET_) | (((u32) u8Page) << _NF_PAGE_OFFSET_) | u16Offset;
 
 	return NF_RawPageWrite(u32Addr, u16Size, pData);
 }
 
 /*************************************************************************************************
- * ����������	ҳ������
- * ��    �ڣ�	u32Addr,Ҫ��ȡ��������NAND FLASH��ŵĵ�ַ
- u16Length,Ҫ��ȡ�������ֽ���Ŀ			
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- pu8Buf,Ҫ���������ݱ���Ļ�������ʼ��ַ
- * ˵    ����	ҳ������������д��������0x00,Ȼ��д��32λ�ĵ�ַ����д��������0x30,�ȴ��������Tr(С��25us)
- ��(ͨ����ȡR/B�ܽ�״̬��ȷ���Ƿ�������)���ٴ������϶�ȡ����
+ * 功能描述：	页读操作
+ * 入    口：	u32Addr,要读取的数据在NAND FLASH存放的地址
+ u16Length,要读取的数据字节数目
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ pu8Buf,要读出的数据保存的缓冲区起始地址
+ * 说    明：	页读操作，首先写入命令字0x00,然后写入32位的地址，再写入命令字0x30,等待操作完成Tr(小于25us)
+ 后(通过读取R/B管脚状态来确定是否操作完成)，再从总线上读取数据
  *************************************************************************************************/
 _eERRType NF_RawPageRead(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	u8 u8Tmp = 0;
 
-	//��������
+	//参数错误
 	if (u16Length == 0 || pu8Buf == 0) {
 		return _INVALID_PARAM_;
 	}
-	//��ַԽ��
+	//地址越界
 	if (u32Addr >= _NF_MAX_ADDR_) {
 		return _INVALID_ADDR_;
 	}
 
 	for (u8Tmp = 0; u8Tmp < 25; u8Tmp++) {
-		// ��ȡ״̬��־����æ��ʼ����������ȴ�
+		// 读取状态标志，不忙则开始操作，否则等待
 		if (_NF_STATUS_READY_ == (NandFlashStatus() & _NF_STATUS_MASK_)) {
 			break;
 		}
@@ -374,13 +439,13 @@ _eERRType NF_RawPageRead(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 
 	Delay_1ms(1);
 
-	//Ƭѡ
+	//片选
 	GPIO_ResetBits(GPIOD, GPIOD_NF_CS);
 
 	Delay_1us(1);
 
 	//EIC_IRQCommand(DISABLE);		
-	// ҳ������
+	// 页读操作
 	NF_CMD = NF_READ1;
 
 //	NF_ADDR = u32Addr&0x000000FF;	
@@ -394,7 +459,7 @@ _eERRType NF_RawPageRead(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	NF_CMD = NF_READ2;
 
 	for (u8Tmp = 0; u8Tmp < 25; u8Tmp++) {
-		//�ж�R/B�ܽ��Ƿ���ʾ�������
+		//判断R/B管脚是否提示操作完成
 		if (GPIO_ReadInputDataBit(GPIOD, GPIOD_NF_RB)) {
 			break;
 		}
@@ -404,7 +469,7 @@ _eERRType NF_RawPageRead(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 
 	if (u8Tmp >= 25) {
 ///		EIC_IRQCommand(ENABLE);
-		//ȥƬѡ	
+		//去片选
 		GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 		return _READ_ERR_;
 	}
@@ -413,36 +478,36 @@ _eERRType NF_RawPageRead(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 
 ///   	EIC_IRQCommand(ENABLE);
 
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	return _NO_ERR_;
 }
 
 /***********************************************************************************************
- * ����������	ҳд����
- * ��    �ڣ�	u32Addr,Ҫд���������NAND FLASH��ŵĵ�ַ
- u16Length,Ҫд��������ֽ���Ŀ	
- pu8Buf����д������ݻ������׵�ַ		
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	ҳд�����������д��������0x80,Ȼ��д��32λ�ĵ�ַ����д���д�������
- ��д��������0x10,Ȼ����R/B����״̬���жϲ����Ƿ���ɣ�Ȼ���ȡ״̬�ֽ�
- �жϴ˲����Ƿ�ɹ�
+ * 功能描述：	页写操作
+ * 入    口：	u32Addr,要写入的数据在NAND FLASH存放的地址
+ u16Length,要写入的数据字节数目
+ pu8Buf，待写入的数据缓冲区首地址
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	页写入操作，首先写入命令字0x80,然后写入32位的地址，再写入待写入的数据
+ 再写入命令字0x10,然后检查R/B引脚状态，判断操作是否完成，然后读取状态字节
+ 判断此操作是否成功
  *************************************************************************************************/
 _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	u8 u8Tmp = 0;
 	u16 u16Index = 0;
-	//��������
+	//参数错误
 	if (u16Length == 0 || pu8Buf == 0) {
 		return _INVALID_PARAM_;
 	}
-	//��ַԽ��
+	//地址越界
 	if (u32Addr >= _NF_MAX_ADDR_) {
 		return _INVALID_ADDR_;
 	}
 
 	for (u8Tmp = 0; u8Tmp < 25; u8Tmp++) {
-		// ��ȡ״̬��־��������ʼ����������ȴ�
+		// 读取状态标志，允许则开始操作，否则等待
 		if (_NF_STATUS_WRITE_PERMIT_ == NandFlashStatus()) {
 			break;
 		}
@@ -454,14 +519,14 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	}
 
 //	Delay_1ms(1);
-	//Ƭѡ
+	//片选
 	GPIO_ResetBits(GPIOD, GPIOD_NF_CS);
 
 	Delay_1us(1);
 
 ///	EIC_IRQCommand(DISABLE);
 
-	// ҳд����
+	// 页写操作
 	NF_CMD = NF_PAGEWRITE1;
 
 	NF_ADDR = u32Addr & 0x000000FF;
@@ -478,9 +543,9 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 
 ///	EIC_IRQCommand(ENABLE);
 
-	// ���ȴ�5ms
+	// 最多等待5ms
 	for (u8Tmp = 0; u8Tmp < 5; u8Tmp++) {
-		//�ж�R/B�ܽ��Ƿ���ʾ�������
+		//判断R/B管脚是否提示操作完成
 		if (GPIO_ReadInputDataBit(GPIOD, GPIOD_NF_RB)) {
 			break;
 		}
@@ -488,7 +553,7 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 		Delay_1ms(1);
 	}
 
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	if (u8Tmp > 4)
@@ -497,13 +562,13 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	if ((NandFlashStatus() & _NF_STATUS_ERASE_FAILURE_) == _NF_STATUS_ERASE_FAILURE_)
 		return _WRITE_ERR_;
 
-	//Ƭѡ
+	//片选
 	GPIO_ResetBits(GPIOD, GPIOD_NF_CS);
 
 	Delay_1us(1);
 
 ///	EIC_IRQCommand(DISABLE);
-	// ҳ������
+	// 页读操作
 	NF_CMD = NF_READ1;
 
 //	NF_ADDR = u32Addr&0x000000FF;	
@@ -517,7 +582,7 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	NF_CMD = NF_READ2;
 
 	for (u8Tmp = 0; u8Tmp < 25; u8Tmp++) {
-		//�ж�R/B�ܽ��Ƿ���ʾ�������
+		//判断R/B管脚是否提示操作完成
 		if (GPIO_ReadInputDataBit(GPIOD, GPIOD_NF_RB)) {
 			break;
 		}
@@ -534,36 +599,36 @@ _eERRType NF_RawPageWrite(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 		if (*(pu8Buf++) != NF_DATA) {
 
 ///			EIC_IRQCommand(ENABLE);
-			//ȥƬѡ	
+			//去片选
 			GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 			return _READ_ERR_;
 		}
 	}
 ///	EIC_IRQCommand(ENABLE);
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	return _NO_ERR_;
 }
 
 /*************************************************************************************************
- * ����������	���������
- * ��    �ڣ�	u32Addr,Ҫ�����Ŀ��ַ		
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	���������ֻ��Ҫд���е�ַ���е�ַ����Ҫ
+ * 功能描述：	块擦除操作
+ * 入    口：	u32Addr,要擦除的块地址
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	块擦除操作只需要写入列地址，行地址不需要
  *************************************************************************************************/
 _eERRType NF_BlockErase(u16 u16Block) {
 	u8 u8Tmp = 0;
 
 	u32 u32Addr = ((u32) u16Block) << _NF_BLOCK_OFFSET_;
 
-	//��ַԽ��
+	//地址越界
 	if (u16Block >= _NF_MAX_BLOCK_NUM_) {
 		return _INVALID_ADDR_;
 	}
 
 	for (u8Tmp = 0; u8Tmp < 5; u8Tmp++) {
-		// ��ȡ״̬��־��������ʼ����������ȴ�
+		// 读取状态标志，允许则开始操作，否则等待
 		if (_NF_STATUS_WRITE_PERMIT_ == NandFlashStatus()) {
 			break;
 		}
@@ -576,14 +641,14 @@ _eERRType NF_BlockErase(u16 u16Block) {
 
 	//	Delay_1ms(1);
 
-	//Ƭѡ
+	//片选
 	GPIO_ResetBits(GPIOD, GPIOD_NF_CS);
 
 	Delay_1us(1);
 
 ///	EIC_IRQCommand(DISABLE);
 
-	// ���������	
+	// 块擦除操作
 	NF_CMD = NF_BLOCKERASE1;
 
 	NF_ADDR = (u32Addr >> 16) & 0x000000FF;
@@ -593,9 +658,9 @@ _eERRType NF_BlockErase(u16 u16Block) {
 
 ///	EIC_IRQCommand(ENABLE);
 
-	// ���ȴ�5ms
+	// 最多等待5ms
 	for (u8Tmp = 0; u8Tmp < 5; u8Tmp++) {
-		//�ж�R/B�ܽ��Ƿ���ʾ�������
+		//判断R/B管脚是否提示操作完成
 		if (GPIO_ReadInputDataBit(GPIOD, GPIOD_NF_RB)) {
 			break;
 		}
@@ -603,7 +668,7 @@ _eERRType NF_BlockErase(u16 u16Block) {
 		Delay_1ms(1);
 	}
 
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	if (u8Tmp > 4) {
@@ -614,13 +679,13 @@ _eERRType NF_BlockErase(u16 u16Block) {
 		return _WRITE_ERR_;
 	}
 
-	//Ƭѡ
+	//片选
 	GPIO_ResetBits(GPIOD, GPIOD_NF_CS);
 
 	Delay_1us(1);
 ///	EIC_IRQCommand(DISABLE);
 
-	// ҳ������
+	// 页读操作
 	NF_CMD = NF_READ1;
 
 	NF_ADDR = u32Addr & 0x000000FF;
@@ -635,7 +700,7 @@ _eERRType NF_BlockErase(u16 u16Block) {
 ///	EIC_IRQCommand(ENABLE);
 
 	for (u8Tmp = 0; u8Tmp < 25; u8Tmp++) {
-		//�ж�R/B�ܽ��Ƿ���ʾ�������
+		//判断R/B管脚是否提示操作完成
 		if (GPIO_ReadInputDataBit(GPIOD, GPIOD_NF_RB)) {
 			break;
 		}
@@ -645,7 +710,7 @@ _eERRType NF_BlockErase(u16 u16Block) {
 
 	if (u8Tmp >= 25) {
 ///		EIC_IRQCommand(ENABLE);
-		//ȥƬѡ	
+		//去片选
 		GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 		return _READ_ERR_;
 	}
@@ -655,7 +720,7 @@ _eERRType NF_BlockErase(u16 u16Block) {
 		if (NF_DATA != NF_UNUSED) {
 
 ///			EIC_IRQCommand(ENABLE);
-			//ȥƬѡ	
+			//去片选
 			GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 			return _READ_ERR_;
 
@@ -664,20 +729,20 @@ _eERRType NF_BlockErase(u16 u16Block) {
 
 ///	EIC_IRQCommand(ENABLE);
 
-	//ȥƬѡ	
+	//去片选
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	return _NO_ERR_;
 }
 
 /*************************************************************************************************
- * ����������	ҳ������
- * ��    �ڣ�	u32Addr,Ҫ��ȡ��������NAND FLASH��ŵĵ�ַ
- pDataArr,��ȡ�����ݱ�����RAM�е���ʼ��ַ
- u32Size,Ҫ��ȡ�������ֽ���Ŀ			
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- pu8Buf,Ҫ���������ݱ���Ļ�������ʼ��ַ
- * ˵    ����	ͨ������NAND FLASH�Ľӿڣ�������Ƭ��FLASH����L41��FLASH�ӿھ���һ��
+ * 功能描述：	页读操作
+ * 入    口：	u32Addr,要读取的数据在NAND FLASH存放的地址
+ pDataArr,读取的数据保持在RAM中的起始地址
+ u32Size,要读取的数据字节数目
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ pu8Buf,要读出的数据保存的缓冲区起始地址
+ * 说    明：	通过调用NAND FLASH的接口，来操作片外FLASH，与L41的FLASH接口尽量一致
  *************************************************************************************************/
 _eERRType NFLASH_ReadArr(u32 u32Addr, u8* pDataArr, u32 u32Size) {
 	_eERRType errtype;
@@ -685,14 +750,14 @@ _eERRType NFLASH_ReadArr(u32 u32Addr, u8* pDataArr, u32 u32Size) {
 	return errtype;
 }
 /************************************************************************************************
- * ����������	��Ƭ����FLASH,��Ƭ�����ĵ���ʱ��
- * ��    �ڣ�	��
- * ��    �ڣ�	_eERRType,���ز���������룬ָʾ������ȷ���ߴ���
+ * 功能描述：	整片擦除FLASH,整片擦除的典型时间
+ * 入    口：	无
+ * 出    口：	_eERRType,返回操作错误代码，指示擦除正确或者错误
  ************************************************************************************************/
 _eERRType NFLASH_EraseChip(void) {
 	u16 u16Block = 0;
 	for (u16Block = 0; u16Block < _NF_MAX_BLOCK_NUM_; u16Block++) {
-		//������ǰ�������
+		//擦除当前块的内容
 		NF_BlockErase(u16Block);
 	}
 	return _NO_ERR_;
@@ -700,12 +765,12 @@ _eERRType NFLASH_EraseChip(void) {
 }
 
 /**********************************************************************************************
- * ����������	ҳд����
- * ��    �ڣ�	u32Addr,Ҫд���������NAND FLASH��ŵĵ�ַ
- u16Size,Ҫд��������ֽ���Ŀ	
- pDataArr����д������ݻ������׵�ַ		
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	����NAND FLASH��ҳд�����ӿں���ʵ�֣���L1�Ľӿں�����������һ��
+ * 功能描述：	页写操作
+ * 入    口：	u32Addr,要写入的数据在NAND FLASH存放的地址
+ u16Size,要写入的数据字节数目
+ pDataArr，待写入的数据缓冲区首地址
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	调用NAND FLASH的页写操作接口函数实现，与L1的接口函数尽量保持一致
  **********************************************************************************************/
 _eERRType NFLASH_Program(u16 u16Block, u8 u8Page, u8* pDataArr, u16 u16Size) {
 	_eERRType errtype;
@@ -726,12 +791,12 @@ _eERRType NFLASH_Program(u16 u16Block, u8 u8Page, u8* pDataArr, u16 u16Size) {
 }
 
 /***********************************************************************************************
- * ����������	NAND FLASH�Ĳ�ͬBLOCK֮�����BLOCK�е�ҳ֮������ݿ�����
- * ��    �ڣ�	u32SourceAddress,Ҫ������Դ���ݵ�ַ��	
- u32DestinyAddress��Ҫ������������Ŀ�ĵ�ַ��
- u16Size,Ҫ�����������ֽ���Ŀ��		
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	���ÿ�������֮ǰ��Ҫȷ��������Ŀ�ĵ�ַ�ǿ����ݣ����򿽱��϶�ʧ��
+ * 功能描述：	NAND FLASH的不同BLOCK之间或者BLOCK中的页之间的数据拷贝，
+ * 入    口：	u32SourceAddress,要拷贝的源数据地址；
+ u32DestinyAddress，要拷贝到的数据目的地址；
+ u16Size,要拷贝的数据字节数目。
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	调用拷贝函数之前，要确保拷贝的目的地址是空数据，否则拷贝肯定失败
  ***********************************************************************************************/
 _eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress, u16 u16Size) {
 	/*
@@ -741,14 +806,14 @@ _eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress, u16 u16S
 	 u8	u8LeftCnt;
 	 u8CopyTimes = u16Size >> 8;
 	 u8LeftCnt = (u8)u16Size;	
-	 //��ǰһ�������а�δ�޸ĵ�����д�뵽���������Ӧλ�ô�
+	 //从前一个区块中把未修改的数据写入到新区块的相应位置处
 	 while(u8CopyTimes > 0)
 	 {
 	 
-	 //��Դ��������ȡ����
+	 //从源数据区读取数据
 	 EFLASH_ReadArr(u32SourceAddress,&u8Data[0],_EFLASH_WRITE_SIZE_);
 	 
-	 //д��Ŀ������������
+	 //写入目的数据区保存
 	 EFLASH_Program(u32DestinyAddress,&u8Data[0],_EFLASH_WRITE_SIZE_);
 	 
 	 u32SourceAddress += _EFLASH_WRITE_SIZE_;
@@ -757,10 +822,10 @@ _eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress, u16 u16S
 	 }
 	 if(u8LeftCnt > 0)
 	 {
-	 //��Դ��������ȡ����
+	 //从源数据区读取数据
 	 EFLASH_ReadArr(u32SourceAddress,&u8Data[0],u8LeftCnt);
 	 
-	 //д��Ŀ������������
+	 //写入目的数据区保存
 	 EFLASH_Program(u32DestinyAddress,&u8Data[0],u8LeftCnt);	
 	 }
 	 */
@@ -768,18 +833,18 @@ _eERRType NFLASH_BlockCopy(u32 u32SourceAddress, u32 u32DestinyAddress, u16 u16S
 }
 
 /************************************************************************************************
- * ����������	���޸Ĳ��ҿ�������
- * ��    �ڣ�	u16SourceBlock,��������Դ��������ţ�
- u16DestBlock,����Ŀ����������ţ�
- *				u8SourceStartPage,��������Դ��������ʼҳ�ţ�
- *				u8DestStartPage,��������Ŀ����������ʼҳ�ţ�
- *				u32DestinyAddress��������Ŀ���������׵�ַ��
- *				u8PageNum,��������ҳ��Ŀ��
- *				pDataArr���޸ĺ�����ݱ�����RAM�е��׵�ַ��	
- u16Offset,���޸ĵ����������ṹ���ƫ�Ƶ�ַ	
- *				u16DataSize�����޸ĵ������ֽ���Ŀ��	
- * ��    �ڣ�	_eERRType ���ص�״̬�ֽ� ��0��ʾ�����ɹ���������ʾ����
- * ˵    ����	����NAND FLASH��д���������ӿں���ʵ�֣���L41�Ľӿں�����������һ��
+ * 功能描述：	块修改并且拷贝函数
+ * 入    口：	u16SourceBlock,待拷贝的源数据区块号；
+ u16DestBlock,拷贝目的数据区块号；
+ *				u8SourceStartPage,待拷贝的源数据区起始页号；
+ *				u8DestStartPage,待拷贝的目的数据区起始页号；
+ *				u32DestinyAddress，拷贝的目的数据区首地址；
+ *				u8PageNum,待拷贝的页数目；
+ *				pDataArr，修改后的数据保存在RAM中的首地址；
+ u16Offset,待修改的数据相对与结构体的偏移地址
+ *				u16DataSize，待修改的数据字节数目。
+ * 出    口：	_eERRType 返回的状态字节 ，0表示操作成功，其他表示错误
+ * 说    明：	调用NAND FLASH的写参数操作接口函数实现，与L41的接口函数尽量保持一致
  ************************************************************************************************/
 _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock, u8 u8SourceStartPage, u8 u8DestStartPage,
 		u8 u8PageNum, u16 u16Offset, u8* pDataArr, u16 u16DataSize) {
@@ -789,7 +854,7 @@ _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock, u8 u8Sour
 	u16 u16CurPageStart = 0;
 	u8 u8Data[_NF_PAGE_SIZE_];
 
-	//�жϲ����Ƿ�Ϸ�
+	//判断参数是否合法
 	if ((u8SourceStartPage + u8PageNum >= _NF_MAX_PAGE_NUM_) || (u8DestStartPage + u8PageNum >= _NF_MAX_PAGE_NUM_)
 			|| pDataArr == 0) {
 		return _INVALID_PARAM_;
@@ -798,26 +863,26 @@ _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock, u8 u8Sour
 	u8CurCopyPage = 0;
 	u16CurPageStart = 0;
 	while (u8PageNum--) {
-		//�ȶ�ȡ������������
+		//先读取待拷贝的数据
 		NF_PageRead(u16SourceBlock, u8SourceStartPage + u8CurCopyPage, 0, _NF_PAGE_SIZE_, (u8*) &u8Data);
 
-		//�ж϶�ȡ�������Ƿ���Ҫ�޸�
+		//判断读取的数据是否需要修改
 		if (((u16CurPageStart + _NF_PAGE_SIZE_) < u16Offset) || (u16CurPageStart > u16Offset)) {
-			//����Ҫ�޸����ݣ�ֱ��д��Ŀ�Ŀ�ҳ��
+			//不需要修改数据，直接写到目的块页处
 			NF_PageWrite(u16DestBlock, u8DestStartPage + u8CurCopyPage, 0, _NF_PAGE_SIZE_, (u8*) &u8Data);
 		}
 		else {
-			//��Ҫ�޸�����
-			//���޸���Ҫ�ı����������
-			//ҳ�ڴ��޸ĵ���ʼλ��
+			//需要修改数据
+			//先修改需要改变的数据内容
+			//页内待修改的起始位置
 			u16ChangPos = u16Offset & 0x3FF;
 			for (; (u16ChangPos < _NF_PAGE_SIZE_) && (u16DataSize > 0);) {
 				u8Data[u16ChangPos++] = *pDataArr++;
-				//�޸��ֽں��޸�ƫ�Ƶ�ַҲ���Ÿı�
+				//修改字节后，修改偏移地址也跟着改变
 				u16Offset++;
 				u16DataSize--;
 			}
-			//���޸ĺ������д��Ŀ�Ŀ�ҳ��
+			//把修改后的数据写到目的块页处
 			NF_PageWrite(u16DestBlock, u8DestStartPage + u8CurCopyPage, 0, _NF_PAGE_SIZE_, (u8*) &u8Data);
 		}
 		u8CurCopyPage++;

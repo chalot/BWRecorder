@@ -11,8 +11,9 @@
 
 /**系统参数类*/
 typedef enum {
-	PARAM_FACTORY_DEFAULT 	= 0,	////出厂参数
-	PARAM_TERMINALINFO = 1,	////设备信息
+	PARAM_FACTORY_SYSTEM 	= 0,	////出厂参数：系统参数
+	PARAM_FACTORY_DEVICE,	////出厂参数：设备参数
+	PARAM_DEVICE,			////设备信息
 	PARAM_SYSTEM,			////系统信息
 	PARAM_RUNTIME,			////运行信息
 	PARAM_UPGRADE,			///升级信息
@@ -35,7 +36,8 @@ typedef enum {
 } eFMTMSG_PARAM;
 
 ///各类信息在EEPROM中的存储首地址
-#define EEPROM_ADDR_FACTORYPARAM		0x3333	///出厂参数在EEPROM中首地址
+#define EEPROM_ADDR_FACTORY_SYSTEM		0x3333	///出厂参数-系统参数在EEPROM中首地址
+#define EEPROM_ADDR_FACTORY_DEVICE		0x3333	///出厂参数-设备参数在EEPROM中首地址
 #define EEPROM_ADDR_DEVICE		0x3333	///设备参数在EEPROM中首地址
 #define EEPROM_ADDR_SYSTEM		0x3333	///系统参数在EEPROM中首地址
 #define EEPROM_ADDR_RUNTIME		0x3333	///运行参数在EEPROM中首地址
@@ -59,10 +61,10 @@ typedef enum {
 #define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长度
 #define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数
 #define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长度
-#define PHONEBOOK_ITEM_SIZE		50	///电话本记录总条数
+#define PHONEBOOK_ITEM_SIZE		20	///电话本记录总条数
 
 #define ROUND_AREA_ITEM_SIZE	50	///圆形区域项总数
-#define RECT_AREA_ITEM_SIZE		50	///矩形区域项总数
+#define RECT_AREA_ITEM_SIZE		24	///矩形区域项总数
 #define POLYGON_AREA_ITEM_SIZE	50	///多边形区域项总数
 
 
@@ -238,14 +240,6 @@ typedef struct {
 
 } tPARAMITEM_FIXED;
 
-/**变长参数项消息体，字符串*/
-//typedef struct
-//{
-//	u32		u32Id;		///参数ID
-//	u8		u8Len;		///参数长度
-//	u8		str[STR_SIZE];	///字符串
-//
-//} tPARAMITEM_STR;
 #if 1
 /**系统参数 *******************************************************************/
 typedef struct {
@@ -409,7 +403,8 @@ typedef struct {
 	 bit29 表示数据采集方式，0：原始数据，1：采集区间的计算值；
 	 bit28-bit0 表示CAN 总线ID。
 	 */
-	u8 u8CAN_SingleRetrieveSetting[8];	///0x0110
+//	u8 u8CAN_SingleRetrieveSetting[8];	///0x0110
+	tCONF_CAN	tCanConf;	///0x0110
 
 	/**0x0111-0x01FF BYTE[8] 用于其他CAN 总线ID 单独采集设置*/
 	u8 u8CAN_SingleRetrieveSetting_Others[8]; ///0x0111-0x01FF
@@ -430,22 +425,39 @@ typedef struct {
 
 #define PARAM_AUTHORCODE_LEN	100  	/**终端鉴权码长度*/
 
-/** 设备参数 *****************************************************************/
+/** 设备属性参数 *****************************************************************/
 typedef struct {
-	tTerminalInfo_Base tBase; /**基本信息*/
-	u8 aPlate[PARAM_VIN_PLATE_MAXLEN]; /**V2011： 机动车号牌;
-										 V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安
-										 交通管理部门颁发的机动车号牌。*/
-
+	u16 u16ProviceId;		///省域ID
+	u16 u16CountyId;		///市县域ID
+	u8 au8FactoryId[5];	///制造商ID
+#ifdef JTT808_Ver_2011
+	u8 aType[8];	///终端型号，8个字节，此终端型号由制造商自行定义，位数不	足时，补空格。
+	u8 aTId[7];///终端ID,7 个字节，由大写字母和数字组成，此终端ID 由制造商自行定义，位数不足时，后补“0X00”。
+	u8 u8PlateColor;///车牌颜色，按照JT/T415-2006 的5.4.12
+#endif
 #ifdef JTT808_Ver_2013
-	tTerminalType tType; /**终端类型*/
+	u8 aType[20];		///终端型号20 个字节，此终端型号由制造商自行定义，位数不足时，后补“0X00”。
+	u8 aTId[7];		///终端ID
+	u8 u8PlateColor;		///车牌颜色，按照JT/T415-2006 的5.4.12。未上牌时，取值为0。
+#endif///JTT808_Ver_2013
+
+	u8 aPlate[PARAM_VIN_PLATE_MAXLEN]; /**V2011： 机动车号牌;
+										 V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安 交通管理部门颁发的机动车号牌。*/
+#ifdef JTT808_Ver_2013
+//	bit0，0：不适用客运车辆，1：适用客运车辆；
+//	bit1，0：不适用危险品车辆，1：适用危险品车辆；
+//	bit2，0：不适用普通货运车辆，1：适用普通货运车辆；
+//	bit3，0：不适用出租车辆，1：适用出租车辆；
+//	bit6，0：不支持硬盘录像，1：支持硬盘录像；
+//	bit7，0：一体机，1：分体机。
+	u16 tType; /**终端类型*/ ///tTerminalType
 #endif
 
 	u8 ver_hardware[50];	///终端硬件版本号 STRING
 	u8 ver_software[50];	///终端软件版本号 STRING
 
-	tGNSSModule_Property tGNSSModuleProperty; /**GNSS模块属性*/
-	tCommModule_Property tCommModuleProperty; /**通信模块属性*/
+	u8 tGNSSModuleProperty; /**GNSS模块属性*/
+	u8 tCommModuleProperty; /**通信模块属性*/
 
 } tPARAM_DEVICE;
 
@@ -457,6 +469,49 @@ typedef struct {
 } tPARAM_DEVICE_STORAGE;
 
 /** 运行参数 *****************************************************************/
+#define ETICKET_MAXLEN	50	///电子运单最大长度
+
+/**电子运单信息*/
+typedef struct {
+	u32 u32ETicketLen;	///电子运单长度
+	u8 aData[ETICKET_MAXLEN];	///电子运单数据包
+} tETICKET;
+
+/**驾驶员信息*/
+typedef struct {
+
+#ifdef JTT808_Ver_2011
+	u8 u8DriverNameLen;	///驾驶员姓名长度
+	u8 aDriverName[20];///驾驶员姓名，长度n
+	u8 aDrvIdCode[20];///驾驶员身份证编码
+	u8 aQulCode[40];///从业资格证编码
+	u8 u8GovNameLength;///发证机构名称长度
+	u8 aGovName[40];///发证机构名称
+#endif
+
+#ifdef JTT808_Ver_2013
+	u8 state; /** 状态 BYTE 0x01：从业资格证IC 卡插入（驾驶员上班）；
+	 0x02：从业资格证IC 卡拔出（驾驶员下班）。*/
+	u8 time_BCD[6];	///1 时间 BCD[6] 插卡/拔卡时间，YY-MM-DD-hh-mm-ss；
+	/**以下字段在状态为0x01 时才有效并做填充。*/
+	u8 IC_read_ret;	///IC 卡读取结果 BYTE
+///						0x00：IC 卡读卡成功；
+///						0x01：读卡失败，原因为卡片密钥认证未通过；
+///						0x02：读卡失败，原因为卡片已被锁定；
+///						0x03：读卡失败，原因为卡片被拔出；
+///						0x04：读卡失败，原因为数据校验错误。
+
+	/**以下字段在IC 卡读取结果等于0x00 时才有效。*/
+	u8 u8DriverNameLen;	///驾驶员姓名长度
+	u8 aDriverName[20];		///驾驶员姓名，长度n
+	u8 aQulCode[20];		///从业资格证编码,不足补0
+	u8 u8GovNameLength;	///发证机构名称长度
+	u8 aGovName[40];		///发证机构名称
+	u8 LicieceValidation[4];	///证件有效期 BCD[4] YYYYMMDD
+#endif
+} tDRIVERINFO;
+
+/**运行时参数*/
 typedef struct {
 	u8 u8CommMode;		///通讯模式，缺省为TCP
 	u8 aServerIP[4];	///服务器IP
@@ -477,15 +532,35 @@ typedef struct {
 
 	u8 sAuthorCode[PARAM_AUTHORCODE_LEN]; /**终端鉴权码*/
 	u8 ICCID[10];		///终端SIM 卡ICCID BCD[10]
-	u8 u8BcdPhoneNum[6];	///终端手机号,BCD码
-
-	tWARNINGSTATE tWarningState; /**报警标志位*/
-	tSYSTEMSTATE tSysState; /**状态位*/
+	u8 aPhoneNum[6];	///终端手机号,BCD码
 
 	u16 u16UpReportInterval;	///呼叫上报-上报周期，单位秒
 	u16 u16KeepOnTime;		///呼叫上报-持续时长，单位秒
 
-	u8 u8VechicalCtrlState;	///车辆控制状态，0=解锁，1=锁车
+	tWARNINGSTATE tWarningState; /**报警标志位*/
+	tSYSTEMSTATE tSysState; /**状态位*/
+	tGPSINFO tGpsInfo; ///GPS位置信息
+	tETICKET tEticket;	///电子运单
+	tDRIVERINFO tDriverInfo;	///驾驶人信息
+
+	u8 bOverSpeed;	///超速判断
+	u32 u32Kilemeters;	///0x01 4 里程，DWORD，1/10km，对应车上里程表读数
+	u16 u16Oil; 	///0x02 2 油量，WORD，1/10L，对应车上油量表读数
+	u16 u16Speed;	///0x03 2 行驶记录功能获取的速度，WORD，1/10km/h
+	u16 u16WarningEvtId; 	///0x04 2 需要人工确认报警事件的ID，WORD，从1 开始计数
+	tAppendInfo_OverspeedWarning tOverspeedWarn; ///1 或5 超速报警附加信息见表28
+	tAppendInfo_BarrierAndPathWarning tBarrierWarn; ///6 进出区域/路线报警附加信息见表29
+	tAppendInfo_DrivingTimeInadequetWarning tDrvTimeWarn; ///0x13 7 路段行驶时间不足/过长报警附加信息见表30
+	u32 u32ExtSignalState;	///0x25 4 扩展车辆信号状态位，定义见表31
+	u16 u16IOState;	///0x2A 2 IO状态位，定义见表32
+	u32 u32ADValue;	///0x2B 4 模拟量，bit0-15，AD0；bit16-31，AD1。
+	u8 u8Csq;	///0x30 1 BYTE，无线通信网络信号强度
+	u8 u8GNSS_Satellites; ///0x31 1 BYTE，GNSS 定位卫星数
+
+	/**定位数据批量存储头指针*/
+
+
+
 
 } tPARAM_RUNTIME;
 
@@ -561,57 +636,7 @@ typedef struct {
 } tPARAM_MSGOD_MSG_STORAGE;
 
 
-
-#if 0
-///事件项索引
-typedef struct {
-	u8 u8Id;	///事件ID,若终端已有同ID的事件，则被覆盖
-	u8 u8Len;	///事件信息实际长度
-	u16 u16Offset;	///事件信息偏移地址，相对于索引头
-	u8 u8CRC;		///事件内容CRC
-} tITEMINDEX;
-
-///事件信息存储头
-typedef struct {
-	u8 u8Amount;	///事件总数
-	tITEMINDEX index[EVT_ITEM_SIZE];	///事件索引数组
-} tEVT_INFO;
-
-///事件信息存储格式
-typedef struct {
-	u32 prefix;	///前缀
-	tEVT_INFO INFO;
-	u8 u8CRC; ///校验码
-} tPARAM_EVT_INFO_STORAGE;
-
-///点播菜单存储头
-typedef struct {
-	u8 u8Amount;	///事件总数
-	tITEMINDEX index[MSGOD_MENU_ITEM_SIZE];	///事件索引数组
-} tMSGODMENU_INFO;
-
-///点播菜单存储格式
-typedef struct {
-	u32 prefix;	///前缀
-	tMSGODMENU_INFO INFO;
-	u8 u8CRC; ///校验码
-} tPARAM_MSGOD_MENU_INFO_STORAGE;
-
-///点播信息存储头
-typedef struct {
-	u8 u8Amount;	///事件总数
-	tITEMINDEX index[MSGOD_MSG_ITEM_SIZE];	///事件索引数组
-} tMSGODMSG_INFO;
-
-///点播信息存储格式
-typedef struct {
-	u32 prefix;	///前缀
-	tMSGODMSG_INFO INFO;
-	u8 u8CRC; ///校验码
-} tPARAM_MSGOD_MSG_INFO_STORAGE;
-#endif
-
-/** 电话本 **/
+/** 电话本 ****************************************************************/
 #define		PHONE_NUM_SIZE		16	///电话号码长度
 #define		PHONE_NAME_SIZE		50	///姓名长度
 #define		PHONE_ITEM_SIZE		50	///电话号码数目
@@ -637,8 +662,6 @@ typedef struct {
 	tPHONEBOOK_INFO tPhoneBook;
 	u8 u8CRC; ///校验码
 } tPARAM_PHONEBOOK_STORAGE;
-
-
 
 /** 圆形区域 ****************************************************************/
 #define PARAM_ROUNDAREA_MAXITEMS	24 ////圆形区域最大项数
@@ -807,94 +830,75 @@ typedef struct {
 	tPARAM_FACTORY tFactoryParam; ///出厂参数
 	u8 u8CRC; ///校验码
 } tPARAM_FACTORY_STORAGE;
-#endif
 
 
-/**
- * 恢复出厂参数，recovery system default setting from EEPROM
- *
- * @return 	int，0=成功，-1=失败
- */
-int RecoverSystemDefaultParam(void);
+/** 盲区补传定位数据历史记录索引  ************************************************************/
+#define EEPROM_ADDR_POSITION_RECORDER		0x333	///定位数据索引在FRAM中的存储位置
+/**盲区补传定位数据历史记录存储头*/
+typedef struct {
+	u16 u16StartBlockId;  ///起始块号
+	u8	u8BlockNums;	///总块数
+	u16 u16WriteBlockId;///当前写块号
+	u8  u8WritePageId;	///写页号
+	u8	u8ReadPageId;	///读页号
+	u16 u16WCursor;		///写指针
+} tBLANDPOSINFO;
 
-/**
- * @brief	载入所有系统参数
- * @return	int，0=成功，-1=失败
- */
-int Load_CommonParams(void);
+/**出厂参数存储结构体*/
+typedef struct {
+	u32 prefix;	///前缀
+	tBLANDPOSINFO tBlandPosInfo; ///出厂参数
+	u8 u8CRC; ///校验码
+} tBLANDPOSINFO_STORAGE;
 
-/**
- * @brief	保存所有系统参数
- * @return	int，0=成功，-1=失败
- */
-int Save_CommonParams(void);
+int PARAM_LoadPositionRecorderIndex(); ///读取索引头
+int PARAM_SavePostionRecorderIndex();	///保存索引头
 
-/**
- * @brief	读取指定类型参数
- * @param 	eType	参数类型
- * @return	int，0=成功，-1=失败
- */
-int Load_Params(ePARAMTYPE eType);
 
-/**
- * @brief	保存指定类型参数
- * @param 	eType 参数类型
- * @return	int，0=成功，-1=失败
- */
-int Save_Params(ePARAMTYPE eType);
-
-/**
- * 设置系统参数
- * @param id	参数类型
- * @param len	参数长度
- * @param pVal	参数值
- * @return	0=成功，-1=失败
- */
-int Set_SystemParam(u32 id, u8 len, u8 *pVal);
-
-/**
- * 读取点播信息，从EEPROM载入
- *
- * @return	0=成功，-1=失败
- */
-int PARAM_LoadMsgOD();
-
-/**
- * 保存点播消息，写入EEPROM
- *
- * @return	0=成功，-1=失败
- */
-int PARAM_SaveMsgOD();
-
-/**
- * 外部全局访问参数对象
- */
+/** 外部全局访问参数对象  *****************************************************************/
+extern tPARAM_FACTORY *ptParam_Factory;
 extern tPARAM_SYSTEM *ptParam_System;
 extern tPARAM_DEVICE *ptParam_Device;
 extern tPARAM_RUNTIME *ptParam_Runtime;
+extern tPARAM_DRIVER *ptParam_Driver;
+extern tUPGRADEINFO *ptUpgInfo;
 extern tPARAM_RECTAREA *ptParam_Rect;
-extern tPARAM_ROUNDAREA *ptParam_Round;
-extern tPARAM_SYSTEM *ptParam_System;
+extern tPARAM_ROUNDAREA *ptParam_RoundArea;
+extern tPARAM_POLYGONAREA *ptParam_Polygon;
+extern tPARAM_ROUTE *ptParam_Route;
+extern tEVT_INFO *ptParam_Evt;
+extern tMSGODMENU_INFO *ptParam_MsgODMenu;
+extern tMSGODMSG_INFO *ptParam_MsgODMsg;
+extern tPHONEBOOK_INFO *ptParam_PhoneBook;
+extern tBLANDPOSINFO *ptBlandPosInfo;	///盲区补传定位数据索引头
+
+/** 外部访问接口  *****************************************************************/
+int RecoverSystemDefaultParam(void);
+int Load_CommonParams(void);
+int Save_CommonParams(void);
+int Get_SystemParam(u32 id, void* val);
+int Set_SystemParam(u32 id, u8 len, u8 *pVal);
+u16 GetItem_AllSystemParam(u8 *pData);
+int PARAM_LoadSysParam(u8 type);
+int PARAM_SaveSysParam(u8 type);
+int PARAM_EraseSysParam(u8 type);
+int PARAM_LoadFMTParam(u8 type);
+int PARAM_SaveFMTParam(u8 type);
+int PARAM_EraseFMTParam(eFMTMSG_PARAM type);
+u8 PARAM_GetAmount(eFMTMSG_PARAM type);
 
 
-/** 事件/点播菜单/点播消息/电话本外部接口 *******************************************/
-int PARAM_FormatMsg_GetHead(u8 type);
-int PARAM_FormatMsg_SaveHead(u8 type);
-int PARAM_FormatMsg_GetAmount(u8 type);
-int PARAM_FormatMsg_GetItem(u8 type, u8 u8ItemIndex, u8* pu8ItemId,	u8 *pu8ItemLen, u8 *pItemMsg);
-int PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg);
+/** 事件/点播菜单/点播消息/电话本外部接口 */
+void PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg);
 int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen,	u8 *pItemMsg);
-int PARAM_FormatMsg_EraseAll(u8 type);
 
-/** 圆形/矩形/多边形/外部接口 ******************************************************/
-int PARAM_Area_Load(u8 type);
-int PARAM_Area_EraseAll(u8 type);
-int PARAM_Area_Save(u8 type);
+/** 圆形/矩形/多边形/外部接口 */
 int PARAM_Area_AppendItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen);
 int PARAM_Area_ReplaceItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen);
 int PARAM_Area_DeleteItem(u8 type, u32 u32Id);
 
-u16 GetItem_AllSystemParam(u8 *pData);
+void PARAM_SetFactoryParams();
 
 #pragma pack()
+
 #endif   ///_GPS_PARAMETER_H_
