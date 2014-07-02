@@ -49,7 +49,6 @@
 #include <gps.h>
 #include <iccard.h>
 #include <ir.h>
-#include <key.h>
 #include <lcd.h>
 #include <nandflash.h>
 #include <printer.h>

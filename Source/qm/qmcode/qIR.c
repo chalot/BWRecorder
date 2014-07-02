@@ -14,7 +14,7 @@
 * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 * for more details.
 *****************************************************************************/
-/* @(/3/18) ................................................................*/
+/* @(/3/17) ................................................................*/
 #include "qp_port.h"
 #include "qevents.h"
 #include "bsp.h"
@@ -45,7 +45,7 @@ static QIR l_QIR; /* the single instance of the Table active object */
 QActive * const AO_IR = &l_QIR.super; /* "opaque" AO pointer */
 
 /*..........................................................................*/
-/* @(/1/39) ................................................................*/
+/* @(/1/38) ................................................................*/
 void QIR_ctor(void) {
     QIR *me = &l_QIR;
     QActive_ctor(&me->super, Q_STATE_CAST(&QIR_initial));

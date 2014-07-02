@@ -14,7 +14,7 @@
 * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 * for more details.
 *****************************************************************************/
-/* @(/3/20) ................................................................*/
+/* @(/3/19) ................................................................*/
 #include "qp_port.h"
 #include "qevents.h"
 #include "bsp.h"
@@ -45,7 +45,7 @@ static QUSB l_QUSB; /* the single instance of the Table active object */
 QActive * const AO_USB = &l_QUSB.super; /* "opaque" AO pointer */
 
 /*..........................................................................*/
-/* @(/1/41) ................................................................*/
+/* @(/1/40) ................................................................*/
 void QUSB_ctor(void) {
     QUSB *me = &l_QUSB;
     QActive_ctor(&me->super, Q_STATE_CAST(&QUSB_initial));

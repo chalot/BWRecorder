@@ -95,7 +95,7 @@ typedef struct
 #define NAND_BLOCK_SIZE            ((uint16_t)0x0040) /* 64 pages per block */
 #define NAND_ZONE_SIZE             ((uint16_t)0x0400) /* 1024 Block per zone */
 #define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0040) /* last 64 bytes as spare area */
-#define NAND_MAX_ZONE              ((uint16_t)0x0002) /* 1 zones of 1024 block */
+#define NAND_MAX_ZONE              ((uint16_t)0x0001) /* 1 zones of 1024 block */
 
 /* FSMC NAND memory address computation */
 #define ADDR_1st_CYCLE(ADDR)       (uint8_t)((ADDR)& 0xFF)               /* 1st addressing cycle */
@@ -117,12 +117,14 @@ uint32_t FSMC_NAND_GetStatus(void);
 uint32_t FSMC_NAND_ReadStatus(void);
 uint32_t FSMC_NAND_AddressIncrement(NAND_ADDRESS* Address);
 
+/*
 
 void NFLASH_LowLevel_DeInit(void);
 void NFLASH_LowLevel_Init(void);
 
 _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size, u8* pData);
 _eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size,	u8* pData);
+*/
 
 
 #endif /* __FSMC_NAND_H */

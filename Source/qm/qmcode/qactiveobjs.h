@@ -41,7 +41,7 @@ void QExtSignals_ctor(void);
 void QLCD_ctor(void);
 
 /* @(/1/24) ................................................................*/
-void QSensors_ctor(void);
+void Q3DSensor_ctor(void);
 
 /* @(/1/25) ................................................................*/
 void QVideo_ctor(void);
@@ -70,17 +70,21 @@ void QICcard_ctor(void);
 /* @(/1/37) ................................................................*/
 void QPrinter_ctor(void);
 
-/* @(/1/39) ................................................................*/
+/* @(/1/38) ................................................................*/
 void QIR_ctor(void);
 
-/* @(/1/40) ................................................................*/
+/* @(/1/39) ................................................................*/
 void QDigital_ctor(void);
 
-/* @(/1/41) ................................................................*/
+/* @(/1/40) ................................................................*/
 void QUSB_ctor(void);
 
 /* @(/1/29) ................................................................*/
 void QAudio_ctor(void);
+
+/* @(/1/42) ................................................................*/
+void QVDR_ctor(void);
+
 
 
 
@@ -91,7 +95,7 @@ extern QActive * const AO_Gps;
 extern QActive * const AO_Can;
 extern QActive * const AO_ExtSignals;
 extern QActive * const AO_LCD;
-extern QActive * const AO_Sensors;
+extern QActive * const AO_3DSensor;
 extern QActive * const AO_Video;
 extern QActive * const AO_Upgrade;
 extern QActive * const AO_TTS;
@@ -105,5 +109,6 @@ extern QActive * const AO_IR;
 extern QActive * const AO_Digital;
 extern QActive * const AO_USB;
 extern QActive * const AO_Audio;
+extern QActive * const AO_VDR;
 
 #endif

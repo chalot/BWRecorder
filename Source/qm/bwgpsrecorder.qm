@@ -30,18 +30,68 @@
     <state_diagram size="80,50"/>
    </statechart>
   </class>
-  <class name="QSensors" superclass="qpc::QActive">
+  <class name="Q3DSensor" superclass="qpc::QActive">
    <documentation>传感器状态机</documentation>
+   <attribute name="x" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="y" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="z" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="angX" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="angY" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="angZ" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="is_Ready" type="int16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="m_Timer" type="QTimeEvt" visibility="0x00" properties="0x00"/>
    <statechart>
     <initial target="../1">
-     <initial_glyph conn="7,5,5,0,23,8">
+     <action>ADXL345_Init();</action>
+     <initial_glyph conn="7,5,5,0,17,5">
       <action box="0,-2,6,2"/>
      </initial_glyph>
     </initial>
-    <state name="state1">
-     <state_glyph node="9,13,61,28"/>
+    <state name="detecting">
+     <entry>me-&gt;is_Ready = ADXL345_Detecting();
+if(me-&gt;is_Ready == 0)
+    QACTIVE_POST(AO_3DSensor, IN_SIG_DET_OK_SIG, NULL);
+else
+    QACTIVE_POST(AO_3DSensor, IN_SIG_DET_ERR_SIG, NULL);
+</entry>
+     <tran trig="IN_SIG_DET_ERR" target="../../2">
+      <tran_glyph conn="18,18,3,3,42">
+       <action box="0,-2,15,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="IN_SIG_DET_OK" target="../../3">
+      <tran_glyph conn="18,22,3,0,11,8">
+       <action box="0,-2,12,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="18,10,30,16">
+      <entry box="1,2,5,2"/>
+     </state_glyph>
     </state>
-    <state_diagram size="80,50"/>
+    <state name="error">
+     <state_glyph node="60,10,24,16"/>
+    </state>
+    <state name="ready">
+     <entry>/* 使能秒定时器 */
+QTimeEvt_postEvery(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_READ);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
+     <tran trig="Q_TIMEOUT">
+      <action>//读取X,Y,Z三个方向的加速度值
+ADXL345_Read_Average(&amp;me-&gt;x,&amp;me-&gt;y,&amp;me-&gt;z,10);
+//得到角度值,并显示
+me-&gt;angX=ADXL345_Get_Angle(me-&gt;x,me-&gt;y,me-&gt;z,1);
+me-&gt;angY=ADXL345_Get_Angle(me-&gt;x,me-&gt;y,me-&gt;z,2);
+me-&gt;angZ=ADXL345_Get_Angle(me-&gt;x,me-&gt;y,me-&gt;z,0);</action>
+      <tran_glyph conn="18,39,3,-1,18">
+       <action box="0,-2,11,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="18,30,30,14">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="126,70"/>
    </statechart>
   </class>
   <class name="QVideo" superclass="qpc::QActive">
@@ -1881,103 +1931,17 @@ ClearSysSleepState(MODULE_SLEEP_STATE_GPS);//清除模块休眠态</action>
     <state_diagram size="80,50"/>
    </statechart>
   </class>
-  <class name="QKey" superclass="qpc::QActive">
-   <documentation>ACC检测</documentation>
-   <attribute name="m_detectTimes" type="uint8_t" visibility="0x02" properties="0x00">
-    <documentation>持续检测次数</documentation>
-   </attribute>
-   <attribute name="m_val" type="uint16_t" visibility="0x02" properties="0x00">
-    <documentation>采样值</documentation>
-   </attribute>
-   <attribute name="m_Timer" type="QTimeEvt" visibility="0x02" properties="0x00">
-    <documentation>检测定时器</documentation>
-   </attribute>
+  <class name="QVDR" superclass="qpc::QActive">
    <statechart>
     <initial target="../1">
-     <action>QS_SIG_DICTIONARY(KEY_OK_SIG, (void*)0);
-QS_SIG_DICTIONARY(KEY_UP_SIG, (void*)0);
-QS_SIG_DICTIONARY(KEY_DOWN_SIG, (void*)0);
-QS_SIG_DICTIONARY(KEY_MENU_SIG, (void*)0);
-
-QS_SIG_DICTIONARY(Q_TIMEOUT_SIG, me);</action>
-     <initial_glyph conn="6,5,5,0,38,3">
+     <initial_glyph conn="8,8,5,0,12,5">
       <action box="0,-2,6,2"/>
      </initial_glyph>
     </initial>
-    <state name="idle">
-     <documentation>空闲态</documentation>
-     <tran trig="ACC_ONCHANGE" target="../../2">
-      <tran_glyph conn="6,17,3,1,59,8,-9">
-       <action box="0,-2,13,2"/>
-      </tran_glyph>
-     </tran>
-     <state_glyph node="6,8,50,12"/>
+    <state name="state1">
+     <state_glyph node="12,13,47,20"/>
     </state>
-    <state name="busy">
-     <documentation>检测过程中态</documentation>
-     <entry>me-&gt;m_detectTimes = 0;
-
-//保持1S
-QTimeEvt_postEvery(&amp;me-&gt;m_Timer, &amp;me-&gt;super, TIMEOUT_DETECTING);</entry>
-     <exit>QTimeEvt_disarm(&amp;me-&gt;m_Timer);</exit>
-     <tran trig="Q_TIMEOUT">
-      <action>me-&gt;m_val += Key_GetADCValue(); ///取当前采样值
-me-&gt;m_detectTimes++;
-me-&gt;m_val &gt;&gt;= 1; ///与新值取平均</action>
-      <choice target="../../../1">
-       <guard>me-&gt;m_detectTimes &gt;= DETECTING_KEPT_AMOUNT</guard>
-       <action>static const QEvent key_ok_Evt = {KEY_OK_SIG, 0};
-static const QEvent key_up_Evt = {KEY_UP_SIG, 0};
-static const QEvent key_down_Evt = {KEY_DOWN_SIG, 0};
-static const QEvent key_menu_Evt = {KEY_MENU_SIG, 0};
-
-//TaskEvt *pe;
-eKEY eKey;
-
-eKey = Key_GetCode(me-&gt;m_val);
-switch(eKey)
-{
-    case KEY_OK:
-        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_ok_Evt, me);    break;
-    case KEY_UP:
-        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_up_Evt, me);    break;
-    case KEY_DOWN:
-        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_down_Evt, me);    break;
-    case KEY_MENU:
-        QACTIVE_POST(AO_LCD, (QEvt*)&amp;key_menu_Evt, me);    break;
-    default:
-        TRACE_(QS_USER, NULL, &quot;unknown key msg.&quot;);    break;
-}
-
-/*
-//上报服务器车辆状态
-//1.  00为停车，FE为充电启动；FF为钥匙启动；
-pe = Q_NEW(TaskEvt, NEW_TASKSENDREQ_SIG);
-pe-&gt;cmd = EVS15_CMD_START_STOP_RPT; //命令字
-pe-&gt;sequence = GeneratePacketSequenceNumber();
-pe-&gt;ret = (me-&gt;m_state == 0) ? STATE_ACCON : STATE_STOP;
-QACTIVE_POST(AO_Gprs, (QEvt*)pe, (void*)0);
-*/</action>
-       <choice_glyph conn="18,34,5,1,51,-21,-13">
-        <action box="2,-2,35,2"/>
-       </choice_glyph>
-      </choice>
-      <choice>
-       <guard>else</guard>
-       <choice_glyph conn="18,34,4,-1,4,12">
-        <action box="2,2,6,2"/>
-       </choice_glyph>
-      </choice>
-      <tran_glyph conn="6,34,3,-1,12">
-       <action box="0,-2,9,2"/>
-      </tran_glyph>
-     </tran>
-     <state_glyph node="6,23,50,29">
-      <entry box="1,2,5,2"/>
-      <exit box="1,4,5,2"/>
-     </state_glyph>
-    </state>
-    <state_diagram size="85,65"/>
+    <state_diagram size="80,50"/>
    </statechart>
   </class>
   <operation name="QGprs_ctor" type="void" visibility="0x00" properties="0x00">
@@ -1999,9 +1963,10 @@ QTimeEvt_ctor(&amp;me-&gt;m_rptTimer, GPS_RPT_TIMEOUT_SIG);</code>
    <code>QExtSignals *me = &amp;l_ExtSignals;
 QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QExtSignals_initial));</code>
   </operation>
-  <operation name="QSensors_ctor" type="void" visibility="0x00" properties="0x00">
-   <code>QSensors *me = &amp;l_Sensors;
-QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSensors_initial));</code>
+  <operation name="Q3DSensor_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>Q3DSensor *me = &amp;l_Q3DSensor;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Q3DSensor_initial));
+QTimeEvt_ctor(&amp;me-&gt;m_Timer, PER_SECOND_SIG);</code>
   </operation>
   <operation name="QVideo_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QVideo *me = &amp;l_Video;
@@ -2064,11 +2029,6 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QICcard_initial));</code>
    <code>QPrinter *me = &amp;l_QPrinter;
 QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QPrinter_initial));</code>
   </operation>
-  <operation name="QKey_ctor" type="void" visibility="0x00" properties="0x00">
-   <documentation>按键初始化</documentation>
-   <code>QKey *me = &amp;l_QKey;
-QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QKey_initial));</code>
-  </operation>
   <operation name="QIR_ctor" type="void" visibility="0x00" properties="0x00">
    <documentation>ACC检测初始化</documentation>
    <code>QIR *me = &amp;l_QIR;
@@ -2087,6 +2047,10 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QUSB_initial));</code>
   <operation name="QSpeedPulse_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QSpeedPulse *me = &amp;l_QSpeedPulse;
 QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSpeedPulse_initial));</code>
+  </operation>
+  <operation name="QVDR_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>QVDR *me = &amp;l_QVDR;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QVDR_initial));</code>
   </operation>
  </package>
  <package name="EVTs" stereotype="0x02">
@@ -2154,7 +2118,7 @@ $declare(AOs::QGps_ctor)
 $declare(AOs::QCAN_ctor)
 $declare(AOs::QExtSignals_ctor)
 $declare(AOs::QLCD_ctor)
-$declare(AOs::QSensors_ctor)
+$declare(AOs::Q3DSensor_ctor)
 $declare(AOs::QVideo_ctor)
 $declare(AOs::QSystick_ctor)
 $declare(AOs::QUpgrade_ctor)
@@ -2168,6 +2132,8 @@ $declare(AOs::QIR_ctor)
 $declare(AOs::QDigital_ctor)
 $declare(AOs::QUSB_ctor)
 $declare(AOs::QAudio_ctor)
+$declare(AOs::QVDR_ctor)
+
 
 
 /** 状态机声明 =====================================================*/
@@ -2177,7 +2143,7 @@ extern QActive * const AO_Gps;
 extern QActive * const AO_Can;
 extern QActive * const AO_ExtSignals;
 extern QActive * const AO_LCD;
-extern QActive * const AO_Sensors;
+extern QActive * const AO_3DSensor;
 extern QActive * const AO_Video;
 extern QActive * const AO_Upgrade;
 extern QActive * const AO_TTS;
@@ -2191,6 +2157,7 @@ extern QActive * const AO_IR;
 extern QActive * const AO_Digital;
 extern QActive * const AO_USB;
 extern QActive * const AO_Audio;
+extern QActive * const AO_VDR;
 
 #endif</text>
   </file>
@@ -2242,7 +2209,7 @@ QActive * const AO_LCD = &amp;l_QLCD.super; /* &quot;opaque&quot; AO pointer */
 $define(AOs::QLCD_ctor)
 $define(AOs::QLCD)</text>
   </file>
-  <file name="qsensors.c">
+  <file name="q3dsensor.c">
    <text>#include &quot;qp_port.h&quot;
 #include &quot;qevents.h&quot;
 #include &quot;bsp.h&quot;
@@ -2252,20 +2219,28 @@ Q_DEFINE_THIS_MODULE(&quot;qsensors.c&quot;)
 
 #define DETECTING_KEPT_AMOUNT  4 //检测累计次数：100次，共用时1S
 #define TIMEOUT_DETECTING      (BSP_TICKS_PER_SEC &gt;&gt; 1) //检测周期
+#define TIMEOUT_READ           (BSP_TICKS_PER_SEC / 10)  //检测周期, 100ms
+
+///内部消息
+enum {
+    IN_SIG_DET_OK_SIG = 0,
+    IN_SIG_DET_ERR_SIG,
+
+};
 
 /* Active object class -----------------------------------------------------*/
-$declare(AOs::QSensors)
+$declare(AOs::Q3DSensor)
 
 
 /* Local objects -----------------------------------------------------------*/
-static QSensors l_Sensors; /* the single instance of the Table active object */
+static Q3DSensor l_Q3DSensor; /* the single instance of the Table active object */
 
 /* Global-scope objects ----------------------------------------------------*/
-QActive * const AO_Sensors = &amp;l_Sensors.super; /* &quot;opaque&quot; AO pointer */
+QActive * const AO_3DSensor = &amp;l_Q3DSensor.super; /* &quot;opaque&quot; AO pointer */
 
 /*..........................................................................*/
-$define(AOs::QSensors_ctor)
-$define(AOs::QSensors)</text>
+$define(AOs::Q3DSensor_ctor)
+$define(AOs::Q3DSensor)</text>
   </file>
   <file name="qvideo.c">
    <text>#include &quot;qp_port.h&quot;
@@ -2695,37 +2670,6 @@ QActive * const AO_Printer = &amp;l_QPrinter.super; /* &quot;opaque&quot; AO poi
 $define(AOs::QPrinter_ctor)
 $define(AOs::QPrinter)</text>
   </file>
-  <file name="qkey.c">
-   <text>#include &quot;qp_port.h&quot;
-#include &quot;qevents.h&quot;
-#include &quot;bsp.h&quot;
-#include &quot;type.h&quot;
-#include &quot;utility.h&quot;
-#include &quot;error.h&quot;
-#include &quot;key.h&quot;
-#include &quot;qactiveobjs.h&quot;
-#include &quot;qevt.h&quot;
-
-
-Q_DEFINE_THIS_MODULE(&quot;qkey.c&quot;)
-
-#define DETECTING_KEPT_AMOUNT  5 //检测累计次数：5次，共用时50ms
-#define TIMEOUT_DETECTING      (BSP_TICKS_PER_SEC) //检测周期,10ms
-
-/* Active object class -----------------------------------------------------*/
-$declare(AOs::QKey)
-
-
-/* Local objects -----------------------------------------------------------*/
-static QKey l_QKey; /* the single instance of the Table active object */
-
-/* Global-scope objects ----------------------------------------------------*/
-QActive * const AO_Key = &amp;l_QKey.super; /* &quot;opaque&quot; AO pointer */
-
-/*..........................................................................*/
-$define(AOs::QKey_ctor)
-$define(AOs::QKey)</text>
-  </file>
   <file name="qIR.c">
    <text>#include &quot;qp_port.h&quot;
 #include &quot;qevents.h&quot;
@@ -2825,6 +2769,31 @@ QActive * const AO_SpeedPulse = &amp;l_QSpeedPulse.super; /* &quot;opaque&quot; 
 /*..........................................................................*/
 $define(AOs::QSpeedPulse_ctor)
 $define(AOs::QSpeedPulse)</text>
+  </file>
+  <file name="qvdr.c">
+   <text>#include &quot;qp_port.h&quot;
+#include &quot;qevents.h&quot;
+#include &quot;bsp.h&quot;
+#include &quot;utility.h&quot;
+#include &quot;error.h&quot;
+#include &quot;type.h&quot;
+
+Q_DEFINE_THIS_MODULE(&quot;qvdr.c&quot;)
+
+
+/* Active object class -----------------------------------------------------*/
+$declare(AOs::QVDR)
+
+
+/* Local objects -----------------------------------------------------------*/
+static QVDR l_QVDR; /* the single instance of the Table active object */
+
+/* Global-scope objects ----------------------------------------------------*/
+QActive * const AO_VDR = &amp;l_QVDR.super; /* &quot;opaque&quot; AO pointer */
+
+/*..........................................................................*/
+$define(AOs::QVDR_ctor)
+$define(AOs::QVDR)</text>
   </file>
  </directory>
 </model>

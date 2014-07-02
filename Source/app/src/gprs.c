@@ -25,7 +25,9 @@ Q_DEFINE_THIS_MODULE("gprs.c")
 
 static volatile u8 s_csq = 0; //当前信号强度
 
-#define		GPRS_MAIN_ID		0	//主连接号#define		GPRS_VICE_ID		1	//辅助连接号#define 	SOCKET_ID			0
+#define		GPRS_MAIN_ID		0	//主连接号
+#define		GPRS_VICE_ID		1	//辅助连接号
+#define 	SOCKET_ID			0
 //串口收发缓区
 #define RX_BUF_SIZE		1024
 #define TX_BUF_SIZE		1056
@@ -39,60 +41,61 @@ static tCOMM Comm_Rx;  //发送缓区
 #define BUFFER_LENGTH_GPRSFRAMERx 			1024
 static u8 au8Buffer_GPRSFrameRx[BUFFER_LENGTH_GPRSFRAMERx];
 
-#define CHAR_CR 	0x0D  //回车#define CHAR_LF 	0x0A  //换行/*AT命令*/const char* ATCMD[] = {/*基本配置命令*/
-"AT\r",							//链路同步
-"ATE0\r",//取消回显
+#define CHAR_CR 	0x0D  //回车
+#define CHAR_LF 	0x0A  //换行/*AT命令*/const char* ATCMD[] = {	/*基本配置命令*/
+	"AT\r",							//链路同步
+	"ATE0\r",//取消回显
 
-/*识别类命令*/
-"ATI\r",							//产品标识信息查询
-"AT+CGMI\r",//厂商信息查询
-"AT+CGMM\r",//产品名称查询
-"AT+CGMR\r",//请注意软件版本号，方便技术上的交流沟通 目前反映的为平台版本
-"AT+CGSN\r",//ESN查询
+	/*识别类命令*/
+	"ATI\r",							//产品标识信息查询
+	"AT+CGMI\r",//厂商信息查询
+	"AT+CGMM\r",//产品名称查询
+	"AT+CGMR\r",//请注意软件版本号，方便技术上的交流沟通 目前反映的为平台版本
+	"AT+CGSN\r",//ESN查询
 
-/*安全控制命令 */
-"AT+CPIN?\r",					//R-UIM 卡在位和 PIN1 码状态查询
+	/*安全控制命令 */
+	"AT+CPIN?\r",					//R-UIM 卡在位和 PIN1 码状态查询
 
-/*网络服务接口命令*/
-"AT+CSQ\r",						//检查当地的网络信号强度，31 最大，0 最小
-"AT+CREG?\r",//查询网络注册
+	/*网络服务接口命令*/
+	"AT+CSQ\r",						//检查当地的网络信号强度，31 最大，0 最小
+	"AT+CREG?\r",//查询网络注册
 
-/*数据业务类命令*/
-"AT+CGACT=1\r",					//设置PDP激活状态
-"AT+CGATT?\r",//设置GPRS服务状态
+	/*数据业务类命令*/
+	"AT+CGACT=1\r",					//设置PDP激活状态
+	"AT+CGATT?\r",//设置GPRS服务状态
 
-/*INTERNET服务接口命令*/
-"AT^SICS",						//设置Internet连接的Profile之连接类型
-"AT^SICS",//设置Internet连接的Profile之APN
-"AT^SICS",//设置Internet连接的Profile之PASSWD
-"AT^SICS",//设置Internet连接的Profile之USER
-"AT^SISS",//建立服务的ID
-"AT^SISS",//建立internet服务的socket
-"AT^SISS",//建立internet服务的IP地址
-"AT^SISO",//打开连接
-"AT^SISC",//关闭连接
-"AT^SISW",//发送数据
-"AT^SISR",//读取数据
+	/*INTERNET服务接口命令*/
+	"AT^SICS",						//设置Internet连接的Profile之连接类型
+	"AT^SICS",//设置Internet连接的Profile之APN
+	"AT^SICS",//设置Internet连接的Profile之PASSWD
+	"AT^SICS",//设置Internet连接的Profile之USER
+	"AT^SISS",//建立服务的ID
+	"AT^SISS",//建立internet服务的socket
+	"AT^SISS",//建立internet服务的IP地址
+	"AT^SISO",//打开连接
+	"AT^SISC",//关闭连接
+	"AT^SISW",//发送数据
+	"AT^SISR",//读取数据
 
-"AT^IOMODE=1,0\r",//设置IO模式
+	"AT^IOMODE=1,0\r",//设置IO模式
 
-/*短消息业务接口命令*/
-"AT+CNMI=1,1,0,1,0\r",				 //设置短信接收上报的机制，设置短消息通知方式为先将短消息存储在MT中，然后上报存储位置，不存储短消息状态报告，直接上报
-"AT+CPMS=\"SM\"\r",//选择短信存储器
-"AT+CMGD=",//删除短信		 格式为AT+CMGD=<index>,<deltag>,当deltag为3的时候，删除所有已读短信
-"AT+CMGR=",//读取短信信息
-"AT+CMGL=\r",//列出当前选择短信存储器全部短信的序号和状态
-"AT+CMGF=0\r",//设置短信格式为 PDU //文本
-/*电话业务接口命令*/
-"AT+CLIP=1\r", "ATD",							//拨打电话
-"ATA",//接通电话
-"AT+CHUP",//挂断电话
+	/*短消息业务接口命令*/
+	"AT+CNMI=1,1,0,1,0\r",				 //设置短信接收上报的机制，设置短消息通知方式为先将短消息存储在MT中，然后上报存储位置，不存储短消息状态报告，直接上报
+	"AT+CPMS=\"SM\"\r",//选择短信存储器
+	"AT+CMGD=",//删除短信		 格式为AT+CMGD=<index>,<deltag>,当deltag为3的时候，删除所有已读短信
+	"AT+CMGR=",//读取短信信息
+	"AT+CMGL=\r",//列出当前选择短信存储器全部短信的序号和状态
+	"AT+CMGF=0\r",//设置短信格式为 PDU //文本
+	/*电话业务接口命令*/
+	"AT+CLIP=1\r", "ATD",							//拨打电话
+	"ATA",//接通电话
+	"AT+CHUP",//挂断电话
 
-/*工作模式设置命令*/
-"AT+CFUN=1",						//设置工作模式，全速工作状态
+	/*工作模式设置命令*/
+	"AT+CFUN=1",						//设置工作模式，全速工作状态
 
-//查询系统时间
-"AT+CCLK=?",
+	//查询系统时间
+	"AT+CCLK=?",
 
 };
 
@@ -374,23 +377,23 @@ USART_ITConfig(GSM_COM, USART_IT_TXE, ENABLE);
 
 //带循环的缓区比较
 BOOL memcmp_wrap_(u8 *pBuf, u8 start, u8 end, u16 bufSize, char *pString) {
-u8 matchTimes = 0;
-u16 strlen = strlen_(pString);
+	u8 matchTimes = 0;
+	u16 strlen = strlen_(pString);
 
-while ((start != end) && (matchTimes < strlen)) {
-if (*(pBuf + start) != *pString++) {
-	break;
-}
-start++;
-WRAP_AROUND(start, bufSize);
+	while ((start != end) && (matchTimes < strlen)) {
+		if (*(pBuf + start) != *pString++) {
+			break;
+		}
+		start++;
+		WRAP_AROUND(start, bufSize);
 
-matchTimes++;
-}
+		matchTimes++;
+	}
 
-if (matchTimes == strlen)
-return TRUE;
+	if (matchTimes == strlen)
+	return TRUE;
 
-return FALSE;
+	return FALSE;
 }
 
 /**

@@ -4,6 +4,7 @@
 #include "stm32f2xx.h"
 #include	"nandflash.h"
 
+#if 0
 // ----------------------------------------------------------------------------
 // 命令定义
 #define			NF_READ1				0x00
@@ -233,6 +234,48 @@ _eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Offset, u16 u16Size,	u8* 
 
 //void		NFLASH_WriteAfterUpgFinish(u32 u32FrameNum);
 
-#pragma pack()
+#endif
+
+#include <fsmc_nand.h>
+
+#define NF_BLOCK_AMOUNT	1024
+#define NF_PAGE_AMOUNT	64
+#define NF_BLOCK_SIZE	64 * 2048
+#define NF_PAGE_SIZE	2048
+#define NF_BLOCK_INVALID	0xFFFF
+
+
+//定义操作错误返回代码
+typedef enum {
+	_NO_ERR_ = 0,			//没有错误，正确返回
+	_INVALID_PARAM_ = -1,			//参数错误
+	_INVALID_ADDR_ = -2,			//地址越界
+	_READ_ERR_ = -3,			//读错误
+	_WRITE_ERR_ = -4,			//写错误
+	_ERASE_ERR_ = -5,			//擦除错误
+	_ERASE_TIMEOUT_ = -6,			//擦除超时
+	_READ_STATUS_ERR_ = -7,			//读状态错误
+	_OP_NOT_FINISHED_ = -8,			//操作未完成
+	_NOSPACE_ERR_ = -9,
+	_BLOCK_ERR_,
+} _eERRType;
+
+
+void NFLASH_LowLevel_DeInit(void);
+void NFLASH_LowLevel_Init(void);
+
+_eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData);
+_eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData);
+_eERRType NF_EraseBlock(u16 u16Block);
+_eERRType NF_WriteSpareArea(u16 u16Block, u8 u8Page, u8 u8Size, u8 *pData);
+
+/**
+ * 坏块管理
+ */
+void NF_ScanErrBlock();
+BOOL NF_IsErrBlock(u16 u16BlockId);
+void NF_MarkErrBlock(u16 u16BlockId);
+
+
 
 #endif //__BRAINWARE_ELECTRONICS_NANDFLASH_H__

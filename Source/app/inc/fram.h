@@ -15,6 +15,7 @@
 
 void FRAM_Lowlevel_Init();
 int FRAM_Init();
+int FRAM_SelfDiagnose();
 int FRAM_WriteByte(u32 address, u8 data);
 int FRAM_WriteBuffer(u32 address, u8 *pBuf, u16 u16BufLen);
 int FRAM_ReadByte(u32 address, u8 *pData);

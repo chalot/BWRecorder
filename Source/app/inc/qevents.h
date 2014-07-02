@@ -156,6 +156,12 @@ enum Signals {
 	/*------- ADC消息 -----------*/
 	ADC_ONCHANGE_SIG, 	///ADC
 
+
+	/*------- 记录仪消息 -----------*/
+	VDR_FRAME_READY_SIG, ///记录仪接收到一帧数据
+
+	VDR_ACK_READY_SIG, ///记录仪请求发送应答消息
+
 	MAX_SIG, /* 最后信号 */
 
 };
@@ -346,6 +352,30 @@ typedef struct CSQEvtTag {
 	/* public: */
 	u8 csq; /*信号质量*/
 } CSQEvt;
+
+/**
+ * 记录仪命令
+ */
+///记录仪串口提取到完整帧消息
+typedef struct VDRRetrieveEvtTag {
+	/* protected: */
+	QEvt super;
+
+	/* public: */
+	u16 u16BeginPtr; /*缓区帧结尾位置*/
+	u16 u16EndPtr; /*缓区帧结尾位置*/
+} VDRRetrieveEvt;
+
+typedef struct VDRAckEvtTag {
+	/* protected: */
+	QEvt super;
+
+	/* public: */
+	uint8_t cmd;
+	uint8_t resCmd;
+	int8_t ret;
+} VDRAckEvt;
+
 
 #endif /* QEVENT_H_ */
 

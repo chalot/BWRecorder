@@ -27,6 +27,17 @@ int FRAM_Init() {
 }
 
 /**
+ * 器件自检，在上电初始化时进行
+ *
+ * @return	0＝正常，否则错误代码
+ */
+int FRAM_SelfDiagnose() {
+
+
+	return 0;
+}
+
+/**
  * FRAM 写一个字节
  *
  * @param address

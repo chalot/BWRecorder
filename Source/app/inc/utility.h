@@ -29,6 +29,7 @@ u8 MISC_CalcuDayofWeek(u16 u16Year, u8 u8Month, u8 u8Day);
 u32 GetCurTicksInMSeconds();
 u8 CalculateCRC8(u8* pu8Buffer, u16 u16Size);
 u16 Hex2String(u8* pData, u16 u16DataLen, char* pStr, u16 u16CLen);
+u8	CalculateXOR(u8* pData, u16 u16DataLen);
 
 #define	abs(x,y)		((x > y)? (x - y):(y-x))
 #define	difference(x,y) (((x) > (y)) ? (x):(y))

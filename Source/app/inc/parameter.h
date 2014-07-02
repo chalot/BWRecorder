@@ -56,11 +56,11 @@ typedef enum {
 
 #define EVT_MSG_SIZE			50 	///事件内容最大长度
 #define EVT_ITEM_SIZE			50	///事件最大个数
-#define MSGOD_MENU_MSG_SIZE		50 	///点播菜单内容长度
+#define MSGOD_MENU_MSG_SIZE		20 	///点播菜单内容长度
 #define MSGOD_MENU_ITEM_SIZE	50 	///点播菜单条数
 #define MSGOD_MSG_MSG_SIZE		50	///点播消息内容长度
 #define MSGOD_MSG_ITEM_SIZE		50	///点播消息条数
-#define PHONEBOOK_MSG_SIZE		50	///电话本单条记录长度
+#define PHONEBOOK_MSG_SIZE		20	///电话本单条记录长度
 #define PHONEBOOK_ITEM_SIZE		20	///电话本记录总条数
 
 #define ROUND_AREA_ITEM_SIZE	50	///圆形区域项总数
@@ -575,6 +575,7 @@ typedef struct {
 /** 事件/点播菜单/点播消息/电话本参数  ***********************************************************/
 
 /** 事件 ****************************************************************/
+/*存储容量：53 * 50 + 1 = 26501=26K*/
 typedef struct {
 	u8 u8EventId;		///事件ID,若终端已有同ID的事件，则被覆盖
 	u8 u8EventLen;		///事件长度
@@ -594,11 +595,12 @@ typedef struct {
 } tPARAM_EVT_STORAGE;
 
 /** 点播菜单 ****************************************************************/
+/*存储容量：23 * 50 + 1 = 1151=2K*/
 ///信息点播信息项定义
 typedef struct {
 	u8 u8InfoType;			///信息类型
 	u16 u16InfoNameLen;		///信息名称长度
-	u8 aInfoName[50];		///信息名称
+	u8 aInfoName[20];		///信息名称
 } tMSGODMENUITEM;
 
 ///点播菜单存储头
@@ -615,6 +617,7 @@ typedef struct {
 } tPARAM_MSGOD_MENU_STORAGE;
 
 /** 点播信息 ****************************************************************/
+/*存储容量：53 * 50 + 1 = 26501=26K*/
 ///点播信息项定义
 typedef struct {
 	u8 u8InfoType;			///信息类型
@@ -637,8 +640,9 @@ typedef struct {
 
 
 /** 电话本 ****************************************************************/
+/*存储容量：40*50=2K*/
 #define		PHONE_NUM_SIZE		16	///电话号码长度
-#define		PHONE_NAME_SIZE		50	///姓名长度
+#define		PHONE_NAME_SIZE		20///50	///姓名长度
 #define		PHONE_ITEM_SIZE		50	///电话号码数目
 
 ///电话号码项
@@ -664,6 +668,7 @@ typedef struct {
 } tPARAM_PHONEBOOK_STORAGE;
 
 /** 圆形区域 ****************************************************************/
+/*存储容量： 24 * 37 < 960B = 1K*/
 #define PARAM_ROUNDAREA_MAXITEMS	24 ////圆形区域最大项数
 /**圆形区域项扩展结构体，存储格式，增加项有效标志*/
 typedef struct {
@@ -685,6 +690,7 @@ typedef struct {
 } tPARAM_ROUNDAREA_STORAGE;
 
 /** 矩形区域 ****************************************************************/
+/*存储容量：37*24 = 960B=1K*/
 #define PARAM_RECTAREA_MAXITEMS	24 ///最大项目条数
 
 /**区域项扩展结构体，存储格式，增加项有效标志*/
@@ -707,11 +713,12 @@ typedef struct {
 } tPARAM_RECTAREA_STORAGE;
 
 /** 多边形区域 **************************************************************/
+/*存储容量：344*24= 1376 + 6880 = 7216 = 7K*/
 #define PARAM_POLYGONAREA_ITEMS_MAX	24 ///最大项目条数
 #define PARAM_POLYGONAREA_POINT_MAX	40 ///多边形定点数
 
 /**项扩展结构体，存储格式，增加项有效标志*/
-typedef struct {
+typedef struct { ///24+ 320 = 344B
 	u8 u8IsValid;	///有效标志，0：无效，1：有效，默认有效；增加此字段是区别该区域是否被删除
 	tItem_PolygonArea tHead;
 	tPOINT points[PARAM_POLYGONAREA_POINT_MAX];	///顶点项
@@ -730,11 +737,12 @@ typedef struct {
 } tPARAM_POLYGONAREA_STORAGE;
 
 /** 路线 **************************************************************/
+/*存储容量：1020*24=24K*/
 #define PARAM_ROUTE_POINT_MAX	40
 #define PARAM_ROUTE_ITEM_MAX	24
 
 /**角点结构体*/
-typedef struct {
+typedef struct { ///25*40+20=1020B
 	u32 u32LineId;		///路线ID
 	u16 u16LineProperty;	///路线属性
 	tBCDTime tBcdStartTime;	///起始时间，若区域属性0位为0则没有该字段

@@ -12,6 +12,8 @@
 
 #include <stm32f2xx_conf.h>
 
+#define DEVKIT1207
+
 /**
  * 板载5V,3.3V电源控制
  */
@@ -189,12 +191,47 @@
 /**
  * 按键IO口
  */
-#define KEY_DET_PIN     			GPIO_Pin_8	///ADC3_IN6#define KEY_DET_GPIO_PORT     		GPIOF
+#ifdef DEVKIT1207 ///使用开发板上的WAKEUP, PA0
+///MENU
+#define KEY_MENU_PIN     			GPIO_Pin_0
+#define KEY_MENU_GPIO_PORT     		GPIOA
+#define KEY_MENU_GPIO_CLK      		RCC_AHB1Periph_GPIOA
+#define KEY_MENU_SOURCE             GPIO_PinSource0
+#define KEY_MENU_EXTI_Port			EXTI_PortSourceGPIOA
+#define KEY_MENU_EXTI_LINE			EXTI_Line0
+///UP
+//使用开发板上的USER1,PG15
+#define KEY_UP_PIN	     			GPIO_Pin_15
+#define KEY_UP_GPIO_PORT     		GPIOG
+#define KEY_UP_GPIO_CLK      		RCC_AHB1Periph_GPIOG
+#define KEY_UP_SOURCE             	GPIO_PinSource15
+#define KEY_UP_EXTI_Port			EXTI_PortSourceGPIOG
+#define KEY_UP_EXTI_LINE			EXTI_Line15
+///使用开发板上的USER2, PC13
+#define KEY_DOWN_PIN	     		GPIO_Pin_13
+#define KEY_DOWN_GPIO_PORT     		GPIOC
+#define KEY_DOWN_GPIO_CLK      		RCC_AHB1Periph_GPIOC
+#define KEY_DOWN_SOURCE             GPIO_PinSource13
+#define KEY_DOWN_EXTI_Port			EXTI_PortSourceGPIOC
+#define KEY_DOWN_EXTI_LINE			EXTI_Line13
+///OK
+///使用开发板上的WAKEUP, PA0
+#define KEY_OK_PIN	     			GPIO_Pin_0
+#define KEY_OK_GPIO_PORT     		GPIOA
+#define KEY_OK_GPIO_CLK      		RCC_AHB1Periph_GPIOA
+#define KEY_OK_SOURCE             	GPIO_PinSource0
+#define KEY_OK_EXTI_Port			EXTI_PortSourceGPIOA
+#define KEY_OK_EXTI_LINE			EXTI_Line0
+#else
+#define KEY_DET_PIN     			GPIO_Pin_8	///ADC3_IN6
+#define KEY_DET_GPIO_PORT     		GPIOF
 #define KEY_DET_GPIO_CLK      		RCC_AHB1Periph_GPIOF
 
 #define PWR_DET_PIN     			GPIO_Pin_9
 #define PWR_DET_GPIO_PORT     		GPIOF
 #define PWR_DET_GPIO_CLK      		RCC_AHB1Periph_GPIOF
+#endif
+
 
 /**
  * LCD屏IO口
@@ -341,7 +378,7 @@
 #define SDIO_CMD_PORT    			GPIOD
 #define SDIO_CMD_CLK     			RCC_AHB1Periph_GPIOD
 
-#define SD_DET_PIN     				GPIO_Pin_10
+#define SD_DET_PIN     				GPIO_Pin_15
 #define SD_DET_GPIO_PORT     		GPIOF
 #define SD_DET_GPIO_CLK      		RCC_AHB1Periph_GPIOF
 

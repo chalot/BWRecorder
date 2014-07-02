@@ -20,6 +20,7 @@ struct ERRDESP {
 static const struct ERRDESP ErrString[] = {
 		{ ERR_COMMAND_NOT_SUPPORT, "command not supported" },
 		{ ERR_PARAM_INVALID,	"param invalid" },
+		{ ERR_CHECKSUM,	"checksum err" },
 		{ ERR_MSG_INVALID, "Host cmd not invalid" },
 		{ ERR_PARAM_DEVICEID_INVALID, "device ID is invalid" },
 		{ ERR_PARAM_PROGRAM_FAILED, "EE2PROM program failed" },
@@ -41,6 +42,8 @@ static const struct ERRDESP ErrString[] = {
 		/**NANDFLASH 错误代码*/
 		{ ERR_NFLASH_RW, "NandFlash R/W error"	}, ///读写错误
 
+		/*3D加速度传感器*/
+		{ ERR_NFLASH_RW, "3D Sensor init failed"	}, ///3D加速度初始化失败
 
 
 

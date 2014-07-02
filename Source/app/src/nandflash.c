@@ -82,6 +82,9 @@ Write_RAM(RAM_BANK_0,K9F1G08U_BAD_BLOCK+i,BadBlockTable[i]); 
 
  */
 
+///使用fsmc_nand.c
+#if 0
+
 //extern	BARRIER			tBarrier;									//电子栅栏
 //extern	MSGTEMPLATE		tMsgTmpl;									//短信模板
 //
@@ -482,6 +485,7 @@ _eERRType NF_RawPageRead(u32 u32Addr, u16 u16Length, u8 *pu8Buf) {
 	GPIO_SetBits(GPIOD, GPIOD_NF_CS);
 
 	return _NO_ERR_;
+
 }
 
 /***********************************************************************************************
@@ -891,4 +895,187 @@ _eERRType NFLASH_BlockCopyChange(u16 u16SourceBlock, u16 u16DestBlock, u8 u8Sour
 
 	return _NO_ERR_;
 }
+#endif
 
+#include <nandflash.h>
+
+static _eERRType NF_CheckErrBlock(u16 u16BlockId);
+
+/**
+ * NANDFLASH逆初始化
+ */
+void NFLASH_LowLevel_DeInit(void) {
+
+}
+
+/**
+ * NANDFLASH初始化
+ */
+void NFLASH_LowLevel_Init(void)
+{
+	FSMC_NAND_Init();
+}
+
+/**
+ * NANDFLASH页读
+ *
+ * @param u16Block
+ * @param u8Page
+ * @param u16Size
+ * @param pData
+ * @return
+ */
+_eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
+{
+	u32 ret;
+	NAND_ADDRESS address;
+	address.Zone = 1;
+	address.Block = u16Block;
+	address.Page = u8Page;
+
+	ret = FSMC_NAND_WriteSmallPage(pData, &address, u16Size);
+	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
+		return _READ_ERR_;
+
+	return _NO_ERR_;
+}
+
+/**
+ * NANDFLASH页写
+ *
+ * @param u16Block
+ * @param u8Page
+ * @param u16Size
+ * @param pData
+ * @return
+ */
+_eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
+{
+	u32 ret;
+	NAND_ADDRESS address;
+	address.Zone = 1;
+	address.Block = u16Block;
+	address.Page = u8Page;
+
+	ret = FSMC_NAND_WriteSmallPage(pData, &address, u16Size);
+	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
+		return _READ_ERR_;
+
+	return _NO_ERR_;
+}
+
+/**
+ * 坏块管理
+ */
+u8 BadBlockTable[128];	///全局NANDFLASH坏块表
+
+/**
+ * 循环检查每个块，构造坏块表，在首次上电时调用一次
+ */
+void NF_ScanErrBlock()
+{
+	u16 i;
+	_eERRType err;
+
+	ZeroMem(BadBlockTable, 128);
+
+	i = 0;
+	while(i < NF_BLOCK_AMOUNT)
+	{
+		err = NF_CheckErrBlock(i);
+		if(_READ_ERR_ == err) {
+			TRACE_(QS_USER, NULL, "[NANDFLASH] Scan blockid = %d, err", i);
+		}
+		else if(_BLOCK_ERR_ == err) {
+			BadBlockTable[i/8] |= (0x01 << (i % 8));
+		}
+		else{
+		}
+		i++;
+	}
+}
+
+/**
+ * 擦除块
+ *
+ * @param u16Block
+ * @return
+ */
+_eERRType NF_EraseBlock(u16 u16Block) {
+	u32 ret;
+	NAND_ADDRESS address;
+	address.Zone = 1;
+	address.Block = u16Block;
+	address.Page = 0;
+
+	ret = FSMC_NAND_EraseBlock(&address);
+	if(ret == NAND_TIMEOUT_ERROR)
+		return _READ_ERR_;
+
+	return _NO_ERR_;
+}
+
+/**
+ * 检查某个块是否坏块
+ *
+ * @param u16BlockId
+ * @return
+ */
+_eERRType NF_CheckErrBlock(u16 u16BlockId)
+{
+/*
+	理解了先天性坏块和后天性坏块后，我们已明白NAND Flash出厂时在spare area中已经反映出了坏块信息，因此，如果在擦除一个块之前，一定要先check一下spare area
+	的第6个byte是否是0xff，如果是就证明这是一个好块，可以擦除；如果是非0xff，那么就不能擦除
+*/
+	u32 ret;
+	u8 spare[6];
+	NAND_ADDRESS address;
+	address.Zone = 1;
+	address.Block = u16BlockId;
+	address.Page = 0;
+
+	ZeroMem(spare, 6);
+
+	ret = FSMC_NAND_ReadSpareArea(spare, &address, 6);
+	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
+		return _READ_ERR_;
+
+	if(spare[5] != 0xFF)
+		return _BLOCK_ERR_;
+
+	return _NO_ERR_;
+}
+
+_eERRType NF_WriteSpareArea(u16 u16Block, u8 u8Page, u8 u8Size, u8 *pData) {
+	u32 ret;
+	NAND_ADDRESS address;
+	address.Zone = 1;
+	address.Block = u16Block;
+	address.Page = u8Page;
+
+	ret = FSMC_NAND_WriteSpareArea(pData, &address, u8Size);
+	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
+		return _WRITE_ERR_;
+
+	return _NO_ERR_;
+}
+
+/**
+ * 从坏块表中判断指定块是否是坏块
+ *
+ * @param u16BlockId
+ * @return
+ */
+BOOL NF_IsErrBlock(u16 u16BlockId)
+{
+	return (1 == BadBlockTable[u16BlockId/8] & (0x01 << (u16BlockId % 8)));
+}
+
+/**
+ * 标记坏块
+ *
+ * @param u16BlockId
+ */
+void NF_MarkErrBlock(u16 u16BlockId) {
+	BadBlockTable[u16BlockId/8] |= (0x01 << (u16BlockId % 8));
+}

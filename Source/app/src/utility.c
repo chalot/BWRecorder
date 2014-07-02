@@ -373,3 +373,22 @@ BOOL CheckCRC(u8 u8CRC, u8 *pData, u16 u16DataLen) {
 
 	return FALSE;
 }
+
+/**
+ * º∆À„“ÏªÚ
+ *
+ * @param pData
+ * @param u16DataLen
+ * @return
+ */
+u8	CalculateXOR(u8* pData, u16 u16DataLen) {
+	u8 u8Checksum = 0;
+	u16 i = 0;
+	while(i < u16DataLen) {
+		u8Checksum ^= *pData++;
+		i++;
+	}
+
+	return u8Checksum;
+}
+

@@ -28,6 +28,7 @@
 #include <stm32f2xx_conf.h>
 #include <qp_port.h>
 #include <key.h>
+#include <type.h>
 
 //#include "ir.h"
 //#include "gps.h"
@@ -298,10 +299,24 @@ void  RCC_IRQHandler(void)
   * @param  None
   * @retval None
   */
-//void EXTI0_IRQHandler(void) __attribute__((__interrupt__));
-//void  EXTI0_IRQHandler(void)
-//{
-//}
+void EXTI0_IRQHandler(void) __attribute__((__interrupt__));
+void  EXTI0_IRQHandler(void)
+{
+	static const QEvent menu_Evt = {KEY_MENU_SIG, 0};
+
+	QK_ISR_ENTRY();
+
+	if(EXTI_GetITStatus(EXTI_Line0) != RESET)
+	{
+		EXTI_ClearITPendingBit(EXTI_Line3);
+
+	    TRACE_(QS_USER, NULL, "[KEY] msg: MENU ");
+	    //广播ACC开电消息
+	    QF_publish(&menu_Evt, NULL);
+	}
+
+	QK_ISR_EXIT();
+}
 
 
 
@@ -768,17 +783,31 @@ void  USART3_IRQHandler(void)
 void EXTI15_10_IRQHandler(void) __attribute__((__interrupt__));
 void  EXTI15_10_IRQHandler(void)
 {
-  if(EXTI_GetITStatus(EXTI_Line1) != RESET)
-  {
-//      ISR_IRReceive();
+	static const QEvent up_Evt = {KEY_UP_SIG, 0};
+	static const QEvent down_Evt = {KEY_DOWN_SIG, 0};
 
-      EXTI_ClearITPendingBit(EXTI_Line1);
-  }
+	QK_ISR_ENTRY();
 
+	if(EXTI_GetITStatus(EXTI_Line15) != RESET)
+	{
+		EXTI_ClearITPendingBit(EXTI_Line15);
 
+	    TRACE_(QS_USER, NULL, "[KEY] msg: UP ");
+
+	    QF_publish(&up_Evt, NULL);
+	}
+
+	if(EXTI_GetITStatus(EXTI_Line13) != RESET)
+	{
+	  EXTI_ClearITPendingBit(EXTI_Line13);
+
+	    TRACE_(QS_USER, NULL, "[KEY] msg: DOWN ");
+
+	    QF_publish(&down_Evt, NULL);
+	}
+
+	QK_ISR_EXIT();
 }
-
-
 
 /**
   * @brief  RTC_Alarm_IRQHandler
@@ -904,8 +933,8 @@ void  FSMC_IRQHandler(void)
 void SDIO_IRQHandler(void) __attribute__((__interrupt__));
 void SDIO_IRQHandler(void)
 {
-  /* Process All SDIO Interrupt Sources */
-//  SD_ProcessIRQSrc();
+	/* Process All SDIO Interrupt Sources */
+	SD_ProcessIRQSrc();
 }
 
 

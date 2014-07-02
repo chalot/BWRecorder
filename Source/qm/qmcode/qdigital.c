@@ -14,7 +14,7 @@
 * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 * for more details.
 *****************************************************************************/
-/* @(/3/19) ................................................................*/
+/* @(/3/18) ................................................................*/
 #include "qp_port.h"
 #include "qevents.h"
 #include "bsp.h"
@@ -45,7 +45,7 @@ static QDigital l_QDigital; /* the single instance of the Table active object */
 QActive * const AO_Digital = &l_QDigital.super; /* "opaque" AO pointer */
 
 /*..........................................................................*/
-/* @(/1/40) ................................................................*/
+/* @(/1/39) ................................................................*/
 void QDigital_ctor(void) {
     QDigital *me = &l_QDigital;
     QActive_ctor(&me->super, Q_STATE_CAST(&QDigital_initial));
