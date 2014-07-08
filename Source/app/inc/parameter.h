@@ -622,7 +622,7 @@ typedef struct {
 typedef struct {
 	u8 u8InfoType;			///信息类型
 	u16 u16InfoNameLen;		///信息名称长度
-	u8 aInfoName[50];		///信息名称
+	u8 aInfoName[MSGOD_MSG_MSG_SIZE];		///信息名称
 } tMSGODITEM;
 
 ///点播信息存储头
@@ -772,7 +772,7 @@ typedef struct {
 /** 驾驶员信息 **********************************************************************/
 ///车辆对应的驾驶员信息
 typedef struct {
-	u8 au8DriverId[8];			///驾驶员代码，从IC卡中读取，或者从平下发命令
+	u8 au8DriverId[8];			///驾驶员代码，从IC卡中读取，或者从平台下发命令
 	u8 u8DriverNameLength;		///驾驶员姓名长度
 	u8 au8DriveName[20];		///驾驶员姓名
 	u8 au8DriverIdCode[20];		///驾驶员身份证编码

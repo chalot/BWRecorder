@@ -33,6 +33,12 @@ static const struct ERRDESP ErrString[] = {
 		{ ERR_SD_WRITE, "SD card can not write to" },
 		{ ERR_SD_FILENOTEXISTED, "the file you read does not existed" },
 		{ ERR_SD_FILECREATEFAILED, "the file can not be created" },
+/*¼ÇÂ¼ÒÇ*/
+		{ ERR_VDR_FILE_NOTEXIST, "no log file matched seek condition" },
+		{ ERR_VDR_FILE_SEEK, "file seek failed" },
+
+
+
 /*EEPROM ´íÎó´úÂë*/
 		{ ERR_EEPROM_INITFAILED, "EEPROM Init failed" },	///³õÊ¼»¯Ê§°Ü
 		{ ERR_EEPROM_RW, "EEPROM R/W error" }, ///¶ÁÐ´´íÎó

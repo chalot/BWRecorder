@@ -18,7 +18,20 @@
 
 #pragma pack(1)
 
-typedef enum{ CAN = 0,	GPS = 1, } eSTORAGECLASS;
+
+typedef enum{
+	eLOG_Speed = 0,
+	eLOG_Accident, //事故疑点
+	eLOG_OvertimeDrive, // 超时驾驶
+	eLOG_PositionInfo, //位置信息
+	eLOG_DriverInfo, //驾驶人身份
+	eLOG_Distance, //里程
+	eLOG_InstallParam, //安装参数记录
+	eLOG_Power, //外部供电记录
+	eLOG_ParamChange, //参数修改记录
+	eLOG_SpeedState, //速度状态日志
+
+} eLOGCLASS;
 
 #if 0
 
@@ -82,14 +95,19 @@ typedef union _DUMPRECORD
 /*查询会话*/
 typedef struct _QSESSION
 {
-	u8	id;			//查询索引号，循环递增，用于区别是否是当前查询
-	FIL	file;  	//文件句柄
-	char fn_cur[20];	//当前查询文件名
-	char fn_end[20];//最后一条记录所在文件名
-	u32	offset; 	//记录偏离位置
-	TIME t_start;		//开始时间
-	TIME t_cur;		//当前查找时间
-	TIME t_end;		//结束时间
+	u8 		u8SessionType;	///查询类型
+	u8		id;				//查询索引号，循环递增，用于区别是否是当前查询
+	FIL		file;  			//打开文件句柄
+	char 	fn_Start[20];	//第一条记录所在文件名
+	u32 	u32Offset_Start;///第一条记录在文件中的偏移量
+	char 	fn_End[20];		//最后一条记录所在文件名
+	u32 	u32Offset_End;	///最后一条记录在文件中的偏移量
+	char 	fn_Cur[20];		//当前打开文件名
+	u32		u32Offset_Cur; 	//当前读取偏离位置
+	TIME 	t_Start;		//查询参数开始时间
+	TIME 	t_End;			//查询参数结束时间
+	TIME 	t_Cur;			//当前查找时间
+	u8 		bAllBlocksFinishedReadout;///所有数据读取完毕标志
 
 } T_QSESSION;
 
@@ -124,7 +142,7 @@ int SDCard_Init();
  * 			rId				[in]	有效查询索引号
  * @Ret		0=成功；否则失败，返回错误代码（RC）
   */
-int SD_StartNewQuery(eSTORAGECLASS class, TIME *tick_Begin, TIME *tick_End/*, u8 *rId*/);
+int SD_StartNewQuery(eLOGCLASS class, TIME *tick_Begin, TIME *tick_End/*, u8 *rId*/);
 
 /**
  * @Func 	读取帧块数据，根据查询索引ID来唯一确定查询请求，可能对同一索引ID执行多次查询请求，这发生
@@ -134,7 +152,7 @@ int SD_StartNewQuery(eSTORAGECLASS class, TIME *tick_Begin, TIME *tick_End/*, u8
  * 			u16MsgBufSize	[in]	接收缓区长度
  * @Ret		u16，实际读取字节数，=0说明读取结束
  */
-u16 SD_RetrieveFrameBlock(eSTORAGECLASS class, u8 *pMsgBuf, u16 u16MsgBufSize);
+u16 SD_RetrieveFrameBlock(eLOGCLASS class, u8 *pMsgBuf, u16 u16MsgBufSize);
 
 /**
  * @Func	通知车辆启动或开始充电状态，依据协议要求，视为开始一个新的驾驶循环或充电循环，

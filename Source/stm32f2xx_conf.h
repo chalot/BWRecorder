@@ -43,7 +43,7 @@
 #include "stm32f2xx_rcc.h"
 /* #include "stm32f2xx_rng.h" */
 #include "stm32f2xx_rtc.h"
-//#include "stm32f2xx_sdio.h"
+#include "stm32f2xx_sdio.h"
 #include "stm32f2xx_spi.h"
 #include "stm32f2xx_syscfg.h"
 #include "stm32f2xx_tim.h"

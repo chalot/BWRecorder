@@ -38,6 +38,10 @@ enum ErrCode {
 	ERR_SD_FILENOTEXISTED,
 	ERR_SD_FILECREATEFAILED,
 
+	/*¼ÇÂ¼ÒÇ*/
+	ERR_VDR_FILE_NOTEXIST,
+	ERR_VDR_FILE_SEEK,
+
 	/**
 	 * EEPROM ´íÎó´úÂë
 	 */

@@ -366,39 +366,45 @@ typedef enum {
 	VDR_PARAM_END,
 } eVDRPARAM;
 
-
+///车辆信息参数
 typedef struct {
 	tCARINFO 	tCarInfo;
 	u8 			u8CRC;
 }tCARINFO_ST;
 
+///记录仪时间参数
 typedef struct {
 	tTIME 	time;
 	u8 		u8CRC;
 }tTIME_ST;
 
+///状态配置参数
 typedef struct {
 	tSTATECONFIG 	tStateConf;
 	u8 				u8CRC;
 }tSTATECONFIG_ST;
 
+///脉冲系数参数
 typedef struct {
 	tPULSE		tPulse;
 	u8 			u8CRC;
 }tPULSE_ST;
 
+///初始里程参数
 typedef struct {
 	tINITDISTANCE 	tInitDist;
 	u8 				u8CRC;
 }tINITDISTANCE_ST;
 
+///驾照号码参数
 typedef struct {
-	u8 aLicense[18];	///驾驶证号码
+	u8 aLicense[18];
 	u8 u8CRC;
 }tLICENSE_ST;
 
+///记录仪唯一ID参数
 typedef struct {
-	tVDRID 	tID;		///记录仪唯一ID
+	tVDRID 	tID;
 	u8 		u8CRC;
 }tUNIQID_ST;
 
@@ -412,7 +418,7 @@ typedef struct {
 	tSTATECONFIG_ST 	tStateConf_St;		///状态量配置信息  表A.13
 	tTIME_ST 			tRTC_St;		///记录仪时间 表A.8
 	tPULSE_ST			tPulse_St;			///脉冲系数	 表A.10
-	tINITDISTANCE_ST	tInitDist_St;		///起始里程  表A.9
+	tINITDISTANCE_ST	tInitDist_St;		///里程  表A.9
 	tLICENSE_ST			tLicense_St;	///驾驶证号码
 	tUNIQID_ST			tID_St;			///记录仪唯一ID
 
@@ -431,7 +437,7 @@ typedef struct {
 #define FRAM_ADDR_VDR_PARAM_ID			(FRAM_ADDR_VDR_PARAM_LICENSE + sizeof(tLICENSE_ST))
 
 /**
- * 参数读写
+ * 参数读写接口
  */
 int VDR_SaveParam(eVDRPARAM eParam, u8 *pBuf, u16 u16Len);
 int VDR_LoadParam(void);
@@ -490,78 +496,117 @@ typedef struct {
 } tSPEEDLOGHEAD;
 #endif
 
+/**--------------------------------------------------------------------------------------------------
+ * 记录仪外部存储器记录数据
+ *-------------------------------------------------------------------------------------------------*/
+
+/*记录类型*/
+typedef enum {
+	RECORD_SPEED = 0,	///行驶速度记录
+	RECORD_ACCIDENT,	///事故疑点记录
+	RECORD_OVERTIMEDRIVING,	///超时驾驶记录
+	RECORD_POS,		///位置信息记录
+	RECORD_DRIVERLOG,	///驾驶人信息记录
+	RECORD_POWER,		///外部供电记录
+	RECORD_PARAMCHANGE,	///参数修改记录
+	RECORD_SPEEDSTATUS,	///速度状态记录
+
+	RECORD_END,
+} eRECORD;
+
 /**
  *  行驶速度记录，1s间隔持续记录并存储行驶状态，包括时间，平均速度，状态，不少于最近48小时
+ *  存储路径： 				/——speed
+ *  						 |——— 年_月_日_时1
+ *  						 |——— 年_月_日_时2
+ *  写周期：一分钟，126B
+ *  存储数据结构：
+ *  tSPEEDLOGITEM_1		x x x x x x | d d | d d |... | d d
+ *  					年 月  日     时  分   秒   | 1s  | 2s  |    | 60s
+ *  tSPEEDLOGITEM_2
+ *
+ * 	文件创建单位：以小时计，每小时创建一个新文件
+ *	系统中保存最近48个文件。
+ *	超过48小时的文件将自动删除
  */
+
 /*速度信息上传结构体*/
 typedef struct {
 	u8 u8AvgSPeed;	///平均速度
 	u8 u8State;		///状态
-} tSPEEDLOGPERSEC;
+} tSPEEDPERSEC;
 
+/*速度记录格式*/
 typedef struct {
 	tTIME time_Start; ///秒=0
-	tSPEEDLOGPERSEC tSpeed[60];
-} tSPEEDLOGITEM;
+	tSPEEDPERSEC tSpeed[60];
+} tRECORD_SPEED;
 
-void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog);
+void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDPERSEC *pSpeedLog);
 int VDR_Log_LocateSpeedInfo(tTIME *pTime_Begin, tTIME *pTime_End);
 int VDR_Log_ReadSpeedInfo(u8 *pBuf);
 
 
 /**
- * 事故疑点记录，0.2秒间隔，持续记录20s，不少于100条
- * 情况1:行驶时，外部供电断开；
- * 情况2：行驶时，位置10s内无变化
+ * 事故疑点记录格式，0.2秒间隔，持续记录20s，不少于100条
+ * 判断条件：在行驶状态下，发生如下两种情况时开始记录
+ * 情况1:外部供电断开；
+ * 情况2：位置10s内无变化
  * 存储容量： 234B*100 = 23400B=23K
  */
-
+#define tRECORD_ACCIDENT	tACK_ACCIDENT
 
 /**
- * 超时驾驶记录，不少于100条
+ * 超时驾驶记录格式，不少于100条
  * 存储容量：50B*100 =5000B=5K
  */
+typedef struct {
+	tTIME	time;	///附加的时间，方便检索，实际上传数据要去除
+	tACK_OVERTIMEDRIVING	tInfo;
+} tRECORD_OVERTIMEDRIVING;
+
 
 /**
- * 位置信息记录，1min间隔，360小时
+ * 位置信息记录格式，1min间隔，360小时
  */
-typedef struct {
-	tTIME	time_End;
-	tPOSITION	tPos_Begin;
-	u8 u8AvgSPeed;	///平均速度
-	u8 u8State;		///状态
-} tPOSLOGINFO;
+#define tRECORD_POS		tACK_POS
 
 
 /**
  * 驾驶人身份记录，不小于200条
  * 存储容量：25B*200=5000B=5K
  */
+#define tRECORD_DRIVERLOG	tACK_DRIVERLOG
 
 /**
  * 里程记录
  */
+//存储容量：4B
+#define tRECORD_DIST	u32
 
 /**
  * 安装参数记录
  */
+#define tRECORD_INSTALLPARAM	NULL
 
 /*--------- 日志记录 -------------*/
 /**
  * 外部供电记录，不少于100条
  * 存储容量：7B*100=700B=1K
- *
  */
+#define tRECORD_POWER	tACK_POWER
 
 /**
  * 参数修改记录，不少于100条
  * 存储容量：7B*100=700B=1K
  */
+#define tRECORD_PARAMCHANGE		tACK_PARAMCHANGE
 
 /**
  * 速度状态日志，从开始时间连续60s，不少于10条
  * 存储容量：133B*10=1330B=13K
  */
+#define tRECORD_SPEEDSTATUS		tACK_SPEEDSTATUS
 
 
 #pragma 	pack()
