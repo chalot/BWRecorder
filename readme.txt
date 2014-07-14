@@ -15,3 +15,6 @@ eclipse + GNU + Zylin + JLink
 Quantum Leaps qpc_5.1.1
 
 车台设置IP：59.61.82.170，TCP端口：9010，UDP端口：3100  
+
+【Git库】
+https://github.com/chalot/BWRecorder.git

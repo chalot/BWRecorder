@@ -174,7 +174,6 @@ void BSP_init(void) {
 
 	Periph_Lowlevel_Init();	///所有外设初始化
 
-
 	EXTI_Configuration();
 
 	NVIC_Configuration();
@@ -437,5 +436,43 @@ u8 GetACCState()
 void SetACCState(u8 state)
 {
 	acc_state = state;
+}
+
+
+static tTIME rtc;
+
+/**
+ * 取RTC时间
+ *
+ * @param pTime
+ */
+void RTC_Get(TIME *pTime) {
+	pTime->year = rtc.u8Year;
+	pTime->month = rtc.u8Month;
+	pTime->day = rtc.u8Day;
+	pTime->hour = rtc.u8Hour;
+	pTime->minute = rtc.u8Minute;
+	pTime->second = rtc.u8Second;
+}
+
+/**
+ * 设置RTC时间
+ *
+ * @param pTime
+ */
+void RTC_Set(TIME *pTime) {
+	rtc.u8Year =pTime->year;
+	rtc.u8Month = pTime->month;
+	rtc.u8Day = pTime->day;
+	rtc.u8Hour = pTime->hour;
+	rtc.u8Minute = pTime->minute;
+	rtc.u8Second = pTime->second;
+}
+
+/**
+ * 更新RTC，周期1秒
+ */
+void RTC_Update() {
+
 }
 

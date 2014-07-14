@@ -33,6 +33,17 @@ static const struct ERRDESP ErrString[] = {
 		{ ERR_SD_WRITE, "SD card can not write to" },
 		{ ERR_SD_FILENOTEXISTED, "the file you read does not existed" },
 		{ ERR_SD_FILECREATEFAILED, "the file can not be created" },
+		{ ERR_SD_FILEISEMPTY, "the file is empty" },
+
+
+/*USBÉè±¸*/
+		{ ERR_USB_NODEVICE, "USB device not found." },
+		{ ERR_USB_INIT, "USB device init failed." },
+		{ ERR_USB_READ,	"USB device read error." },
+		{ ERR_USB_WRITE, "USB device write error." },
+		{ ERR_USB_FILECREATEFAILED, "USB device file can not be created" },
+
+
 /*¼ÇÂ¼ÒÇ*/
 		{ ERR_VDR_FILE_NOTEXIST, "no log file matched seek condition" },
 		{ ERR_VDR_FILE_SEEK, "file seek failed" },

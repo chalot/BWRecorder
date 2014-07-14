@@ -92,18 +92,27 @@ typedef union _DUMPRECORD
 	uint8_t eGPS[sizeof(T_GPS_DUMPRECORD)];
 }T_DUMPRECORD;
 
+#define SESSION_FILE_LEN	7		///会话中的文件长度，格式：年_月_日
+#define SESSION_FILELIST_LEN	100	///会话中的文件列表总数
+
 /*查询会话*/
 typedef struct _QSESSION
 {
+	u8		IsActive;		///是否活动状态，1=被占用，0=空闲
 	u8 		u8SessionType;	///查询类型
 	u8		id;				//查询索引号，循环递增，用于区别是否是当前查询
 	FIL		file;  			//打开文件句柄
-	char 	fn_Start[20];	//第一条记录所在文件名
+//	char 	fn_Start[SESSION_FILE_LEN];	//第一条记录所在文件名
 	u32 	u32Offset_Start;///第一条记录在文件中的偏移量
-	char 	fn_End[20];		//最后一条记录所在文件名
+//	char 	fn_End[SESSION_FILE_LEN];		//最后一条记录所在文件名
 	u32 	u32Offset_End;	///最后一条记录在文件中的偏移量
-	char 	fn_Cur[20];		//当前打开文件名
+//	char 	fn_Cur[SESSION_FILE_LEN];		//当前打开文件名
 	u32		u32Offset_Cur; 	//当前读取偏离位置
+	char 	aFileList[100][7];	///符合搜索条件的文件列表
+	u8		u8FileAmt;		///文件总数
+	u8		u8FileStart;		///第一条记录文件在文件列表中的索引号
+	u8		u8FileEnd;			///最后一条记录文件在文件列表中的索引号
+	u8		u8FileCur;		///当前打开文件在文件列表中的索引号
 	TIME 	t_Start;		//查询参数开始时间
 	TIME 	t_End;			//查询参数结束时间
 	TIME 	t_Cur;			//当前查找时间

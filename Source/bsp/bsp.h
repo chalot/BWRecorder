@@ -105,7 +105,9 @@ u32 GetCurTicks();
 /**当前时刻清零*/
 void ResetCurTicks();
 
-
+void RTC_Get(TIME *pTime);
+void RTC_Set(TIME *pTime);
+void RTC_Update();
 
 #endif                                                                // bsp_h
 
