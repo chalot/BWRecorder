@@ -193,7 +193,7 @@ static u16 Protocol_GetPositionInfo(u8 *pBuf);
 /*********************************************************************************/
 
 static u16 __inline__ GET_TCTRL_SEGMENT(u8 *msg, u8 *param) {
-	u8 len = get_next_segment(msg, param);
+	u8 len = get_next_segment((char*)msg, (char*)param);
 	param[len] = '\0';
 	return len + 1;
 }
@@ -466,49 +466,49 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			u8 seg_len = 0;
 
 			//URL地址
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sURL);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sURL);
 			pMsgBlock++; ///跳过';'
 
 			//拨号点名称
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sPPP_name);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sPPP_name);
 			pMsgBlock++; ///跳过';'
 
 			//拨号用户名;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sPPP_user);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sPPP_user);
 			pMsgBlock++; ///跳过';'
 
 			//拨号密码;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sPPP_password);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sPPP_password);
 			pMsgBlock++; ///跳过';'
 
 			//地址;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sIP);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sIP);
 			pMsgBlock++; ///跳过';'
 
 			//TCP 端口;
-			seg_len = get_next_segment(pMsgBlock, seg_buf);
+			seg_len = get_next_segment(pMsgBlock, (u8*)seg_buf);
 			if (seg_len > 0) {
 				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16TCP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
 			//UDP 端口;
-			seg_len = get_next_segment(pMsgBlock, seg_buf);
+			seg_len = get_next_segment(pMsgBlock, (u8*)seg_buf);
 			if (seg_len > 0) {
 				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16UDP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
 			//制造商ID;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sManufacture_ID);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sManufacture_ID);
 			pMsgBlock++; ///跳过';'
 
 			//硬件版本;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sHardware_Version);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sHardware_Version);
 			pMsgBlock++; ///跳过';'
 
 			//固件版本;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sFirmware_Version);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sFirmware_Version);
 			pMsgBlock++; ///跳过';'
 
 			//连接到指定服务器时限
@@ -545,7 +545,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			u8 ctrl = *pMsgBlock++;
 			Q_ASSERT((ctrl == 0) || (ctrl == 1)); ///连接控制
 
-			/**		0：切换到指定监管平台服务器，连接到该服务器后即进入应急状态，
+			/**	0：切换到指定监管平台服务器，连接到该服务器后即进入应急状态，
 			 此状态下仅有下发控制指令的监管平台可发送包括短信在内的控制指令
 			 1：切换回原缺省监控平台服务器，并恢复正常状态
 			 */
@@ -563,11 +563,11 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			pMsgBlock++; ///跳过';'
 
 			//拨号点名称;
-			GET_TCTRL_SEGMENT((char*) pMsgBlock, ptParam_Runtime->sPPP_name);
+			GET_TCTRL_SEGMENT((char*) pMsgBlock, (u8*)ptParam_Runtime->sPPP_name);
 			pMsgBlock++; ///跳过';'
 
 			//拨号用户名;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sPPP_user);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sPPP_user);
 			pMsgBlock++; ///跳过';'
 
 			//拨号密码;
@@ -575,18 +575,18 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 			pMsgBlock++; ///跳过';'
 
 			//地址;
-			GET_TCTRL_SEGMENT(pMsgBlock, ptParam_Runtime->sIP);
+			GET_TCTRL_SEGMENT(pMsgBlock, (u8*)ptParam_Runtime->sIP);
 			pMsgBlock++; ///跳过';'
 
 			//TCP 端口;
-			seg_len = get_next_segment(pMsgBlock, seg_buf);
+			seg_len = get_next_segment((char*)pMsgBlock, (char*)seg_buf);
 			if (seg_len > 0) {
 				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16TCP_port);
 			}
 			pMsgBlock++; ///跳过';'
 
 			//UDP 端口;
-			seg_len = get_next_segment(pMsgBlock, seg_buf);
+			seg_len = get_next_segment((char*)pMsgBlock, (char*)seg_buf);
 			if (seg_len > 0) {
 				CONVERT_STRING_2_U16(seg_buf, seg_len, &ptParam_Runtime->u16UDP_port);
 			}
@@ -1032,7 +1032,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 				pItemMsg = pMsgBlock;
 
 				///加入事件项
-				iRet = PARAM_FormatMsg_ApendItem(PARAM_MSGODMENU, u8ItemId, u8ItemLen, pItemMsg);
+				iRet = PARAM_FormatMsg_ApendItem(PARAM_MSGODMENU, u8ItemLen, pItemMsg);
 				ERROR_HANDLE(iRet);
 
 				TRACE_(QS_USER, NULL, "Append ITEM[%d] info: id[%x], Len[%d], Msg[%s]", i, u8ItemId, u8ItemLen,
@@ -1089,8 +1089,8 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 	case MSGID_S_InfoService:				//0x8304
 	{
 		u16 u16ItemLen = 0;
-		T_SCMD_InfoService *pInfo;
-		pInfo = (T_SCMD_InfoService *) pMsgBlock;
+		tMsg_SCMD_InfoService *pInfo;
+		pInfo = (tMsg_SCMD_InfoService *) pMsgBlock;
 
 		ENDIAN_U16(pInfo->u16InfoTotalLength);
 		u16ItemLen = pInfo->u16InfoTotalLength + 2;
@@ -1109,10 +1109,10 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		//电话回拨
 	case MSGID_S_Redial:					//0x8400
 	{
-		T_SCMD_ReverseDial *pDial;
+		tMsg_SCMD_ReverseDial *pDial;
 		DialEvt *pe;
 
-		pDial = (T_SCMD_ReverseDial *) pMsgBlock;
+		pDial = (tMsg_SCMD_ReverseDial *) pMsgBlock;
 		pMsgBlock++;
 
 		TRACE_(QS_USER, NULL, "@CMD id[ %x - MSGID_S_Redial], type[%d], phone[%s]", MSGID_S_Redial,
@@ -1363,7 +1363,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_ROUND);
+//		PARAM_Area_Save(PARAM_AREA_ROUND);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1389,7 +1389,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_ROUND);
+//		PARAM_Area_Save(PARAM_AREA_ROUND);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1480,7 +1480,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_RECTANGLE);
+//		PARAM_Area_Save(PARAM_AREA_RECTANGLE);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1506,7 +1506,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_RECTANGLE);
+//		PARAM_Area_Save(PARAM_AREA_RECTANGLE);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1544,7 +1544,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		ERROR_HANDLE(iRet);
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_POLYGON);
+//		PARAM_Area_Save(PARAM_AREA_POLYGON);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1570,7 +1570,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_POLYGON);
+//		PARAM_Area_Save(PARAM_AREA_POLYGON);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1612,7 +1612,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		ERROR_HANDLE(iRet);
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_ROUTE);
+//		PARAM_Area_Save(PARAM_AREA_ROUTE);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -1638,7 +1638,7 @@ void Protocol_TCPIPData_Process(u8 *pMsg, u16 msgLen) {
 		}
 
 		///写EEPROM
-		PARAM_Area_Save(PARAM_AREA_ROUTE);
+//		PARAM_Area_Save(PARAM_AREA_ROUTE);
 
 		///回传普通成功应答消息
 		Protocol_T_SendGeneralAck(pHead->u16MsgId, pHead->u16MsgCircularId, 0);
@@ -2187,11 +2187,11 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 		memcpy_(pProperty->class, ptParam_Device->aType, 20);	///终端型号 此终端型号由制造商自行定义，位数不足时，后补“0X00”。
 		memcpy_(pProperty->tid, ptParam_Device->aTId, 7);	///终端ID 由大写字母和数字组成，此终端ID 由制造商自行定义，位数不足时，后补“0X00”。
 		memcpy_(pProperty->ICCID, ptParam_Runtime->ICCID, 10);	///终端SIM 卡ICCID BCD[10] 终端SIM 卡ICCID 号
-		pProperty->ver_hardware_len = strlen_(ptParam_Device->ver_hardware);	///终端硬件版本号长度
+		pProperty->ver_hardware_len = strlen_((char*)ptParam_Device->ver_hardware);	///终端硬件版本号长度
 		pCursor += 42;
 		memcpy_(pCursor, ptParam_Device->ver_hardware, pProperty->ver_hardware_len);///终端硬件版本号 STRING
 		pCursor += pProperty->ver_hardware_len;
-		*pCursor++ = strlen_(ptParam_Device->ver_software);	///终端软件版本号长度
+		*pCursor++ = strlen_((char*)ptParam_Device->ver_software);	///终端软件版本号长度
 		memcpy_(pCursor, ptParam_Device->ver_software, pProperty->ver_software_len);///终端软件版本号 STRING
 		pCursor++;
 		*pCursor++ = ptParam_Device->tGNSSModuleProperty; ///GNSS 模块属性 BYTE
@@ -2428,13 +2428,13 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 	memcpy_(pCursor, ptParam_Runtime->tDriverInfo.aDriverName,
 			ptParam_Runtime->tDriverInfo.u8DriverNameLen);
 	pCursor += ptParam_Runtime->tDriverInfo.u8DriverNameLen;
-	memcpy_(pCursor, ptParam_Runtime.tDriverInfo.aQulCode, 20);///从业资格证编码
+	memcpy_(pCursor, ptParam_Runtime->tDriverInfo.aQulCode, 20);///从业资格证编码
 	pCursor += 20;
-	*pCursor++ = ptParam_Runtime.tDriverInfo.u8GovNameLength;///发证机构名称长度
-	memcpy_(pCursor, ptParam_Runtime.tDriverInfo.aGovName,
-			ptParam_Runtime.tDriverInfo.u8GovNameLength);///发证机构名称
-	pCursor += ptParam_Runtime.tDriverInfo.u8GovNameLength;
-	memcpy_(pCursor, ptParam_Runtime.tDriverInfo.LicieceValidation, 4);
+	*pCursor++ = ptParam_Runtime->tDriverInfo.u8GovNameLength;///发证机构名称长度
+	memcpy_(pCursor, ptParam_Runtime->tDriverInfo.aGovName,
+			ptParam_Runtime->tDriverInfo.u8GovNameLength);///发证机构名称
+	pCursor += ptParam_Runtime->tDriverInfo.u8GovNameLength;
+	memcpy_(pCursor, ptParam_Runtime->tDriverInfo.LicieceValidation, 4);
 	pCursor += 4;
 #endif
 	}
@@ -2444,8 +2444,7 @@ u16 Protocol_FormRawFrame(TaskEvt *pTaskEvt, u8 *pBuf, u16 bufSize) {
 		//定位数据批量上传
 	case MSGID_T_PositionInfoBatchRpt:			//0x0704
 	{
-		tMsg_T_PositionInfoBatchRpt *pMsg = (tMsg_T_PositionInfoBatchRpt *)pCursor;
-		pMsg->u8Type
+//		tMsg_T_PositionInfoBatchRpt *pMsg = (tMsg_T_PositionInfoBatchRpt *)pCursor;
 	}
 		break;
 

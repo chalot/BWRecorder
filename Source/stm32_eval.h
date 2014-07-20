@@ -23,6 +23,11 @@
 #ifndef __STM32_EVAL_H
 #define __STM32_EVAL_H
 
+#define COM1  	0
+#define COM2 	1
+
+
+
 #ifdef __cplusplus
  extern "C" {
 #endif 
@@ -108,6 +113,7 @@ typedef enum
   BUTTON_MODE_EXTI = 1
 } ButtonMode_TypeDef;
 
+
 typedef enum 
 { 
   JOY_NONE = 0,
@@ -116,14 +122,17 @@ typedef enum
   JOY_LEFT = 3,
   JOY_RIGHT = 4,
   JOY_UP = 5
-} JOYState_TypeDef
-;
-
+} JOYState_TypeDef;
+#if 0
 typedef enum 
 {
   COM1 = 0,
   COM2 = 1
 } COM_TypeDef;   
+
+
+
+
 /**
   * @}
   */ 
@@ -210,10 +219,12 @@ typedef enum
 /**
   * @}
   */ 
+#endif
 
 #ifdef __cplusplus
 }
 #endif
+
 
 
 #endif /* __STM32_EVAL_H */

@@ -927,6 +927,7 @@ void NFLASH_LowLevel_Init(void)
  */
 _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
 {
+#if 0
 	u32 ret;
 	NAND_ADDRESS address;
 	address.Zone = 1;
@@ -936,7 +937,7 @@ _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
 	ret = FSMC_NAND_WriteSmallPage(pData, &address, u16Size);
 	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
 		return _READ_ERR_;
-
+#endif
 	return _NO_ERR_;
 }
 
@@ -951,6 +952,7 @@ _eERRType NF_PageRead(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
  */
 _eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
 {
+#if 0
 	u32 ret;
 	NAND_ADDRESS address;
 	address.Zone = 1;
@@ -960,6 +962,7 @@ _eERRType NF_PageWrite(u16 u16Block, u8 u8Page, u16 u16Size, u8* pData)
 	ret = FSMC_NAND_WriteSmallPage(pData, &address, u16Size);
 	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
 		return _READ_ERR_;
+#endif
 
 	return _NO_ERR_;
 }
@@ -974,6 +977,7 @@ u8 BadBlockTable[128];	///全局NANDFLASH坏块表
  */
 void NF_ScanErrBlock()
 {
+#if 0
 	u16 i;
 	_eERRType err;
 
@@ -993,6 +997,8 @@ void NF_ScanErrBlock()
 		}
 		i++;
 	}
+
+#endif
 }
 
 /**
@@ -1002,6 +1008,7 @@ void NF_ScanErrBlock()
  * @return
  */
 _eERRType NF_EraseBlock(u16 u16Block) {
+#if 0
 	u32 ret;
 	NAND_ADDRESS address;
 	address.Zone = 1;
@@ -1011,6 +1018,7 @@ _eERRType NF_EraseBlock(u16 u16Block) {
 	ret = FSMC_NAND_EraseBlock(&address);
 	if(ret == NAND_TIMEOUT_ERROR)
 		return _READ_ERR_;
+#endif
 
 	return _NO_ERR_;
 }
@@ -1023,6 +1031,7 @@ _eERRType NF_EraseBlock(u16 u16Block) {
  */
 _eERRType NF_CheckErrBlock(u16 u16BlockId)
 {
+#if 0
 /*
 	理解了先天性坏块和后天性坏块后，我们已明白NAND Flash出厂时在spare area中已经反映出了坏块信息，因此，如果在擦除一个块之前，一定要先check一下spare area
 	的第6个byte是否是0xff，如果是就证明这是一个好块，可以擦除；如果是非0xff，那么就不能擦除
@@ -1042,11 +1051,12 @@ _eERRType NF_CheckErrBlock(u16 u16BlockId)
 
 	if(spare[5] != 0xFF)
 		return _BLOCK_ERR_;
-
+#endif
 	return _NO_ERR_;
 }
 
 _eERRType NF_WriteSpareArea(u16 u16Block, u8 u8Page, u8 u8Size, u8 *pData) {
+#if 0
 	u32 ret;
 	NAND_ADDRESS address;
 	address.Zone = 1;
@@ -1056,7 +1066,7 @@ _eERRType NF_WriteSpareArea(u16 u16Block, u8 u8Page, u8 u8Size, u8 *pData) {
 	ret = FSMC_NAND_WriteSpareArea(pData, &address, u8Size);
 	if((ret == NAND_TIMEOUT_ERROR) || (ret == NAND_INVALID_ADDRESS))
 		return _WRITE_ERR_;
-
+#endif
 	return _NO_ERR_;
 }
 
@@ -1068,7 +1078,10 @@ _eERRType NF_WriteSpareArea(u16 u16Block, u8 u8Page, u8 u8Size, u8 *pData) {
  */
 BOOL NF_IsErrBlock(u16 u16BlockId)
 {
+#if 0
 	return (1 == BadBlockTable[u16BlockId/8] & (0x01 << (u16BlockId % 8)));
+#endif
+	return FALSE;
 }
 
 /**

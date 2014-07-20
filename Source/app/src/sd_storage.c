@@ -157,6 +157,10 @@
 #include "trace.h"
 #include <qp_port.h>
 #include <vdr.h>
+#include <error.h>
+#include <qevents.h>
+#include <parameter.h>
+#include <systimer.h>
 
 Q_DEFINE_THIS_MODULE("sd_storage.c")
 
@@ -174,25 +178,24 @@ static const char* Dir[] = {
 		"SpeedState",  		///速度状态日志
 };
 
-static const u16 RECORD_SIZE[] = {
-		sizeof(tRECORD_SPEED),
-		sizeof(tRECORD_ACCIDENT),
-		sizeof(tRECORD_OVERTIMEDRIVING),
-		sizeof(tRECORD_POS),
-		sizeof(tRECORD_DRIVERLOG),
-		sizeof(tRECORD_DIST),
-		sizeof(tRECORD_INSTALLPARAM),
-		sizeof(tRECORD_POWER),
-		sizeof(tRECORD_PARAMCHANGE),
-		sizeof(tRECORD_SPEEDSTATUS),
-};
+ /**不同记录类型单条记录长度*/
+ const u16 RECORD_SIZE[] = {
+ 		sizeof(tRECORD_SPEED),
+ 		sizeof(tRECORD_ACCIDENT),
+ 		sizeof(tRECORD_OVERTIMEDRIVING),
+ 		sizeof(tRECORD_POS),
+ 		sizeof(tRECORD_DRIVERLOG),
+ 		sizeof(tRECORD_DIST),
+ 		sizeof(tRECORD_INSTALLPARAM),
+ 		sizeof(tRECORD_POWER),
+ 		sizeof(tRECORD_PARAMCHANGE),
+ 		sizeof(tRECORD_SPEEDSTATUS),
+ };
 
-#define DUMP_MAXFRAMES_PERCALL		5	//空闲时执行一次存储调用，最大保存帧数
-#define GET_TICKS(h,m,s)	((((h)* 3600) + ((m) * 60) + (s))* 1000) //分秒数转换成毫秒
+#define DUMP_MAXFRAMES_PERCALL		5	//空闲时执行一次CAN帧存储调用，最大保存帧数
+#define GET_TICKS(h,m,s)	(((h)* 3600) + ((m) * 60) + (s)) //时分秒数转换成秒
 
 static FATFS fs;	//文件系统
-
-static T_QSESSION qSession;	//查询SESION，同一时刻系统只能有一个SESSION有效
 
 
 /**BCD码转换成整数*/
@@ -202,17 +205,27 @@ static T_QSESSION qSession;	//查询SESION，同一时刻系统只能有一个SESSION有效
 
 /*---------- 本地函数声明 ---------------------------------------------------------------------*/
 static s8 time_compare(TIME *t1, TIME *t2);
-static BOOL VDR_SeekRecord(u32 tick, u16 u16Recordsize, u32 *pu32Offset);
+static BOOL VDR_SeekRecord(T_QSESSION *qSession, FIL *file, u32 tick, u16 u16Recordsize, u32 *pu32Offset);
 //static int SD_DumpCANFrame(CANRAWFRAME* pFrame);
-static void VDR_SeekNextFileBeginRecord(void);
-static void VDR_SeekPreviousFileLastRecord(u16 u16RecordSize);
-static int VDR_Dump2File(TIME *pTime, u8 *pBlock, u16 u16BlockLen);
+static void VDR_SeekNextFileBeginRecord(T_QSESSION *qSession);
+static void VDR_SeekPreviousFileLastRecord(T_QSESSION *qSession);
+static int VDR_Dump2File(eLOGCLASS eClass, TIME *pTime, u8 *pBlock, u16 u16BlockLen);
 static void VDR_GetGPSInfo(tPOSITION *ptPos);
-static void VDR_ConfigFileName(char *pFName, u8 u8Year, u8 u8Month, u8 u8Day);
+static void VDR_ConfigFileName(char *pFName, u8 year, u8 month, u8 day);
 static int DATACMP(char *s1, char *s2);
-static int VDR_USB_DumpSession(eLOGCLASS eClass, FIL *f, u8 direct);
+static int VDR_USB_DumpSession(T_QSESSION *qSession, eLOGCLASS eClass, FIL *f, u8 direct);
 static void VDR_GetGPSInfo(tPOSITION *ptPos);
-static int VDR_ScanLogFiles(eLOGCLASS eClass);
+static int VDR_ScanLogFiles(T_QSESSION *qSession, eLOGCLASS eClass);
+static void BCDTIME2TIME(BCDTIME *pBCDTime, TIME *pTime);
+static void TIME2BCDTIME(BCDTIME *pBCDTime, TIME *pTime);
+static int VDR_FindFileStartFrom(T_QSESSION *qSession, TIME *pTime_Start);
+static int VDR_FindRecord(T_QSESSION *qSession, eLOGCLASS eClass, TIME *pTime, u8 u8FileIndex, u32 *pu32Offset);
+
+
+/*
+ * 外部全局变量
+ */
+extern tPARAM_RUNTIME *ptParam_Runtime;
 
 /*----------—————————---------------------------------------------------------------------*/
 
@@ -222,6 +235,7 @@ static int VDR_ScanLogFiles(eLOGCLASS eClass);
  * @Ret		0=成功，否则为错误代码(RC)
  */
 int VDR_SDInit() {
+/*
 	if (!SD_Detect()) {
 		return -ERR_SDCARD_NOTEXISTED;
 	}
@@ -233,6 +247,78 @@ int VDR_SDInit() {
 
 	//注册工作区
 	f_mount(0, &fs);
+*/
+
+	return 0;
+}
+
+/**
+ * @Func	返回SD卡空闲容量
+ * @Param	free		[in]	空闲容量大小，单位KB
+ * @Ret		0=成功，否则错误代码
+ */
+int SD_GetFree(u32 *free) {
+
+	return 0;
+}
+
+/**
+ * @Func	返回SD卡总容量
+ * @Param	free		[in]	空闲容量大小，单位KB
+ * @Ret		0=成功，否则错误代码
+ */
+int SDCard_Getvolume(u32 *volume) {
+
+	return 0;
+
+}
+
+/**
+ * 清空SD卡内容
+ *
+ * @return
+ */
+BOOL SDCard_Clear() {
+
+	return TRUE;
+}
+
+/**
+ * SD卡拔插状态
+ *
+ * @return
+ */
+u8 SDCard_GetExistedState() {
+
+	return 0;
+}
+
+/**
+ * SD卡存储状态
+ *
+ * @return
+ */
+u8 SDCard_GetStorageState() {
+
+	return 0;
+}
+
+/**
+ * SD卡读写状态
+ *
+ * @return
+ */
+u8 SDCard_GetRWState() {
+
+	return 0;
+}
+
+/**
+ * 初始化USB
+ *
+ * @return
+ */
+int VDR_InitUSBDEV() {
 
 	return 0;
 }
@@ -242,8 +328,8 @@ int VDR_SDInit() {
  * @Param	class			[in]	查询类型，只能是CAN，GPS
  * @Ret		无
  */
-void VDR_ClearQuerySession() {
-	f_close(&qSession.file);
+void VDR_ClearQuerySession(T_QSESSION *qSession) {
+	f_close(&qSession->file);
 	ZeroMem((u8*) &qSession, sizeof(T_QSESSION));
 }
 
@@ -255,112 +341,115 @@ void VDR_ClearQuerySession() {
  * @param pTime_End			结束时间
  * @return
  */
-int VDR_NewQuerySession(eLOGCLASS eClass, TIME *pTime_Start, TIME *pTime_End) {
+int VDR_NewQuerySession(T_QSESSION *qSession, VDRMultiAckEvt *pe) {
 	int iRet;
+	eLOGCLASS eClass;
+	TIME time_Start, time_End;
+
+	eClass = pe->eClass;
+	BCDTIME2TIME(&pe->time_start, &time_Start);
+	BCDTIME2TIME(&pe->time_end, &time_End);
 
 	TRACE_(QS_USER, NULL, "[VDR] ******** NEW Query Session **********");
 	TRACE_(QS_USER, NULL, "[VDR] type = %s, from %d-%d-%d:%d-%d-%d to %d-%d-%d:%d-%d-%d ", Dir[eClass],
-			pTime_Start->year, pTime_Start->month, pTime_Start->day, pTime_Start->hour, pTime_Start->minute,
-			pTime_Start->second, pTime_End->year, pTime_End->month, pTime_End->day, pTime_End->hour, pTime_End->minute,
-			pTime_End->second);
+			time_Start.year, time_Start.month, time_Start.day, time_Start.hour, time_Start.minute,
+			time_Start.second, time_End.year, time_End.month, time_End.day, time_End.hour, time_End.minute,
+			time_End.second);
+
+	Q_ASSERT(qSession != NULL);
 
 	/**清除旧的查询状态*/
-	SD_ClearQuerySession(&qSession);
+	VDR_ClearQuerySession(qSession);
 
 	/**保存会话类型，即记录类型*/
-	qSession.u8SessionType = eClass;
+	qSession->u8SessionType = eClass;
+	qSession->u16BlocksToTrans = pe->u16Blocks;
+	qSession->u8Cmd = pe->u8Cmd;
 
 	/**确保结束时刻应大于等于开始时刻*/
-	if(-1 != time_compare(pTime_Start, pTime_End))
-	return -ERR_PARAM_INVALID;
+	if(-1 != time_compare(&time_Start, &time_End))
+		return -ERR_PARAM_INVALID;
 
 	/**索引记录文件所在目录，遍历文件，得到文件列表*/
-	iRet = VDR_ScanLogFiles(eClass);
+	iRet = VDR_ScanLogFiles(qSession, eClass);
 	if(iRet < 0)
 	return iRet;
 
 	/**查找起始文件及第一条记录位置*/
-	iRet = VDR_FindFileStartFrom(pTime_Start);
+	iRet = VDR_FindFileStartFrom(qSession, &time_Start);
 	if(iRet < 0)
 	return iRet;
 
-	iRet = VDR_FindRecord(eClass, pTime_Start, qSession.u8FileStart, &qSession.u32Offset_Start);
+	iRet = VDR_FindRecord(qSession, eClass, &time_Start, qSession->u8FileStart, &qSession->u32Offset_Start);
 	if(iRet < 0)
 	return iRet;
 
 	/**查找结束文件及最后一条记录位置*/
-	iRet = VDR_FindFileEndTo(eClass, pTime_End);
+	iRet = VDR_FindFileEndTo(qSession, eClass, &time_End);
 	if(iRet < 0)
 	return iRet;
 
-	iRet = VDR_FindRecord(eClass, pTime_End, &qSession.u8FileEnd, &qSession.u32Offset_End);
+	iRet = VDR_FindRecord(qSession, eClass, &time_End, &qSession->u8FileEnd, &qSession->u32Offset_End);
 	if(iRet < 0)
 	return iRet;
 
 	/**填充会话信息*/
-	time_copy(&qSession.t_Start, pTime_Start);
-	time_copy(&qSession.t_End, pTime_End);
+	TIMECPY(&qSession->t_Start, &time_Start);
+	TIMECPY(&qSession->t_End, &time_End);
 
-	qSession.u8FileCur = qSession.u8FileStart;
-	qSession.u32Offset_Cur = qSession.u32Offset_Start;
+	qSession->u8FileCur = qSession->u8FileStart;
+	qSession->u32Offset_Cur = qSession->u32Offset_Start;
 
 	/**文件操作完后立即关闭*/
-	f_close(&qSession.file);
+	f_close(&qSession->file);
 
 	TRACE_(QS_USER, NULL, "[VDR] ========= Query Session Result ===========");
 	TRACE_(QS_USER, NULL, "[VDR] start file = %s, offset = %d",
-			qSession.aFileList[qSession.u8FileStart], qSession.u32Offset_Start);
+			qSession->aFileList[qSession->u8FileStart], qSession->u32Offset_Start);
 	TRACE_(QS_USER, NULL, "[VDR] end file = %s, offset = %d",
-			qSession.aFileList[qSession.u8FileStart], qSession.u32Offset_End);
+			qSession->aFileList[qSession->u8FileStart], qSession->u32Offset_End);
 
 	return 0;
 }
 
 
 /**
- * 从起始文件第一条记录开始，正序读取单条记录
+ * 正向地区一条记录
  *
- * 文件名称为qSession.fn_Cur，当前读位置为qSession.u32Offset_Cur
- * 注意，此函数前提条件是文件必须已打开
- *
- * @param blocks
- * @param u16BlockSize
- * @param pBuf
- * @param bufSize
- * @param pu16RecvBytes
- * @return
+ * @param qSession		查询会话
+ * @param pBuf			缓区
+ * @return	0=成功，否则错误代码
  */
-int VDR_RetrieveSingleRecordForward(u8 *pBuf, u16 bufSize) {
+int VDR_RetrieveSingleRecordForward(T_QSESSION *qSession, u8 *pBuf) {
 
 	FIL *f;
-	FILINFO *fno;
 	FRESULT res;
-	u32 record_size;
-	u32 already_read;
+	u16 record_size;
+	u16 already_read;
 	u16 u16RecordSize;
 
 	if (NULL == pBuf)
 		return -ERR_PARAM_INVALID;
 
-	if(NULL == qSession.file.fs)
+	if(NULL == qSession->file.fs)
 		return -ERR_VDR_FILE_NOTEXIST;
 
-	if(qSession.file.fs == NULL) {
+	if(qSession->file.fs == NULL) {
 		/*打开文件*/
-		res = f_open(&qSession.file, qSession.aFileList[qSession.u8FileCur], FA_OPEN_EXISTING | FA_READ);
-		if (FR_OK != res) //文件存在，查找成功
-				{
-			f_close(&qSession.file);
+		res = f_open(&qSession->file, qSession->aFileList[qSession->u8FileCur], FA_OPEN_EXISTING | FA_READ);
+		if (FR_OK != res) {
+			f_close(&qSession->file);
 			return -ERR_SD_FILENOTEXISTED;
 		}
 	}
 
-	f = &qSession.file; ///文件句柄
+	f = &qSession->file; ///文件句柄
 
-	u16RecordSize = RECORD_SIZE[qSession.u8SessionType];	///得到各类型单条记录的长度
+	u16RecordSize = RECORD_SIZE[qSession->u8SessionType];	///得到各类型单条记录的长度
 
-	f_lseek(f, qSession.u32Offset_Cur);	///定位读指针到待读偏移位置
-	res = f_read(f, pBuf, u16RecordSize, &already_read);  ///读取指定条数记录
+	/**从前次读取位置继续读一条记录*/
+	f_lseek(f, qSession->u32Offset_Cur);
+	res = f_read(f, pBuf, u16RecordSize, &already_read);
 	if (FR_OK != res) {
 		f_close(f);
 		return -ERR_SD_WRITE;
@@ -371,54 +460,53 @@ int VDR_RetrieveSingleRecordForward(u8 *pBuf, u16 bufSize) {
 		return -ERR_SD_READ;
 	}
 
-	qSession.u32Offset_Cur += u16RecordSize;	///更新读指针位置
+	qSession->u32Offset_Cur += u16RecordSize;	///更新读指针位置
 
-	/**定位到下一文件的第一条记录*/
-	if (qSession.u32Offset_Cur >= f->fsize) {
-		f_close(&qSession.file);
-		/*已经是结束文件，则读取结束*/
-		if (qSession.u8FileCur == qSession.u8FileEnd) {
-			qSession.bAllBlocksFinishedReadout = 1;	///设置读取完毕标志
+	/**当前文件读完，跳转到下一文件的第一条记录*/
+	if (qSession->u32Offset_Cur >= f->fsize) {
+		f_close(&qSession->file);
+		if (qSession->u8FileCur == qSession->u8FileEnd) {
+			qSession->bAllBlocksFinishedReadout = 1;	///设置读取完毕标志
 		}
 		else {
-			VDR_SeekNextFileBeginRecord();	///读取中间文件
+			VDR_SeekNextFileBeginRecord(qSession);	///读取中间文件
 		}
 	}
 
 	return 0;
 }
 
+
 /**
  * 定位到下一文件的第一条记录，下一文件是指离当前查找文件日期最近的文件
+ *
+ * @param qSession		查询会话
  */
-void VDR_SeekNextFileBeginRecord() {
-	FRESULT res;
-	u8 bFind = 0;
-	char fn[7];
+void VDR_SeekNextFileBeginRecord(T_QSESSION *qSession) {
 	u8 i;
 	u8 fCur = 0;
 
-	fCur = qSession.u8FileCur;
+	fCur = qSession->u8FileCur;
 
 	i = 0;
-	while(i < qSession.u8FileAmt) {
-		if(DATACMP(qSession.aFileList[i], qSession.aFileList[qSession.u8FileCur]) && (i != qSession.u8FileCur)) {
-			if(DATACMP(qSession.aFileList[fCur], qSession.aFileList[i])) {
+	while(i < qSession->u8FileAmt) {
+		if(DATACMP(qSession->aFileList[i], qSession->aFileList[qSession->u8FileCur]) && (i != qSession->u8FileCur)) {
+			if(DATACMP(qSession->aFileList[fCur], qSession->aFileList[i])) {
 				fCur = i;
 			}
 		}
 		i++;
 	}
 
-	qSession.u8FileCur = fCur;
-	qSession.u32Offset_Cur = 0;
+	qSession->u8FileCur = fCur;
+	qSession->u32Offset_Cur = 0;
 }
 
 
 /**
  * 从结束文件最后一条记录开始，逆序提取单条记录
  *
- * 文件名称为qSession.fn_Cur，当前读位置为qSession.u32Offset_Cur
+ * 文件名称为qSession->fn_Cur，当前读位置为qSession->u32Offset_Cur
  *
  * @param u16BlockSize			记录块大小
  * @param pBuf					接收缓区
@@ -426,7 +514,14 @@ void VDR_SeekNextFileBeginRecord() {
  * @param pu16RecvBytes			实际读取字节数
  * @return	0=成功，否则错误代码
  */
-int VDR_RetrieveSingleRecordBackward(u8 *pBuf, u16 bufSize) {
+/**
+ * 逆序提取一条记录
+ *
+ * @param qSession			会话
+ * @param pBuf				缓区
+ * @return	0=成功，否则错误代码
+ */
+int VDR_RetrieveSingleRecordBackward(T_QSESSION *qSession, u8 *pBuf) {
 
 	FIL *f;
 	FILINFO *fno;
@@ -438,21 +533,21 @@ int VDR_RetrieveSingleRecordBackward(u8 *pBuf, u16 bufSize) {
 	if (NULL == pBuf)
 		return -ERR_PARAM_INVALID;
 
-	if(qSession.file.fs == NULL) {
+	if(qSession->file.fs == NULL) {
 		/*打开文件*/
-		res = f_open(&qSession.file, qSession.aFileList[qSession.u8FileCur], FA_OPEN_EXISTING | FA_READ);
+		res = f_open(&qSession->file, qSession->aFileList[qSession->u8FileCur], FA_OPEN_EXISTING | FA_READ);
 		if (FR_OK != res) //文件存在，查找成功
 				{
-			f_close(&qSession.file);
+			f_close(&qSession->file);
 			return -ERR_SD_FILENOTEXISTED;
 		}
 	}
 
-	u16RecordSize = RECORD_SIZE(qSession.u8SessionType);
+	u16RecordSize = RECORD_SIZE[qSession->u8SessionType];
 
-	f = &qSession.file; //文件句柄
+	f = &qSession->file; //文件句柄
 
-	f_lseek(f, qSession.u32Offset_Cur);	///定位读指针到待读偏移位置
+	f_lseek(f, qSession->u32Offset_Cur);	///定位读指针到待读偏移位置
 	res = f_read(f, pBuf, u16RecordSize, &already_read);  ///读取指定条数记录
 	if (FR_OK != res) {
 		f_close(f);
@@ -464,27 +559,28 @@ int VDR_RetrieveSingleRecordBackward(u8 *pBuf, u16 bufSize) {
 		return -ERR_SD_READ;
 	}
 
-	if (qSession.u32Offset_Cur > u16RecordSize) {
-		qSession.u32Offset_Cur -= u16RecordSize;
+	if (qSession->u32Offset_Cur > u16RecordSize) {
+		qSession->u32Offset_Cur -= u16RecordSize;
 	}
 	else {
 		/**定位到前一文件的最后一条记录*/
-		f_close(&qSession.file);
-		if (qSession.u8FileCur == qSession.u8FileStart)
-			qSession.bAllBlocksFinishedReadout = 1;	///设置读取完毕标志
+		f_close(&qSession->file);
+		if (qSession->u8FileCur == qSession->u8FileStart)
+			qSession->bAllBlocksFinishedReadout = 1;	///设置读取完毕标志
 		else
-			VDR_SeekPreviousFileLastRecord();
+			VDR_SeekPreviousFileLastRecord(qSession);
 	}
 
 	return 0;
 }
 
+
 /**
  * 定位到前一文件的最后一条记录
  *
- * @param u16RecordSize		单条记录长度
+ * @param qSession
  */
-void VDR_SeekPreviousFileLastRecord() {
+void VDR_SeekPreviousFileLastRecord(T_QSESSION *qSession) {
 
 	FRESULT res;
 	u8 bFind = 0;
@@ -492,20 +588,21 @@ void VDR_SeekPreviousFileLastRecord() {
 	u8 i;
 	u8 fCur = 0;
 
-	fCur = qSession.u8FileCur;
+	fCur = qSession->u8FileCur;
 
 	i = 0;
-	while(i < qSession.u8FileAmt) {
-		if(DATACMP(qSession.aFileList[qSession.u8FileCur], qSession.aFileList[i]) && (i != qSession.u8FileCur)) {
-			if(DATACMP(qSession.aFileList[i], qSession.aFileList[fCur])) {
+	while(i < qSession->u8FileAmt) {
+		if(DATACMP(qSession->aFileList[qSession->u8FileCur], qSession->aFileList[i]) && (i != qSession->u8FileCur)) {
+			if(DATACMP(qSession->aFileList[i], qSession->aFileList[fCur])) {
 				fCur = i;
 			}
 		}
 		i++;
 	}
 
-	qSession.u8FileCur = fCur;
-	qSession.u32Offset_Cur = qSession.file.fsize - RECORD_SIZE(qSession.u8SessionType);
+	qSession->u8FileCur = fCur;
+	qSession->u32Offset_Cur =
+			qSession->file.fsize - RECORD_SIZE[qSession->u8SessionType];
 }
 
 /**
@@ -513,8 +610,8 @@ void VDR_SeekPreviousFileLastRecord() {
  *
  * @return	TRUE=完成，FALSE=未完成
  */
-BOOL VDR_IsReadFinished() {
-	return (qSession.bAllBlocksFinishedReadout == 1);
+BOOL VDR_IsReadFinished(T_QSESSION *qSession) {
+	return (qSession->bAllBlocksFinishedReadout == 1);
 }
 
 
@@ -524,7 +621,7 @@ BOOL VDR_IsReadFinished() {
  * 			t2			[in]	时间2
  * @Ret		无
  */
-void time_copy(TIME *t1, TIME *t2) {
+void TIMECPY(TIME *t1, TIME *t2) {
 	t1->year = t2->year;
 	t1->month = t2->month;
 	t1->day = t2->day;
@@ -539,12 +636,12 @@ void time_copy(TIME *t1, TIME *t2) {
  * @param t		当前日历天
  */
 void time_GetNextDay(TIME *t) {
-	u8 u8DaysofMonth = 0;
+	u8 daysofMonth = 0;
 
 	t->day++;
 
-	u8DaysofMonth = MISC_DaysofMonth(t->year/* + 2000*/, t->month); //取得当前月有多少天
-	if (t->day >= u8DaysofMonth) {
+	daysofMonth = MISC_DaysofMonth(t->year/* + 2000*/, t->month); //取得当前月有多少天
+	if (t->day >= daysofMonth) {
 		t->month += 1;
 		t->day = 1;
 
@@ -561,7 +658,7 @@ void time_GetNextDay(TIME *t) {
  * @param t		当前日历天
  */
 void time_GetPrevDay(TIME *t) {
-	u8 u8DaysofMonth;
+	u8 daysofMonth;
 
 	if (t->day > 1)
 		t->day--;
@@ -572,8 +669,8 @@ void time_GetPrevDay(TIME *t) {
 		else {
 			t->year--;
 			t->month = 12;
-			u8DaysofMonth = MISC_DaysofMonth(t->year, t->month);
-			t->day = u8DaysofMonth;
+			daysofMonth = MISC_DaysofMonth(t->year, t->month);
+			t->day = daysofMonth;
 		}
 	}
 }
@@ -582,19 +679,19 @@ void time_GetPrevDay(TIME *t) {
  * 根据日期构造文件名，14年2月12日，转换为140212
  *
  * @param pFName		OUT		文件名
- * @param u8Year		年
- * @param u8Month		月
- * @param u8Day			日
+ * @param year		年
+ * @param month		月
+ * @param day			日
  */
-void VDR_ConfigFileName(char *pFName, u8 u8Year, u8 u8Month, u8 u8Day) {
+void VDR_ConfigFileName(char *pFName, u8 year, u8 month, u8 day) {
 	Q_ASSERT(pFName != NULL);
 
-	pFName[0] = (u8Year / 10) + 0x30;
-	pFName[1] = (u8Year % 10) + 0x30;
-	pFName[2] = (u8Month / 10) + 0x30;
-	pFName[3] = (u8Month % 10) + 0x30;
-	pFName[4] = (u8Day / 10) + 0x30;
-	pFName[5] = (u8Day % 10) + 0x30;
+	pFName[0] = (year / 10) + 0x30;
+	pFName[1] = (year % 10) + 0x30;
+	pFName[2] = (month / 10) + 0x30;
+	pFName[3] = (month % 10) + 0x30;
+	pFName[4] = (day / 10) + 0x30;
+	pFName[5] = (day % 10) + 0x30;
 
 	pFName[6] = '\0';
 }
@@ -610,11 +707,11 @@ void time_nexthour(TIME *t)
 	t->hour++;
 	if( t->hour >= 24)
 	{
-		u8 u8DaysofMonth;
+		u8 daysofMonth;
 		t->hour = 0;
 
-		u8DaysofMonth = MISC_DaysofMonth(t->year/* + 2000*/, t->month); //取得当前月有多少天
-		if(t->day >= u8DaysofMonth)
+		daysofMonth = MISC_DaysofMonth(t->year/* + 2000*/, t->month); //取得当前月有多少天
+		if(t->day >= daysofMonth)
 		{
 			t->month += 1;
 			t->day = 1;
@@ -634,7 +731,7 @@ void time_nexthour(TIME *t)
  * @param t
  */
 void time_prevhour(TIME *t) {
-	u8 u8DaysofMonth;
+	u8 daysofMonth;
 
 	if(t->hour > 0)
 	t->hour --;
@@ -649,8 +746,8 @@ void time_prevhour(TIME *t) {
 			else {
 				t->year --;
 				t->month = 12;
-				u8DaysofMonth = MISC_DaysofMonth(t->year, t->month); //取得当前月有多少天
-				t->day = u8DaysofMonth;
+				daysofMonth = MISC_DaysofMonth(t->year, t->month); //取得当前月有多少天
+				t->day = daysofMonth;
 			}
 		}
 	}
@@ -701,7 +798,7 @@ s8 time_compare(TIME *t1, TIME *t2) {
  * @param pu32Offset	OUT	在文件中的偏移量
  * @return
  */
-BOOL VDR_SeekRecord(FIL *file, u32 tick, u16 u16Recordsize, u32 *pu32Offset) {
+BOOL VDR_SeekRecord(T_QSESSION *qSession, FIL *file, u32 tick, u16 u16Recordsize, u32 *pu32Offset) {
 	FIL *f;
 	FRESULT res;
 	UINT read;
@@ -717,7 +814,7 @@ BOOL VDR_SeekRecord(FIL *file, u32 tick, u16 u16Recordsize, u32 *pu32Offset) {
 	f = file;
 
 	low = 0;
-	high = qSession.file.fsize;
+	high = qSession->file.fsize;
 
 	/*定位首条记录位置*/
 	f_lseek(f, 0); //指向文件头
@@ -877,6 +974,149 @@ int SD_DumpCANFrame(CANRAWFRAME* pFrame)
 }
 #endif
 
+
+/**
+ * 行驶速度记录外部调用接口，每秒调用一次
+ *
+ * 从0秒开始记录，连续记录60次，写入文件
+ *
+ * @param pTime
+ * @return
+ */
+int VDR_DumpSpeedInfo(TIME *pTime) {
+	static tRECORD_SPEED tSpeedLogBuf;	///本地缓区
+	static u8 u8RecvCnt = 0;
+	static u8 bFirst = 0;
+	tSPEEDPERSEC tSpeedRecord;
+	BCDTIME time_BCD;
+	int ret = 0;
+	tSTATE_BYTE1 tState;
+
+	/**获取速度信息*/
+	tSpeedRecord.u8AvgSPeed = (ptParam_Runtime->u16Speed / 10);	///速度
+	VDR_GetSignalState(&tState);	///状态
+	tSpeedRecord.u8State = (tState.bit_Halt << 7) |(tState.bit_Left << 6) | (tState.bit_Right << 5) |
+			(tState.bit_LightFar << 4) | (tState.bit_LightNear << 3);
+
+	if(bFirst == 0) {
+		/**时间格式转换成BCD时间并作为数据块起始记录时间*/
+		TIME2BCDTIME(&time_BCD, pTime);
+		BCDTIME_CPY(&tSpeedLogBuf.time_Start, &time_BCD);
+		/**单条记录入缓区*/
+		memcpy_((u8*)&tSpeedLogBuf.tSpeed[u8RecvCnt++], (u8*)&tSpeedRecord, sizeof(tSPEEDPERSEC));
+		bFirst = 1;
+		ptParam_Runtime->u8AvgSpeedOfMin = tSpeedRecord.u8AvgSPeed;
+		return 0;
+	}
+	else {
+	/**缓冲剩余记录*/
+		/**单条记录入缓区*/
+		memcpy_((u8*)&tSpeedLogBuf.tSpeed[u8RecvCnt++], (u8*)&tSpeedRecord, sizeof(tSPEEDPERSEC));
+
+		/**附带计算平均速度*/
+		ptParam_Runtime->u8AvgSpeedOfMin += tSpeedRecord.u8AvgSPeed;
+		ptParam_Runtime->u8AvgSpeedOfMin >>= 1;
+
+		/**累计1分钟数据记录，存文件一次*/
+		if(u8RecvCnt >= 60) {
+			ret = VDR_Dump2File(eLOG_Speed, &tSpeedLogBuf.time_Start, (u8*)&tSpeedLogBuf, sizeof(tRECORD_SPEED));
+			if(ret < 0) {
+				ZeroMem((u8*)&tSpeedLogBuf, sizeof(tRECORD_SPEED));
+				return ret;
+			}
+			ZeroMem((u8*)&tSpeedLogBuf, sizeof(tRECORD_SPEED));
+
+			bFirst = 0;
+			u8RecvCnt = 0;
+
+			TRACE_(QS_USER, NULL, "[VDR] Dumped a SPEED record to file.");
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * 位置记录外部调用接口，每分钟调用一次
+ *
+ * 连续记录60次，后写入文件
+ *
+ * @param pTime
+ * @return
+ */
+int VDR_DumpPositionInfo(TIME *pTime) {
+	static tRECORD_POS tPos;
+	static u8 u8RecvCnt = 0;
+	static u8 bFirst = 0;
+	BCDTIME time_BCD;
+	tITEM_POS tRecord;
+	int ret;
+	TIME time;
+
+	tRecord.tPos.u32Long = ptParam_Runtime->tGpsInfo.u32Long;
+	tRecord.tPos.u32Lat = ptParam_Runtime->tGpsInfo.u32Lat;
+	tRecord.tPos.u16Height = ptParam_Runtime->tGpsInfo.u16Height;
+	tRecord.u8AvrSpeed = ptParam_Runtime->u8AvgSpeedOfMin;
+
+	if(bFirst == 0) {
+		/**时间格式转换成BCD时间并作为数据块起始记录时间*/
+		TIME2BCDTIME(&time_BCD, pTime);
+		BCDTIME_CPY(&tPos.time_Start, &time_BCD);
+		/**单条记录入缓区*/
+		memcpy_((u8*)&tPos.atItem[u8RecvCnt++], (u8*)&tRecord, sizeof(tITEM_POS));
+		bFirst = 1;
+		return 0;
+	}
+	else {
+	/**缓冲剩余记录*/
+		/**单条记录入缓区*/
+		memcpy_((u8*)&tPos.atItem[u8RecvCnt++], (u8*)&tRecord, sizeof(tITEM_POS));
+
+		/**累计1分钟数据记录，存文件一次*/
+		if(u8RecvCnt >= 60) {
+			BCDTIME2TIME(&tPos.time_Start, &time);
+			ret = VDR_Dump2File(eLOG_Speed, &time, (u8*)&tPos, sizeof(tRECORD_POS));
+			if(ret < 0) {
+				ZeroMem((u8*)&tPos, sizeof(tRECORD_POS));
+				return ret;
+			}
+			ZeroMem((u8*)&tPos, sizeof(tRECORD_POS));
+
+			bFirst = 0;
+			u8RecvCnt = 0;
+
+			TRACE_(QS_USER, NULL, "[VDR] Dumped a POSITION record to file.");
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * 事故疑点外部调用接口
+ *
+ * @param pTime
+ * @return
+ */
+int VDR_DumpAccidentInfo(TIME *pTime) {
+
+
+	return 0;
+}
+
+/**
+ * 速度状态外部调用接口
+ *
+ * @param pTime
+ * @return
+ */
+int VDR_DumpSpeedStateInfo(TIME *pTime) {
+
+
+	return 0;
+}
+
+
 #if 0
 /**
  * 保存单条记录，包括入缓区及写文件
@@ -887,11 +1127,13 @@ int SD_DumpCANFrame(CANRAWFRAME* pFrame)
  */
 int VDR_DumpRecord_Speed(TIME *pTime, tSPEEDPERSEC *pRecord) {
 	static tRECORD_SPEED tSpeedLogBuf;	///本地缓区
-	tTIME time_BCD;
+	static u8 bFull = 0;
+	BCDTIME time_BCD;
 	int ret = 0;
 
 	TIME2BCDTIME(pTime, &time_BCD);	///时间格式转换成BCD时间
 
+	if((0 == bFull) && pTime->second == 0 )
 	/**保存起始时间*/
 	if (GET_TICKS(pTime->hour, pTime->minute, pTime->second) == 0) {
 		BCDTIME_CPY(&tSpeedLogBuf.time_Start, &time_BCD);
@@ -905,6 +1147,7 @@ int VDR_DumpRecord_Speed(TIME *pTime, tSPEEDPERSEC *pRecord) {
 		ret = VDR_Dump2File(eLOG_Speed, tSpeedLogBuf.time_Start, (u8*)&tSpeedLogBuf, sizeof(tRECORD_SPEED));
 		if(ret < 0) {
 			ZeroMem((u8*)&tSpeedLogBuf, sizeof(tRECORD_SPEED));
+			bFull = 0;
 			return ret;
 		}
 		ZeroMem((u8*)&tSpeedLogBuf, sizeof(tRECORD_SPEED));
@@ -925,7 +1168,7 @@ int VDR_DumpRecord_Speed(TIME *pTime, tSPEEDPERSEC *pRecord) {
 int VDR_DumpRecord_Accident(TIME *pTime, tITEM_ACCIDENT *pRecord) {
 	static tRECORD_ACCIDENT tLogBuf;	///本地缓区
 	static u8 u8Cur = 0;	///保存记录条数计数器
-	tTIME time_BCD;
+	BCDTIME time_BCD;
 	int ret = 0;
 	tLICENSE_ST *pLicense;
 
@@ -1017,7 +1260,7 @@ int VDR_Dump2File(eLOGCLASS eClass, TIME *pTime, u8 *pBlock, u16 u16BlockLen) {
 	char fname[20];
 	FRESULT res;
 	FIL file;
-	u32 bw;
+	u16 bw;
 	char fn[7];
 
 	if ((pBlock != NULL ) && (u16BlockLen > 0))
@@ -1030,8 +1273,8 @@ int VDR_Dump2File(eLOGCLASS eClass, TIME *pTime, u8 *pBlock, u16 u16BlockLen) {
 	/**打开已有文件，写到文件尾*/
 	res = f_open(&file, fname, FA_OPEN_EXISTING | FA_WRITE);
 	if (FR_OK == res) {
-		f_lseek(file, file.fsize);
-		res = f_write(file, pBlock, u16BlockLen, &bw); //写记录
+		f_lseek(&file, file.fsize);
+		res = f_write(&file, pBlock, u16BlockLen, &bw); //写记录
 		if (res || (bw != u16BlockLen)) {
 			f_close(&file);
 			return -ERR_SD_WRITE;
@@ -1045,8 +1288,8 @@ int VDR_Dump2File(eLOGCLASS eClass, TIME *pTime, u8 *pBlock, u16 u16BlockLen) {
 			return -ERR_SD_FILECREATEFAILED;
 		}
 
-		f_lseek(file, 0);
-		res = f_write(file, pBlock, u16BlockLen, &bw);
+		f_lseek(&file, 0);
+		res = f_write(&file, pBlock, u16BlockLen, &bw);
 		if (res || (bw != u16BlockLen)) {
 			f_close(&file);
 			return -ERR_SD_WRITE;
@@ -1057,7 +1300,7 @@ int VDR_Dump2File(eLOGCLASS eClass, TIME *pTime, u8 *pBlock, u16 u16BlockLen) {
 	return 0;
 }
 
-
+#if 0
 /**
  * @Func	返回SD卡空闲容量
  * @Param	free		[in]	空闲容量大小，单位KB
@@ -1096,24 +1339,25 @@ int SD_Getvolume(u32 *volume) {
 
 	return (tot_sect >> 1);
 }
+#endif
 
 /**
  * 整数时间转换成BCD时间
  * @param pBCDTime
  * @param pTime
  */
-void BCDTIME2TIME(tTIME *pBCDTime, TIME *pTime) {
+void BCDTIME2TIME(BCDTIME *pBCDTime, TIME *pTime) {
 	if ((pBCDTime == NULL ) || (pTime == NULL )) {
 		return;
 	}
 
-	BCD2INTEGER(pTime->year, pBCDTime->u8Year);
+	BCD2INTEGER(pTime->year, pBCDTime->year);
 	pTime->year += 2000;
-	BCD2INTEGER(pTime->month, pBCDTime->u8Month);
-	BCD2INTEGER(pTime->day, pBCDTime->u8Day);
-	BCD2INTEGER(pTime->hour, pBCDTime->u8Hour);
-	BCD2INTEGER(pTime->minute, pBCDTime->u8Minute);
-	BCD2INTEGER(pTime->second, pBCDTime->u8Second);
+	BCD2INTEGER(pTime->month, pBCDTime->month);
+	BCD2INTEGER(pTime->day, pBCDTime->day);
+	BCD2INTEGER(pTime->hour, pBCDTime->hour);
+	BCD2INTEGER(pTime->minute, pBCDTime->minute);
+	BCD2INTEGER(pTime->second, pBCDTime->second);
 }
 
 /**
@@ -1122,18 +1366,18 @@ void BCDTIME2TIME(tTIME *pBCDTime, TIME *pTime) {
  * @param pBCDTime
  * @param pTime
  */
-void TIME2BCDTIME(tTIME *pBCDTime, TIME *pTime) {
+void TIME2BCDTIME(BCDTIME *pBCDTime, TIME *pTime) {
 	if ((pBCDTime == NULL ) || (pTime == NULL )) {
 		return;
 	}
 
 	pTime->year -= 2000;
-	INTEGER2BCD(pTime->year, pBCDTime->u8Year);
-	INTEGER2BCD(pTime->month, pBCDTime->u8Month);
-	INTEGER2BCD(pTime->day, pBCDTime->u8Day);
-	INTEGER2BCD(pTime->hour, pBCDTime->u8Hour);
-	INTEGER2BCD(pTime->minute, pBCDTime->u8Minute);
-	INTEGER2BCD(pTime->second, pBCDTime->u8Second);
+	INTEGER2BCD(pTime->year, pBCDTime->year);
+	INTEGER2BCD(pTime->month, pBCDTime->month);
+	INTEGER2BCD(pTime->day, pBCDTime->day);
+	INTEGER2BCD(pTime->hour, pBCDTime->hour);
+	INTEGER2BCD(pTime->minute, pBCDTime->minute);
+	INTEGER2BCD(pTime->second, pBCDTime->second);
 }
 
 
@@ -1143,13 +1387,13 @@ void TIME2BCDTIME(tTIME *pBCDTime, TIME *pTime) {
  * @param pt1
  * @param pt2
  */
-void BCDTIME_CPY(tTIME *pt1, tTIME *pt2) {
-	pt1->u8Year = pt2->u8Year;
-	pt1->u8Month = pt2->u8Month;
-	pt1->u8Day = pt2->u8Day;
-	pt1->u8Hour = pt2->u8Hour;
-	pt1->u8Minute = pt2->u8Minute;
-	pt1->u8Second = pt2->u8Second;
+void BCDTIME_CPY(BCDTIME *pt1, BCDTIME *pt2) {
+	pt1->year = pt2->year;
+	pt1->month = pt2->month;
+	pt1->day = pt2->day;
+	pt1->hour = pt2->hour;
+	pt1->minute = pt2->minute;
+	pt1->second = pt2->second;
 }
 
 /**
@@ -1169,7 +1413,7 @@ void VDR_GetGPSInfo(tPOSITION *ptPos) {
  * @param eClass		记录类型
  * @return	0=成功，否则错误代码
  */
-int VDR_ScanLogFiles(eLOGCLASS eClass) {
+int VDR_ScanLogFiles(T_QSESSION *qSession, eLOGCLASS eClass) {
 	char path[10];
 	DIR dir;
 	FRESULT ret;
@@ -1184,7 +1428,7 @@ int VDR_ScanLogFiles(eLOGCLASS eClass) {
 		return -ERR_SD_FILENOTEXISTED;
 	}
 	else {
-		qSession.u8FileAmt = 0;
+		qSession->u8FileAmt = 0;
 		/**循环提取目录下的所有文件*/
 		for (;;) {
 			ret = f_readdir(&dir, &fno);		/** Read a directory item */
@@ -1196,7 +1440,7 @@ int VDR_ScanLogFiles(eLOGCLASS eClass) {
 			TRACE_(QS_USER, NULL, "%s\n", fno.fsize, fno.fname);
 
 			/**保存文件到文件列表*/
-			strcpy_(qSession.aFileList[qSession.u8FileAmt++], fno.fname);
+			strcpy_(qSession->aFileList[qSession->u8FileAmt++], fno.fname);
 		}
 		if (ret) {
 			TRACE_(QS_USER, NULL, "Read a directory error\n");
@@ -1215,25 +1459,25 @@ int VDR_ScanLogFiles(eLOGCLASS eClass) {
  * @param pTime_Start		开始时间
  * @return	0=成功，否则错误代码
  */
-int VDR_FindFileStartFrom(TIME *pTime_Start) {
+int VDR_FindFileStartFrom(T_QSESSION *qSession, TIME *pTime_Start) {
 	u8 i;
 	u8 iFirst = 0;
 	char fn[7];
 
-	if(qSession.u8FileAmt == 0)
+	if(qSession->u8FileAmt == 0)
 		return -1;
 
 	VDR_ConfigFileName(fn, pTime_Start->year, pTime_Start->month, pTime_Start->day);
 
 	i = 0;
 	iFirst = 0;
-	while(i < qSession.u8FileAmt) {
-		if(DATACMP(qSession.aFileList[i], fn) && DATACMP(qSession.aFileList[iFirst], fn))
+	while(i < qSession->u8FileAmt) {
+		if(DATACMP(qSession->aFileList[i], fn) && DATACMP(qSession->aFileList[iFirst], fn))
 			iFirst = i;
 		i ++;
 	}
 
-	qSession.u8FileStart = iFirst;
+	qSession->u8FileStart = iFirst;
 
 	return 0;
 }
@@ -1244,25 +1488,25 @@ int VDR_FindFileStartFrom(TIME *pTime_Start) {
  * @param pTime_Start		开始时间
  * @return	0=成功，否则错误代码
  */
-int VDR_FindFileEndTo(TIME *pTime_End) {
+int VDR_FindFileEndTo(T_QSESSION *qSession, TIME *pTime_End) {
 	u8 i;
 	u8 iLast = 0;
 	char fn[7];
 
-	if(qSession.u8FileAmt == 0)
+	if(qSession->u8FileAmt == 0)
 		return -1;
 
 	VDR_ConfigFileName(fn, pTime_End->year, pTime_End->month, pTime_End->day);
 
 	i = 0;
 	iLast = 0;
-	while(i < qSession.u8FileAmt) {
-		if(DATACMP(fn, qSession.aFileList[i]) && DATACMP(qSession.aFileList[iLast], fn))
+	while(i < qSession->u8FileAmt) {
+		if(DATACMP(fn, qSession->aFileList[i]) && DATACMP(qSession->aFileList[iLast], fn))
 			iLast = i;
 		i ++;
 	}
 
-	qSession.u8FileEnd = iLast;
+	qSession->u8FileEnd = iLast;
 
 	return 0;
 }
@@ -1275,13 +1519,13 @@ int VDR_FindFileEndTo(TIME *pTime_End) {
  * @param pTime_Start
  * @param u8FileIndex
  */
-int VDR_FindRecord(eLOGCLASS eClass, TIME *pTime, u8 u8FileIndex, u32 *pu32Offset) {
+int VDR_FindRecord(T_QSESSION *qSession, eLOGCLASS eClass, TIME *pTime, u8 u8FileIndex, u32 *pu32Offset) {
 	FIL *f;
 	FRESULT res;
 	UINT read;
 	TIME time;
-	tTIME bcdTime;
-	TIME startTime;
+	BCDTIME bcdTime;
+	TIME starBCDTIME;
 	u32 u32Offset = 0;
 	char fn[7];
 	BOOL bFind = FALSE;
@@ -1292,46 +1536,40 @@ int VDR_FindRecord(eLOGCLASS eClass, TIME *pTime, u8 u8FileIndex, u32 *pu32Offse
 	u32 low = 0, high = 0, mid = 0;
 	u32 mid_ticks = 0;
 
-	Q_ASSERT(u8FileIndex < qSession.u8FileAmt);
+	Q_ASSERT(u8FileIndex < qSession->u8FileAmt);
 
 	/*打开文件*/
-	sprintf_(fn, "0:/%s/%s", Dir[eClass], qSession.aFileList[u8FileIndex]);
+	sprintf_(fn, "0:/%s/%s", Dir[eClass], qSession->aFileList[u8FileIndex]);
 	TRACE_(QS_USER, NULL, "[VDR] Seeking file: %s", fn);
 
-	res = f_open(&qSession.file, fn, FA_OPEN_EXISTING | FA_READ);	//打开已有文件
-	if ((FR_OK == res) && (qSession.file.fsize > 0)) {	//文件存在且非空，查找成功
+	res = f_open(&qSession->file, fn, FA_OPEN_EXISTING | FA_READ);	//打开已有文件
+	if ((FR_OK == res) && (qSession->file.fsize > 0)) {	//文件存在且非空，查找成功
 		bFind = 1;
-		break;
 	}
 	else {
-		f_close(&qSession.file);
-		if(qSession.file.fsize == 0) {
-			TRACE_(QS_USER, NULL, "ERR,file is empty.");
-			return -ERR_SD_FILEISEMPTY;	///返回空文件错误
-		}
-		else
-			return -ERR_SD_FILENOTEXISTED;
+		f_close(&qSession->file);
+		return -ERR_SD_FILENOTEXISTED;
 	}
 
-	f = qSession.file;
+	f = &qSession->file;
 
 	low = 0;
-	high = qSession.file.fsize;
-	u16Recordsize = qSession.file.fsize;
+	high = qSession->file.fsize;
+	u16Recordsize = qSession->file.fsize;
 
 	/*定位首条记录位置*/
 
 	/*看第一条记录的时间是否已大于开始时间*/
 	f_lseek(f, 0);
-	res = f_read(f, (u8*) &bcdTime, sizeof(tTIME), &read);
+	res = f_read(f, (u8*) &bcdTime, sizeof(BCDTIME), &read);
 	if (res != FR_OK) {
 		f_close(f);
 		return -ERR_SD_READ;
 	}
 
-	BCDTIME2TIME(&bcdTime, &startTime);
+	BCDTIME2TIME(&bcdTime, &starBCDTIME);
 
-	start_tick = GET_TICKS(startTime.hour, startTime.minute, startTime.second);
+	start_tick = GET_TICKS(starBCDTIME.hour, starBCDTIME.minute, starBCDTIME.second);
 	tick = GET_TICKS(pTime->hour, pTime->minute, pTime->second);
 	if(start_tick >= tick) {
 		*pu32Offset = 0;
@@ -1349,7 +1587,7 @@ int VDR_FindRecord(eLOGCLASS eClass, TIME *pTime, u8 u8FileIndex, u32 *pu32Offse
 			return FALSE;
 		}
 
-		res = f_read(f, (u8*) &time, sizeof(tTIME), &read); //读文件折半处的记录
+		res = f_read(f, (u8*) &time, sizeof(BCDTIME), &read); //读文件折半处的记录
 		if (res != FR_OK) {
 			f_close(f);
 			return FALSE;
@@ -1411,6 +1649,8 @@ void VDR_RemoveOutdatedLogFiles() {
 
 }
 
+
+#if 0
 /**
  * 构造USB数据导出文件名
  *
@@ -1436,6 +1676,7 @@ void VDR_USB_CreateFileName(TIME *pTime, u8 *pName) {
 			pTime->hour / 10, pTime->hour % 10, pTime->minute / 10, pTime->minute % 10,
 			aLicense);
 }
+#endif
 
 /**
  * 记录仪USB数据导出
@@ -1444,7 +1685,9 @@ void VDR_USB_CreateFileName(TIME *pTime, u8 *pName) {
  * @param pTime			操作时间
  * @return	0=成功，否则错误代码
  */
-int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
+int VDR_DumpFiles2USBStorage(TIME *pTime) {
+#if 0
+
 	u8 i = 0;
 	u16 u16BlockAmt = 0;
 	u16 bytesWritten = 0;
@@ -1456,23 +1699,48 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 	TIME time_start;
 	TIME time_end;
 	int ret;
+	char aLicense[9];
+	tCARINFO_ST* pLicense;
+	char fname[20];
+	FIL f;
+	TIME time;
 
-	if((f == NULL) || (f->fs == NULL))
-		return -ERR_PARAM_INVALID;
+	/**构造文件名*/
+	ZeroMem(aLicense, 9);
+	pLicense = ((tCARINFO_ST*)VDR_GetParam(VDR_PARAM_CARINFO))->tCarInfo.aLicense;
+	if(memcmp_(pLicense, aLicense)) {
+		memcpy_(aLicense, "未知号码", 8);
+	}
+	else {
+		memcpy_(aLicense, pLicense, 8);
+		aLicense[8] = '\0';
+	}
+
+	sprintf_(fname, "D%d%d%d%d%d%d_%d%d%d%d_%s.VDR",
+			(pTime->year - 2000) / 10, (pTime->year - 2000) % 10,
+			pTime->month / 10, pTime->month % 10, pTime->day / 10, pTime->day % 10,
+			pTime->hour / 10, pTime->hour % 10, pTime->minute / 10, pTime->minute % 10,
+			aLicense);
 
 	TRACE_(QS_USER, NULL, "************* [VDR] USB: Export Data To Device ********** ");
 
-    TRACE_(QS_USER, NULL, "[VDR] USB: write [blocks amount], %d", u16BlockAmt);
+    /**创建新文件*/
+	res = f_open(&f, fname, FA_CREATE_NEW | FA_WRITE);
+	if (FR_OK != res) {
+		f_close(&f);
+		return -ERR_SD_FILECREATEFAILED;
+	}
 
 	/**写入数据块总数*/
 	u16BlockAmt = VDR_USB_BLOCK_AMOUNT;
 	ENDIAN_U16(u16BlockAmt);
+    TRACE_(QS_USER, NULL, "[VDR] USB: file= %s, write blocks = %d", fname, u16BlockAmt);
 
-	f_lseek(f, 0);
-    res= f_write (f, &u16BlockAmt, 2, (void *)&bytesWritten);
+	f_lseek(&f, 0);
+    res= f_write (&f, &u16BlockAmt, 2, (void *)&bytesWritten);
     if((bytesWritten == 0) || (res != FR_OK)) /*EOF or Error*/
     {
-		f_close(f);
+		f_close(&f);
         TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
         return -ERR_SD_WRITE;
     }
@@ -1497,10 +1765,10 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			bytesToWrite = sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len;
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1518,10 +1786,10 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			memcpy_(pInfo->aDriverLicense, ((tLICENSE_ST*)VDR_GetParam(VDR_PARAM_LICENSE))->aLicense, 18) ;
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1529,21 +1797,21 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_RTC: 			///实时时间 见表A.8
 		{
-			tTIME *pTime;
+			BCDTIME *pTime;
 
 			tBlock.u8Code = VDR_BLOCK[i].code;
 			memcpy_(tBlock.aName, VDR_BLOCK[i].name, strlen_(VDR_BLOCK[i].name));
-			tBlock.u32Len = sizeof(tTIME);
+			tBlock.u32Len = sizeof(BCDTIME);
 
-			pTime = (tTIME*)tBlock.pData;
-			RTC_Get(time);
-			TIME2BCDTIME(pTime, &time);
+			pTime = (BCDTIME*)tBlock.pData;
+			RTC_Get(&time);
+			TIME2BCDTIME(&time, pTime);
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, &bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1552,21 +1820,21 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 		case	VDR_USB_CODE_DIST:			/// 累计行驶里程 见表A.9
 		{
 			TIME time;
-			tTIME *pTime;
+			BCDTIME *pTime;
 
 			tBlock.u8Code = VDR_BLOCK[i].code;
 			memcpy_(tBlock.aName, VDR_BLOCK[i].name, strlen_(VDR_BLOCK[i].name));
-			tBlock.u32Len = sizeof(tTIME);
+			tBlock.u32Len = sizeof(BCDTIME);
 
-			pTime = (tTIME*)tBlock.pData;
+			pTime = (BCDTIME*)tBlock.pData;
 			RTC_Get(time);
 			TIME2BCDTIME(pTime, &time);
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1584,10 +1852,10 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			memcpy_(tBlock.pData, (u8*)pPulse, sizeof(tPULSE));
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1605,10 +1873,10 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			memcpy_(tBlock.pData, (u8*)pPulse, sizeof(tPULSE));
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1626,10 +1894,10 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			memcpy_(tBlock.pData, (u8*)pInfo, sizeof(tACK_STATECONFIG));
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1644,13 +1912,13 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			tBlock.u32Len = sizeof(tVDRID);
 
 			pInfo = ((tUNIQID_ST*)VDR_GetParam(VDR_PARAM_ID));
-			memcpy_(tBlock.pData, (u8*)pInfo->tID, sizeof(tVDRID));
+			memcpy_(tBlock.pData, (u8*)&pInfo->tID, sizeof(tVDRID));
 
 			/**写一条记录到文件*/
-			res= f_write (f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
+			res= f_write (&f, (u8*)&tBlock, sizeof(VDRUSBBLOCKHEAD) + tBlock.u32Len, (void *)&bytesWritten);
 		    if((bytesWritten != bytesToWrite) || (res != FR_OK))
 		    {
-				f_close(f);
+				f_close(&f);
 		        TRACE_(QS_USER, NULL, "[VDR] USB: file write failed.");
 		        return -ERR_SD_WRITE;
 		    }
@@ -1658,7 +1926,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_SPEED:			///08H 行驶速度记录 见表A.16
 		{
-			ret = VDR_USB_DumpSession(eLOG_Speed, f, BACKWARD);
+			ret = VDR_USB_DumpSession(eLOG_Speed, &f, BACKWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump Speed info OK.");
@@ -1666,7 +1934,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_POSITION:		//09H 位置信息记录 见表A.18
 		{
-			ret = VDR_USB_DumpSession(eLOG_PositionInfo, f, FORWARD);
+			ret = VDR_USB_DumpSession(eLOG_PositionInfo, &f, FORWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump POSITION info OK.");
@@ -1674,7 +1942,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_ACCIDENT:		//10H 事故疑点记录 见表A.21 全部记录
 		{
-			ret = VDR_USB_DumpSession(eLOG_Accident, f, BACKWARD);
+			ret = VDR_USB_DumpSession(eLOG_Accident, &f, BACKWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump ACCIDENT info OK.");
@@ -1682,7 +1950,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_OTDRIVE:		//11H 超时驾驶记录 见表A.23 全部记录
 		{
-			ret = VDR_USB_DumpSession(eLOG_OvertimeDrive, f, BACKWARD);
+			ret = VDR_USB_DumpSession(eLOG_OvertimeDrive, &f, BACKWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump OVERTIME DRIVING info OK.");
@@ -1691,7 +1959,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_DRIVERLOG:		//12H 驾驶人身份记录 见表A.25 全部记录
 		{
-			ret = VDR_USB_DumpSession(eLOG_DriverInfo, f, BACKWARD);
+			ret = VDR_USB_DumpSession(eLOG_DriverInfo, &f, BACKWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump DRIVER IDENTIFY info OK.");
@@ -1699,7 +1967,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_POWER:			//13H 外部供电记录 见表A.26 全部记录
 		{
-			ret = VDR_USB_DumpSession(eLOG_Power, f, BACKWARD);
+			ret = VDR_USB_DumpSession(eLOG_Power, &f, BACKWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump POWER info OK.");
@@ -1707,7 +1975,7 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_PARAMCHG:		//14H 参数修改记录 见表A.29 全部记录
 		{
-			ret = VDR_USB_DumpSession(eLOG_ParamChange, f, BACKWARD);
+			ret = VDR_USB_DumpSession(eLOG_ParamChange, &f, BACKWARD);
 			if(ret < 0)
 				return ret;
 			TRACE_(QS_USER, NULL, "[USB] dump PARAM CHANGE info OK.");
@@ -1715,9 +1983,9 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 			break;
 		case	VDR_USB_CODE_SPEEDSTATUS:	//15H 速度状态日志 见表A.31 全部记录
 		{
-			ret = VDR_USB_DumpSession(eLOG_SpeedState, f, BACKWARD);
-				if(ret < 0)
-					return ret;
+			ret = VDR_USB_DumpSession(eLOG_SpeedState, &f, BACKWARD);
+			if(ret < 0)
+				return ret;
 				TRACE_(QS_USER, NULL, "[USB] dump SPEED STATES info OK.");
 		}
 			break;
@@ -1731,9 +1999,9 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
 		i++;
 	}
 
-	f_close(f);
+	f_close(&f);
     TRACE_(QS_USER, NULL, "[VDR] USB: *** All files has been dumped to USB device Successfully. ***");
-
+#endif
 	return 0;
 }
 
@@ -1745,7 +2013,8 @@ int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime) {
  * @param direct		记录提取方向
  * @return
  */
-int VDR_USB_DumpSession(eLOGCLASS eClass, FIL *f, u8 direct) {
+int VDR_USB_DumpSession(T_QSESSION *qSession, eLOGCLASS eClass, FIL *f, u8 direct) {
+#if 0
 	FRESULT res;
 	int ret;
 	u8 i;
@@ -1766,6 +2035,8 @@ int VDR_USB_DumpSession(eLOGCLASS eClass, FIL *f, u8 direct) {
 	ZeroMem((u8*)&time_start, 6);
 	ZeroMem((u8*)&time_end, 6);
 	ret = VDR_NewQuerySession(eLOG_Speed, &time_start, &time_end);
+	if(ret < 0)
+		return -1;
 
 	/**填充头信息*/
 	tBlock.u8Code = VDR_BLOCK[i].code;
@@ -1774,9 +2045,9 @@ int VDR_USB_DumpSession(eLOGCLASS eClass, FIL *f, u8 direct) {
 
 	/**计算数据长度*/
 	i = 0;
-	while(i < qSession.u8FileAmt) {
+	while(i < qSession->u8FileAmt) {
 		/*打开文件*/
-		res = f_open(_f, qSession.aFileList[i], FA_OPEN_EXISTING | FA_READ);
+		res = f_open(_f, qSession->aFileList[i], FA_OPEN_EXISTING | FA_READ);
 		if (FR_OK != res) {
 			f_close(_f);
 			return -ERR_SD_FILENOTEXISTED;
@@ -1801,9 +2072,10 @@ int VDR_USB_DumpSession(eLOGCLASS eClass, FIL *f, u8 direct) {
 	/**循环读取并写入单条记录*/
 	while(!VDR_IsReadFinished()) {
 		if(direct == FORWARD)
-			ret = VDR_RetrieveSingleRecordForward(data, RECORD_SIZE[eClass]);
+			ret = VDR_RetrieveSingleRecordForward(data);
 		else
-			ret = VDR_RetrieveSingleRecordBackward(data, RECORD_SIZE[eClass]);
+			ret = VDR_RetrieveSingleRecordBackward(data);
+
 		if(ret < 0) {
 			return -ERR_USB_WRITE;
 		}
@@ -1825,6 +2097,7 @@ int VDR_USB_DumpSession(eLOGCLASS eClass, FIL *f, u8 direct) {
 	/**关闭当前的查询*/
 	VDR_CloseQuerySession();
 	TRACE_(QS_USER, NULL, "[USB] dump Speed info OK.");
+#endif
 
 	return 0;
 }
@@ -1872,7 +2145,7 @@ void main() {
 	}while(!VDR_IsReadFinished());
 
 	/*查询完成，释放查询SESSION*/
-	SD_ClearQuerySession(&qSession);
+	SD_ClearQuerySession(&qSession->;
 
 	/*连续读取记录，逆序*/
 	ret = VDR_NewQuerySession(eLOG_Speed, &start, &end);
@@ -1888,6 +2161,6 @@ void main() {
 	}while(!VDR_IsReadFinished());
 
 	/*查询完成，释放查询SESSION*/
-	SD_ClearQuerySession(&qSession);
+	SD_ClearQuerySession(&qSession->;
 }
 #endif

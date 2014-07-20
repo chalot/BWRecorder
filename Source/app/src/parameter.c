@@ -12,6 +12,10 @@
 #include <stm32f2xx_conf.h>
 #include "parameter.h"
 #include "utility.h"
+#include <qp_port.h>
+#include <error.h>
+
+Q_DEFINE_THIS_MODULE("parameter.c")
 
 /**
  * 全局参数定义
@@ -103,31 +107,31 @@ typedef struct {
 
 static PARAM_CONFIG tConf[] = {
 		///点播菜单
-		{ EEPROM_ADDR_MSGOD_MENU, &tParam_MsgODMenu_St, sizeof(tParam_MsgODMenu_St),
+		{ EEPROM_ADDR_MSGOD_MENU, (u8*)&tParam_MsgODMenu_St, sizeof(tPARAM_MSGOD_MENU_STORAGE),
 				MSGOD_MENU_ITEM_SIZE, MSGOD_MENU_MSG_SIZE},
 		///点播消息
-		{ EEPROM_ADDR_MSGOD_MSG, &tParam_MsgODMsg_St, sizeof(tParam_MsgODMsg_St),
+		{ EEPROM_ADDR_MSGOD_MSG, (u8*)&tParam_MsgODMsg_St, sizeof(tParam_MsgODMsg_St),
 				MSGOD_MSG_ITEM_SIZE, MSGOD_MSG_MSG_SIZE},
 		///事件
-		{ EEPROM_ADDR_EVENT, &tParam_Evt_St, sizeof(tParam_Evt_St),
+		{ EEPROM_ADDR_EVENT, (u8*)&tParam_Evt_St, sizeof(tParam_Evt_St),
 				EVT_ITEM_SIZE, EVT_MSG_SIZE},
 		///矩形区域
-		{ EEPROM_ADDR_RECTANGLE, &tParam_RectArea_St, sizeof(tParam_RectArea_St),
+		{ EEPROM_ADDR_RECTANGLE, (u8*)&tParam_RectArea_St, sizeof(tParam_RectArea_St),
 				sizeof(tItem_RectArea_Ext), RECT_AREA_ITEM_SIZE },
 		///圆形区域
-		{ EEPROM_ADDR_ROUND, &tParam_RoundArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
+		{ EEPROM_ADDR_ROUND, (u8*)&tParam_RoundArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
 				sizeof(tItem_RoundArea_Ext), ROUND_AREA_ITEM_SIZE },
 		///多边形区域
-		{ EEPROM_ADDR_POLYGON, &tParam_PolygonArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
+		{ EEPROM_ADDR_POLYGON, (u8*)&tParam_PolygonArea_St, sizeof(tPARAM_RECTAREA_STORAGE),
 				sizeof(tItem_Polygon_Ex), POLYGON_AREA_ITEM_SIZE },
 		///路线
-		{ EEPROM_ADDR_ROUTE, &tParam_Route_St, sizeof(tPARAM_ROUTE_STORAGE),
+		{ EEPROM_ADDR_ROUTE, (u8*)&tParam_Route_St, sizeof(tPARAM_ROUTE_STORAGE),
 				sizeof(tITEM_CORNERPOINT_Ex), PARAM_ROUTE_ITEM_MAX },
 		///驾驶人
-		{ EEPROM_ADDR_DRIVER, &tParam_Driver_St, sizeof(tParam_Driver_St),
+		{ EEPROM_ADDR_DRIVER, (u8*)&tParam_Driver_St, sizeof(tParam_Driver_St),
 				sizeof(tPARAM_DRIVER), DRIVERS_PERCAR_MAXNUM },
 		///电话本
-		{ EEPROM_ADDR_PHONEBOOK, &tParam_PhoneBook_St, sizeof(tParam_PhoneBook_St),
+		{ EEPROM_ADDR_PHONEBOOK, (u8*)&tParam_PhoneBook_St, sizeof(tParam_PhoneBook_St),
 				sizeof(tPHONEBOOK_ITEM), PHONE_ITEM_SIZE },
 
 };
@@ -166,7 +170,7 @@ static PARAM_CONFIG tConf[] = {
 /**设置系统参数宏，字符串型参数*/
 #define set_sysparam_str(id, len, pVal)  \
 										do {	\
-											memcpy_(id, pVal, len);	\
+											memcpy_((u8*)id, (u8*)pVal, len);	\
 											id[len] = '\0';	\
 										}while(0)
 
@@ -206,16 +210,28 @@ static PARAM_CONFIG tConf[] = {
 		}while(0);
 
 /**读取系统参数项，STRING型参数*/
+/*
 #define get_sysparam_str(pAdd, id, str)	\
 		do	{	\
 			tPARAMITEM_STR* pItem;		\
 			pItem = (tPARAMITEM_STR*)pAdd;	\
 			pItem->u32Id = id;	\
-			pItem->u8Len = strlen_(str);		\
-			pAdd += sizeof(tPARAMITEM_STR);	\
-			strcpy_(pAdd + sizeof(tPARAMITEM_STR), str);	\
 			ENDIAN_U32(pItem->u32Id);		\
+			pItem->u8Len = strlen_((char*)str);		\
+			strcpy_(pAdd + sizeof(tPARAMITEM_STR), str);	\
+			pAdd += sizeof(tPARAMITEM_STR);	\
 		}while(0);
+*/
+void get_sysparam_str(u8 *pAdd, u16 id, char *str)	{
+	tPARAMITEM_STR* pItem;
+	pItem = (tPARAMITEM_STR*)pAdd;
+	pItem->u32Id = id;
+	ENDIAN_U32(pItem->u32Id);
+	pItem->u8Len = strlen_((char*)str);
+	strcpy_((char*)(pAdd + sizeof(tPARAMITEM_STR)), str);
+	pAdd += sizeof(tPARAMITEM_STR);
+}
+
 
 /**读取系统参数项，数组型参数*/
 #define get_sysparam_mem(pAdd, id, len, str)	\
@@ -223,10 +239,10 @@ static PARAM_CONFIG tConf[] = {
 			tPARAMITEMHEAD* pItem;		\
 			pItem = (tPARAMITEMHEAD*)pAdd;	\
 			pItem->u32Id = id;	\
-			pItem->u8Len = len;		\
-			pAdd += sizeof(tPARAMITEMHEAD);	\
-			strcpy_(pAdd + sizeof(tPARAMITEMHEAD), str);	\
 			ENDIAN_U32(pItem->u32Id);		\
+			pItem->u8Len = len;		\
+			strcpy_((char*)(pAdd + sizeof(tPARAMITEMHEAD)), (char*)str);	\
+			pAdd += sizeof(tPARAMITEMHEAD);	\
 		}while(0);
 #endif
 
@@ -515,11 +531,11 @@ int Set_SystemParam(u32 id, u8 len, u8 *pVal) {
 
 		/**0X005F----0X0063 */
 	case PARAM_PERIODIC_PHOTO_CTRL: ///=	0x0064,	定时拍照控制
-		memcpy_((u8*) &ptParam_System->tPhotoCtrl_Periodic, len, pVal);
+		memcpy_((u8*)&ptParam_System->tPhotoCtrl_Periodic, pVal, len);
 		ENDIAN_PU32(&ptParam_System->tPhotoCtrl_Periodic); ///转成小端
 		break;
 	case PARAM_PERDIST_PHOTO_CTRL: ///=	0x0065,	定距拍照控制
-		memcpy_((u8*) &ptParam_System->tPhotoCtrl_Dist, len, pVal);
+		memcpy_((u8*) &ptParam_System->tPhotoCtrl_Dist, pVal, len);
 		ENDIAN_PU32(&ptParam_System->tPhotoCtrl_Dist); ///转成小端
 		break;
 		/**0X0066----0X006F */
@@ -632,40 +648,40 @@ u16 GetItem_AllSystemParam(u8 *pData) {
 	_pt += sizeof(tPARAMITEM_U32);
 
 	/**主服务器参数*/
-	get_sysparam_str(_pt, PARAM_MAINSRV_APN, ptParam_System->au8MainServerApn);
-	_pt += (5 + strlen_(ptParam_System->au8MainServerApn));
+	get_sysparam_str(_pt, (u16)PARAM_MAINSRV_APN, (char*)ptParam_System->au8MainServerApn);
+	_pt += (5 + strlen_((char*)ptParam_System->au8MainServerApn));
 
-	get_sysparam_str(_pt, PARAM_MAINSRV_USR, ptParam_System->au8MainServerUsr);
-	_pt += (5 + strlen_(ptParam_System->au8MainServerUsr));
+	get_sysparam_str(_pt, PARAM_MAINSRV_USR, (char*)ptParam_System->au8MainServerUsr);
+	_pt += (5 + strlen_((char*)ptParam_System->au8MainServerUsr));
 
-	get_sysparam_str(_pt, PARAM_MAINSRV_PSWD, ptParam_System->au8MainServerPswd);
-	_pt += (5 + strlen_(ptParam_System->au8MainServerPswd));
+	get_sysparam_str(_pt, PARAM_MAINSRV_PSWD, (char*)ptParam_System->au8MainServerPswd);
+	_pt += (5 + strlen_((char*)ptParam_System->au8MainServerPswd));
 
-	get_sysparam_str(_pt, PARAM_MAINSRV_IP, ptParam_System->au8MainServerIP);
-	_pt += (5 + strlen_(ptParam_System->au8MainServerIP));
+	get_sysparam_str(_pt, PARAM_MAINSRV_IP, (char*)ptParam_System->au8MainServerIP);
+	_pt += (5 + strlen_((char*)ptParam_System->au8MainServerIP));
 
 	/**备份服务器参数*/
-	get_sysparam_str(_pt, PARAM_VICESRV_APN, ptParam_System->au8ViceServerApn);
-	_pt += (5 + strlen_(ptParam_System->au8ViceServerApn));
+	get_sysparam_str(_pt, PARAM_VICESRV_APN, (char*)ptParam_System->au8ViceServerApn);
+	_pt += (5 + strlen_((char*)ptParam_System->au8ViceServerApn));
 
-	get_sysparam_str(_pt, PARAM_VICESRV_USR, ptParam_System->au8ViceServerUsr);
-	_pt += (5 + strlen_(ptParam_System->au8ViceServerUsr));
+	get_sysparam_str(_pt, PARAM_VICESRV_USR, (char*)ptParam_System->au8ViceServerUsr);
+	_pt += (5 + strlen_((char*)ptParam_System->au8ViceServerUsr));
 
-	get_sysparam_str(_pt, PARAM_VICESRV_PSWD, ptParam_System->au8ViceServerPswd);
-	_pt += (5 + strlen_(ptParam_System->au8ViceServerPswd));
+	get_sysparam_str(_pt, PARAM_VICESRV_PSWD, (char*)ptParam_System->au8ViceServerPswd);
+	_pt += (5 + strlen_((char*)ptParam_System->au8ViceServerPswd));
 
-	get_sysparam_str(_pt, PARAM_VICESRV_IP, ptParam_System->au8ViceServerIP);
-	_pt += (5 + strlen_(ptParam_System->au8ViceServerIP));
+	get_sysparam_str(_pt, PARAM_VICESRV_IP, (char*)ptParam_System->au8ViceServerIP);
+	_pt += (5 + strlen_((char*)ptParam_System->au8ViceServerIP));
 
-	get_sysparam_str(_pt, PARAM_TCP_PORT, ptParam_System->u32TCPPort);
-	_pt += (5 + strlen_(ptParam_System->u32TCPPort));
+	get_sysparam_u32(_pt, PARAM_TCP_PORT, ptParam_System->u32TCPPort);
+	_pt += (5 + sizeof(ptParam_System->u32TCPPort));
 
-	get_sysparam_str(_pt, PARAM_UDP_PORT, ptParam_System->u32UDPPort);
-	_pt += (5 + strlen_(ptParam_System->u32UDPPort));
+	get_sysparam_u32(_pt, PARAM_UDP_PORT, ptParam_System->u32UDPPort);
+	_pt += (5 + sizeof(ptParam_System->u32UDPPort));
 
 #ifdef JTT808_Ver_2013
 	get_sysparam_str(_pt, PARAM_ICVERIFY_MS_IPOrDNS, ptParam_System->IC_Verify_MS_IPOrDNS);
-	_pt += (5 + strlen_(ptParam_System->IC_Verify_MS_IPOrDNS));
+	_pt += (5 + strlen_((char*)ptParam_System->IC_Verify_MS_IPOrDNS));
 
 	get_sysparam_u32(_pt, PARAM_ICVERIFY_TCPPORT, ptParam_System->IC_Verify_TCP_Port);
 	_pt += sizeof(tPARAMITEM_U32);
@@ -673,8 +689,8 @@ u16 GetItem_AllSystemParam(u8 *pData) {
 	get_sysparam_u32(_pt, PARAM_ICVERIFY_UDPPORT, ptParam_System->IC_Verify_UDP_Port);
 	_pt += sizeof(tPARAMITEM_U32);
 
-	get_sysparam_str(_pt, PARAM_ICVERIFY_BS_UDPPORT, ptParam_System->IC_Verify_BS_IPOrDNS);
-	_pt += (5 + strlen_(ptParam_System->IC_Verify_BS_IPOrDNS));
+	get_sysparam_str(_pt, PARAM_ICVERIFY_BS_UDPPORT, (char*)ptParam_System->IC_Verify_BS_IPOrDNS);
+	_pt += (5 + strlen_((char*)ptParam_System->IC_Verify_BS_IPOrDNS));
 #endif
 
 	/**位置汇报参数*/
@@ -715,20 +731,20 @@ u16 GetItem_AllSystemParam(u8 *pData) {
 	_pt += sizeof(tPARAMITEM_U16);
 
 	/**电话参数*/
-	get_sysparam_str(_pt, PARAM_MONITORCENTER_PHONENUM, ptParam_System->aMonitorPlatformPhone);
-	_pt += (5 + strlen_(ptParam_System->aMonitorPlatformPhone));
+	get_sysparam_str(_pt, PARAM_MONITORCENTER_PHONENUM, (char*)ptParam_System->aMonitorPlatformPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aMonitorPlatformPhone));
 
-	get_sysparam_str(_pt, PARAM_RESET_PHONENUM, ptParam_System->aResetPhone);
-	_pt += (5 + strlen_(ptParam_System->aResetPhone));
+	get_sysparam_str(_pt, PARAM_RESET_PHONENUM, (char*)ptParam_System->aResetPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aResetPhone));
 
-	get_sysparam_str(_pt, PARAM_RECOVERFACTORY_PHONENUM, ptParam_System->aRecoverFactorySettingPhone);
-	_pt += (5 + strlen_(ptParam_System->aRecoverFactorySettingPhone));
+	get_sysparam_str(_pt, PARAM_RECOVERFACTORY_PHONENUM, (char*)ptParam_System->aRecoverFactorySettingPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aRecoverFactorySettingPhone));
 
-	get_sysparam_str(_pt, PARAM_MONITORCENTER_SMS_NUM, ptParam_System->aCenterSMSPhone);
-	_pt += (5 + strlen_(ptParam_System->aCenterSMSPhone));
+	get_sysparam_str(_pt, PARAM_MONITORCENTER_SMS_NUM, (char*)ptParam_System->aCenterSMSPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aCenterSMSPhone));
 
-	get_sysparam_str(_pt, PARAM_RECVTXTALARM_SMS_NUM, ptParam_System->aRcvTerminalSMSAlarmPhone);
-	_pt += (5 + strlen_(ptParam_System->aRcvTerminalSMSAlarmPhone));
+	get_sysparam_str(_pt, PARAM_RECVTXTALARM_SMS_NUM, (char*)ptParam_System->aRcvTerminalSMSAlarmPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aRcvTerminalSMSAlarmPhone));
 
 	get_sysparam_u32(_pt, PARAM_ANSWERCALLING_STRATEGE, ptParam_System->u32InflectionSuppleAngle);
 	_pt += sizeof(tPARAMITEM_U32);
@@ -739,11 +755,11 @@ u16 GetItem_AllSystemParam(u8 *pData) {
 	get_sysparam_u32(_pt, PARAM_TOUT_PERMONTHCALL, ptParam_System->u32InflectionSuppleAngle);
 	_pt += sizeof(tPARAMITEM_U32);
 
-	get_sysparam_str(_pt, PARAM_MONITORLISTEN_PHONENUM, ptParam_System->aVoiceMonitorPhone);
-	_pt += (5 + strlen_(ptParam_System->aVoiceMonitorPhone));
+	get_sysparam_str(_pt, PARAM_MONITORLISTEN_PHONENUM, (char*)ptParam_System->aVoiceMonitorPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aVoiceMonitorPhone));
 
-	get_sysparam_str(_pt, PARAM_SUPERVISE_SMS_NUM, ptParam_System->aMonitorPlatformPriviligPhone);
-	_pt += (5 + strlen_(ptParam_System->aMonitorPlatformPriviligPhone));
+	get_sysparam_str(_pt, PARAM_SUPERVISE_SMS_NUM, (char*)ptParam_System->aMonitorPlatformPriviligPhone);
+	_pt += (5 + strlen_((char*)ptParam_System->aMonitorPlatformPriviligPhone));
 
 	/**报警参数*/
 	get_sysparam_u32(_pt, PARAM_ALARM_MASK, ptParam_System->u32AlarmMask);
@@ -827,8 +843,8 @@ u16 GetItem_AllSystemParam(u8 *pData) {
 	get_sysparam_u16(_pt, PARAM_VEHICLE_CITY_ID, ptParam_System->u16CountyId);
 	_pt += sizeof(tPARAMITEM_U16);
 
-	get_sysparam_str(_pt, PARAM_VEHICLE_ID, ptParam_System->u16ProviceId);
-	_pt += (5 + strlen_(ptParam_System->u16ProviceId));
+	get_sysparam_u16(_pt, PARAM_VEHICLE_ID, ptParam_System->u16ProviceId);
+	_pt += (5 + sizeof(ptParam_System->u16ProviceId));
 
 	get_sysparam_u8(_pt, PARAM_VEHICLE_ID_COLOR, ptParam_System->u8Color);
 	_pt += sizeof(tPARAMITEM_U8);
@@ -865,11 +881,11 @@ u16 GetItem_AllSystemParam(u8 *pData) {
 	get_sysparam_u16(_pt, PARAM_CAN_CH2_UPLOADINTERVAL, ptParam_System->u16CAN_Ch2_UploadInterval);
 	_pt += sizeof(tPARAMITEM_U16);
 
-	get_sysparam_mem(_pt, PARAM_CAN_SOLORETRIEVE, 8, ptParam_System->u8CAN_SingleRetrieveSetting);
+	get_sysparam_mem(_pt, PARAM_CAN_SOLORETRIEVE, 8, (u8*)&ptParam_System->tCanConf);
 	_pt += (5 + 8);
 
 	/**0x0111-0x01FF BYTE[8] 用于其他CAN 总线ID 单独采集设置*/
-	get_sysparam_mem(_pt, PARAM_CAN_SOLORETRIEVE_OTHER, 8, ptParam_System->u8CAN_SingleRetrieveSetting_Others);
+	get_sysparam_mem(_pt, PARAM_CAN_SOLORETRIEVE_OTHER, 8, (u8*)ptParam_System->au8CAN_SingleRetrieveSetting_Others);
 	_pt += (5 + 8);
 
 	/**0xF000-0xFFFF 用户自定义*/
@@ -1094,10 +1110,11 @@ u8 PARAM_GetAmount(eFMTMSG_PARAM type) {
  */
 int PARAM_FormatMsg_ApendItem(eFMTMSG_PARAM type, u16 u16ItemLen, u8 *pItemMsg) {
 
-	u32 u32Address;
+//	u32 u32Address;
 	int ret;
 	u8 u8CRC, crc_eeprom;
 	u8 u8Amount;
+	u8 *pAddr;
 
 	if (type >= PARAM_FMTEND)
 		return -ERR_PARAM_INVALID;
@@ -1105,9 +1122,9 @@ int PARAM_FormatMsg_ApendItem(eFMTMSG_PARAM type, u16 u16ItemLen, u8 *pItemMsg) 
 	if (ITEM_AMOUNT(type) >= tConf[type].u8ItemAmount)	///事件缓区已满，不添加
 		return -ERR_PARAM_INVALID;
 
-	u32Address = ITEM_OFFSET(type, u8Amount);	///项尾位置
+	pAddr = ITEM_OFFSET(type, u8Amount);	///项尾位置
 
-	memcpy_(u32Address, pItemMsg, u16ItemLen);
+	memcpy_(pAddr, pItemMsg, u16ItemLen);
 
 	return 0;
 }
@@ -1125,7 +1142,8 @@ int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u16 u16ItemLen, u8 *pItemM
 	u8 crc_eeprom;
 	u8 u8ItemAmount;
 	u8 i = 0;
-	u32 u32ItemAddress;
+//	u32 u32ItemAddress;
+	u8 *pItemAddr;
 
 	if (type >= PARAM_FMTEND)
 		return -ERR_PARAM_INVALID;
@@ -1142,9 +1160,9 @@ int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u16 u16ItemLen, u8 *pItemM
 	if (i >= u8ItemAmount)	///项不存在，退出
 		return 0;
 
-	u32ItemAddress = ITEM_OFFSET(type, i);	///项尾位置
+	pItemAddr = ITEM_OFFSET(type, i);	///项尾位置
 
-	memcpy_(u32ItemAddress, pItemMsg, u16ItemLen);
+	memcpy_(pItemAddr, pItemMsg, u16ItemLen);
 
 	return 0;
 }
@@ -1199,7 +1217,7 @@ int PARAM_Area_AppendItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen) {
  */
 int PARAM_Area_ReplaceItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen) {
 	u8 u8Amount, i;
-	u8 pItemAddr;
+	u8 *pItemAddr;
 
 	if (ITEM_AMOUNT(type) >= tConf[type].u8ItemAmount)	///事件缓区已满，不添加
 		return -ERR_PARAM_INVALID;
@@ -1252,6 +1270,12 @@ int PARAM_Area_DeleteItem(u8 type, u32 u32Id) {
 	*(tConf[type].pStorageAddr + 1) = u8Amount - 1;	///累加事件条目总数
 
 	return 0;
+}
+
+void PARAM_Area_EraseAll(u8 type) {
+
+
+	return ;
 }
 
 /**
@@ -1333,22 +1357,22 @@ void PARAM_SetFactoryParams() {
 	ptParam_System->u32SMSReSendTimes = 1;		///SMS消息重传次数
 
 	///主服务器参数
-	ptParam_System->au8MainServerApn[STR_SIZE] = "CMNET";	///主服务器APN
-	ptParam_System->au8MainServerUsr[STR_SIZE] = "";	///主服务器无线通信用户名
-	ptParam_System->au8MainServerPswd[STR_SIZE] = "";	///主服务器无线通信密码
-	ptParam_System->au8MainServerIP[STR_SIZE] = "59.61.82.170";	///主服务器IP地址,IP或域名
+	strcpy_(ptParam_System->au8MainServerApn, "CMNET");	///主服务器APN
+	strcpy_(ptParam_System->au8MainServerUsr, "");	///主服务器无线通信用户名
+	strcpy_(ptParam_System->au8MainServerPswd, "");	///主服务器无线通信密码
+	strcpy_(ptParam_System->au8MainServerIP, "59.61.82.170");	///主服务器IP地址,IP或域名
 	///备份服务器参数
-	ptParam_System->au8ViceServerApn[STR_SIZE] = "CMNET";	///备份服务器APN
-	ptParam_System->au8ViceServerUsr[STR_SIZE] = "";	///备份服务器无线通信用户名
-	ptParam_System->au8ViceServerPswd[STR_SIZE] = "";	///备份服务器无线通信密码
-	ptParam_System->au8ViceServerIP[STR_SIZE] = "59.61.82.170";		///备份服务器IP地址
+	strcpy_(ptParam_System->au8ViceServerApn, "CMNET");	///备份服务器APN
+	strcpy_(ptParam_System->au8ViceServerUsr, "");	///备份服务器无线通信用户名
+	strcpy_(ptParam_System->au8ViceServerPswd, "");	///备份服务器无线通信密码
+	strcpy_(ptParam_System->au8ViceServerIP, "59.61.82.170");		///备份服务器IP地址
 	ptParam_System->u32TCPPort = 9010;	///服务器TCP端口
 	ptParam_System->u32UDPPort = 3100;	///服务器UDP端口
 	#ifdef JTT808_Ver_2013
-	ptParam_System->IC_Verify_MS_IPOrDNS[STR_SIZE] = "59.61.82.170";	///道路运输证IC卡认证主服务器IP地址或域名
+	strcpy_(ptParam_System->IC_Verify_MS_IPOrDNS, "59.61.82.170");	///道路运输证IC卡认证主服务器IP地址或域名
 	ptParam_System->IC_Verify_TCP_Port = 9010;		///道路运输证IC卡认证主服务器TCP端口
 	ptParam_System->IC_Verify_UDP_Port = 3100;		///道路运输证IC卡认证主服务器UDP端口
-	ptParam_System->IC_Verify_BS_IPOrDNS[STR_SIZE] = "59.61.82.170";	///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
+	strcpy_(ptParam_System->IC_Verify_BS_IPOrDNS, "59.61.82.170");	///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
 	#endif
 
 	/**位置汇报参数*/
@@ -1366,18 +1390,18 @@ void PARAM_SetFactoryParams() {
 	ptParam_System->u16BarrierRadius = 1000;		///电子围栏半径(非法移位阈值)，单位为米
 
 	/**电话参数*/
-	ptParam_System->aMonitorPlatformPhone[STR_SIZE] = "13855179448";	///监控平台号码内容
-	ptParam_System->aResetPhone[STR_SIZE] = "13855179448";		///复位电话号码内容
-	ptParam_System->aRecoverFactorySettingPhone[STR_SIZE] = "13855179448";		///恢复出厂设置电话号码内容
-	ptParam_System->aCenterSMSPhone[STR_SIZE] = "13855179448";		///监控平台号码内容
-	ptParam_System->aRcvTerminalSMSAlarmPhone[STR_SIZE] = "13855179448";	///接收终端SMS报警号码内容
+	strcpy_(ptParam_System->aMonitorPlatformPhone, "13855179448");	///监控平台号码内容
+	strcpy_(ptParam_System->aResetPhone, "13855179448");		///复位电话号码内容
+	strcpy_(ptParam_System->aRecoverFactorySettingPhone, "13855179448");		///恢复出厂设置电话号码内容
+	strcpy_(ptParam_System->aCenterSMSPhone, "13855179448");		///监控平台号码内容
+	strcpy_(ptParam_System->aRcvTerminalSMSAlarmPhone, "13855179448");	///接收终端SMS报警号码内容
 
 	ptParam_System->u32PhoneListenStratagy = 0;		///终端电话接听策略,0:自动接通，1:ACC ON时自动接通，OFF时手动接听
 	ptParam_System->u32PhoneConnTimeoutEachTime = 600;	///每次通话最长时间，单位为秒(s)
 	ptParam_System->u32PhoneConnTimeoutCurMonth = 100 * 60;	///当月通话最长时间，单位为秒(s)
 
-	ptParam_System->aVoiceMonitorPhone[STR_SIZE] = "13855179448";		///监听电话号码内容
-	ptParam_System->aMonitorPlatformPriviligPhone[STR_SIZE] = "13855179448";	///监管平台特权电话号码内容
+	strcpy_(ptParam_System->aVoiceMonitorPhone, "13855179448");		///监听电话号码内容
+	strcpy_(ptParam_System->aMonitorPlatformPriviligPhone, "13855179448");	///监管平台特权电话号码内容
 
 	/**报警参数*/
 	ptParam_System->u32AlarmMask = 0xFFFFFFFF;	///报警屏蔽字，与位置信息汇报消息中的报警标志相对应，相应位为1则相应报警被屏蔽
@@ -1445,10 +1469,11 @@ void PARAM_SetFactoryParams() {
 	ptParam_System->u32Kilometers = 0;		///车辆行驶里程
 	ptParam_System->u16ProviceId = 0;		///省域ID
 	ptParam_System->u16CountyId = 0;		///市县域ID
-	ptParam_System->au8Plate[PLATE_SIZE] = "BW001";		///车牌
+	strcpy_(ptParam_System->au8Plate, "BW001");		///车牌
 	ptParam_System->u8Color = 0;		///车牌颜色
 
-	#ifdef JTT808_Ver_2013
+#ifdef JTT808_Ver_2013
+
 	/**以下为新协议增加的参数项*/
 	/**
 	 GNSS 定位模式，定义如下：
@@ -1521,14 +1546,22 @@ void PARAM_SetFactoryParams() {
 	ptParam_System->tCanConf.CAN_TimeInterval = 100;
 
 	/**0x0111-0x01FF BYTE[8] 用于其他CAN 总线ID 单独采集设置*/
-	ptParam_System->u8CAN_SingleRetrieveSetting_Others[8]; ///0x0111-0x01FF
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[0] = 0; ///0x0111-0x01FF
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[1] = 0;
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[2] = 0;
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[3] = 0;
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[4] = 0;
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[5] = 0;
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[6] = 0;
+	ptParam_System->au8CAN_SingleRetrieveSetting_Others[7] = 0;
+#endif
 
 /**
  * 设备参数
  */
 	ptParam_Device->u16ProviceId = 0x0;		///省域ID
 	ptParam_Device->u16CountyId = 0x0;		///市县域ID
-	ptParam_Device->au8FactoryId[5] = "BW";	///制造商ID
+	strcpy_(ptParam_Device->au8FactoryId, "BW");	///制造商ID
 #ifdef JTT808_Ver_2011
 	ptParam_Device->aType[8] = "BW5010";	///终端型号，8个字节，此终端型号由制造商自行定义，位数不	足时，补空格。
 	ptParam_Device->aTId[7] = "BW00001";///终端ID,7 个字节，由大写字母和数字组成，此终端ID 由制造商自行定义，位数不足时，后补“0X00”。
@@ -1540,7 +1573,7 @@ void PARAM_SetFactoryParams() {
 	ptParam_Device->u8PlateColor = 0x0;		///车牌颜色，按照JT/T415-2006 的5.4.12。未上牌时，取值为0。
 #endif///JTT808_Ver_2013
 
-	ptParam_Device->aPlate[PARAM_VIN_PLATE_MAXLEN] = "BW001"; /**V2011： 机动车号牌;
+	strcpy_(ptParam_Device->aPlate, "BW001"); /**V2011： 机动车号牌;
 										 V2013：车牌车牌颜色为0 时，表示车辆VIN；否则，表示公安 交通管理部门颁发的机动车号牌。*/
 #ifdef JTT808_Ver_2013
 	/**终端类型*/

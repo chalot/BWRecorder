@@ -116,7 +116,7 @@
 / Physical Drive Configurations
 /----------------------------------------------------------------------------*/
 
-#define _DRIVES		1
+#define _DRIVES		2	//1	驱动器从1改为2，增加SD设备
 /* Number of volumes (logical drives) to be used. */
 
 

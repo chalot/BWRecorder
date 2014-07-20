@@ -37,6 +37,7 @@
 
 #include <stm32f2xx.h>
 #include <qp_port.h>
+#include <systimer.h>
                                                 // System clock tick rate [Hz]
 #define BSP_TICKS_PER_SEC 100
 

@@ -5,6 +5,7 @@
 #include "protocol.h"
 #include "config.h"
 #include <fram.h>
+#include <vdr.h>
 
 #pragma pack(1)
 
@@ -253,22 +254,22 @@ typedef struct {
 	u32 u32SMSReSendTimes;		///SMS消息重传次数
 
 ///主服务器参数
-	u8 au8MainServerApn[STR_SIZE];	///主服务器APN
-	u8 au8MainServerUsr[STR_SIZE];	///主服务器无线通信用户名
-	u8 au8MainServerPswd[STR_SIZE];	///主服务器无线通信密码
-	u8 au8MainServerIP[STR_SIZE];		///主服务器IP地址,IP或域名
+	char au8MainServerApn[STR_SIZE];	///主服务器APN
+	char au8MainServerUsr[STR_SIZE];	///主服务器无线通信用户名
+	char au8MainServerPswd[STR_SIZE];	///主服务器无线通信密码
+	char au8MainServerIP[STR_SIZE];		///主服务器IP地址,IP或域名
 ///备份服务器参数
-	u8 au8ViceServerApn[STR_SIZE];	///备份服务器APN
-	u8 au8ViceServerUsr[STR_SIZE];	///备份服务器无线通信用户名
-	u8 au8ViceServerPswd[STR_SIZE];	///备份服务器无线通信密码
-	u8 au8ViceServerIP[STR_SIZE];		///备份服务器IP地址
+	char au8ViceServerApn[STR_SIZE];	///备份服务器APN
+	char au8ViceServerUsr[STR_SIZE];	///备份服务器无线通信用户名
+	char au8ViceServerPswd[STR_SIZE];	///备份服务器无线通信密码
+	char au8ViceServerIP[STR_SIZE];		///备份服务器IP地址
 	u32 u32TCPPort;	///服务器TCP端口
 	u32 u32UDPPort;	///服务器UDP端口
 #ifdef JTT808_Ver_2013
-	u8 IC_Verify_MS_IPOrDNS[STR_SIZE];	///道路运输证IC卡认证主服务器IP地址或域名
+	char IC_Verify_MS_IPOrDNS[STR_SIZE];	///道路运输证IC卡认证主服务器IP地址或域名
 	u32 IC_Verify_TCP_Port;		///道路运输证IC卡认证主服务器TCP端口
 	u32 IC_Verify_UDP_Port;		///道路运输证IC卡认证主服务器UDP端口
-	u8 IC_Verify_BS_IPOrDNS[STR_SIZE];	///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
+	char IC_Verify_BS_IPOrDNS[STR_SIZE];	///道路运输证IC卡备份服务器IP地址或域名，端口同主服务器
 #endif
 
 	/**位置汇报参数*/
@@ -286,18 +287,18 @@ typedef struct {
 	u16 u16BarrierRadius;		///电子围栏半径(非法移位阈值)，单位为米
 
 	/**电话参数*/
-	u8 aMonitorPlatformPhone[STR_SIZE];	///监控平台号码内容
-	u8 aResetPhone[STR_SIZE];		///复位电话号码内容
-	u8 aRecoverFactorySettingPhone[STR_SIZE];		///恢复出厂设置电话号码内容
-	u8 aCenterSMSPhone[STR_SIZE];		///监控平台号码内容
-	u8 aRcvTerminalSMSAlarmPhone[STR_SIZE];	///接收终端SMS报警号码内容
+	char aMonitorPlatformPhone[STR_SIZE];	///监控平台号码内容
+	char aResetPhone[STR_SIZE];		///复位电话号码内容
+	char aRecoverFactorySettingPhone[STR_SIZE];		///恢复出厂设置电话号码内容
+	char aCenterSMSPhone[STR_SIZE];		///监控平台号码内容
+	char aRcvTerminalSMSAlarmPhone[STR_SIZE];	///接收终端SMS报警号码内容
 
 	u32 u32PhoneListenStratagy;		///终端电话接听策略
 	u32 u32PhoneConnTimeoutEachTime;	///每次通话最长时间，单位为秒(s)
 	u32 u32PhoneConnTimeoutCurMonth;	///当月通话最长时间，单位为秒(s)
 
-	u8 aVoiceMonitorPhone[STR_SIZE];		///监听电话号码内容
-	u8 aMonitorPlatformPriviligPhone[STR_SIZE];	///监管平台特权电话号码内容
+	char aVoiceMonitorPhone[STR_SIZE];		///监听电话号码内容
+	char aMonitorPlatformPriviligPhone[STR_SIZE];	///监管平台特权电话号码内容
 
 	/**报警参数*/
 	u32 u32AlarmMask;	///报警屏蔽字，与位置信息汇报消息中的报警标志相对应，相应位为1则相应报警被屏蔽
@@ -335,7 +336,7 @@ typedef struct {
 	u32 u32Kilometers;		///车辆行驶里程
 	u16 u16ProviceId;		///省域ID
 	u16 u16CountyId;		///市县域ID
-	u8 au8Plate[PLATE_SIZE];		///车牌
+	char au8Plate[PLATE_SIZE];		///车牌
 	u8 u8Color;		///车牌颜色
 
 #ifdef JTT808_Ver_2013
@@ -407,7 +408,7 @@ typedef struct {
 	tCONF_CAN	tCanConf;	///0x0110
 
 	/**0x0111-0x01FF BYTE[8] 用于其他CAN 总线ID 单独采集设置*/
-	u8 u8CAN_SingleRetrieveSetting_Others[8]; ///0x0111-0x01FF
+	u8 au8CAN_SingleRetrieveSetting_Others[8]; ///0x0111-0x01FF
 
 /**0xF000-0xFFFF 用户自定义*/
 
@@ -451,6 +452,7 @@ typedef struct {
 //	bit6，0：不支持硬盘录像，1：支持硬盘录像；
 //	bit7，0：一体机，1：分体机。
 	u16 tType; /**终端类型*/ ///tTerminalType
+//	tTerminalType	tType; /**终端类型*/
 #endif
 
 	u8 ver_hardware[50];	///终端硬件版本号 STRING
@@ -557,9 +559,9 @@ typedef struct {
 	u8 u8Csq;	///0x30 1 BYTE，无线通信网络信号强度
 	u8 u8GNSS_Satellites; ///0x31 1 BYTE，GNSS 定位卫星数
 
-	/**定位数据批量存储头指针*/
-
-
+	/**行驶记录仪相关*/
+	tSTATE_BYTE1	tVDR_State;		///第1个状态信号
+	u8				u8AvgSpeedOfMin;	///1分钟内的平均速度
 
 
 } tPARAM_RUNTIME;
@@ -601,7 +603,7 @@ typedef struct {
 	u8 u8InfoType;			///信息类型
 	u16 u16InfoNameLen;		///信息名称长度
 	u8 aInfoName[20];		///信息名称
-} tMSGODMENUITEM;
+}	tMSGODMENUITEM;
 
 ///点播菜单存储头
 typedef struct {
@@ -897,13 +899,14 @@ u8 PARAM_GetAmount(eFMTMSG_PARAM type);
 
 
 /** 事件/点播菜单/点播消息/电话本外部接口 */
-void PARAM_FormatMsg_ApendItem(u8 type, u8 u8ItemId, u8 u8ItemLen, u8 *pItemMsg);
-int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u8 u8ItemLen,	u8 *pItemMsg);
+int PARAM_FormatMsg_ApendItem(eFMTMSG_PARAM type, u16 u16ItemLen, u8 *pItemMsg);
+int PARAM_FormatMsg_ReplaceItem(u8 type, u8 u8ItemId, u16 u16ItemLen, u8 *pItemMsg);
 
 /** 圆形/矩形/多边形/外部接口 */
 int PARAM_Area_AppendItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen);
 int PARAM_Area_ReplaceItem(u8 type, u32 u32Id, u8 *pItem, u16 u16ItemLen);
 int PARAM_Area_DeleteItem(u8 type, u32 u32Id);
+void PARAM_Area_EraseAll(u8 type);
 
 void PARAM_SetFactoryParams();
 

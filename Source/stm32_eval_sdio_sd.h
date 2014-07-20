@@ -30,6 +30,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32_eval.h"
+#include <stm32f2xx.h>
 
 /** @addtogroup Utilities
   * @{

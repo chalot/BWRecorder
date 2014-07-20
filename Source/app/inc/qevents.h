@@ -12,6 +12,8 @@
 #include <stm32f2xx.h>
 #include <protocol.h>
 #include <qp_port.h>
+#include <systimer.h>
+//#include <sdcard_interface.h>
 
 /** 系统信号 =====================================================*/
 enum Signals {
@@ -160,7 +162,18 @@ enum Signals {
 	/*------- 记录仪消息 -----------*/
 	VDR_FRAME_READY_SIG, ///记录仪接收到一帧数据
 
-	VDR_ACK_READY_SIG, ///记录仪请求发送应答消息
+	VDR_ACK_SINGLEPACK_SIG, ///记录仪请求发送应答消息
+	VDR_ACK_MULTIPACK_SIG, ///记录仪请求发送应答消息
+
+	VDR_LOG_ACCIDENT_SIG,	///事故疑点记录消息
+
+	/*SD卡检测消息*/
+	VDR_SDCARD_ATTACHED_SIG,	///SD卡在卡
+	VDR_SDCARD_DETACHED_SIG,	///SD卡无卡
+
+	VDR_USBDEV_ATTACHED_SIG, 	///USB设备插入
+	VDR_USBDEV_DETACHED_SIG,	///USB设备拔出
+
 
 	MAX_SIG, /* 最后信号 */
 
@@ -366,6 +379,7 @@ typedef struct VDRRetrieveEvtTag {
 	u16 u16EndPtr; /*缓区帧结尾位置*/
 } VDRRetrieveEvt;
 
+
 typedef struct VDRAckEvtTag {
 	/* protected: */
 	QEvt super;
@@ -374,8 +388,26 @@ typedef struct VDRAckEvtTag {
 	uint8_t cmd;
 	uint8_t resCmd;
 	int8_t ret;
+	BCDTIME time_start;
+	BCDTIME time_end;
+	u16 u16Blocks;
 } VDRAckEvt;
 
+typedef struct VDRMultiAckEvtTag {
+	/* protected: */
+	QEvt super;
+
+	/* public: */
+//	uint8_t cmd;
+//	uint8_t resCmd;
+//	int8_t ret;
+	uint8_t u8Cmd;
+	u8 eClass;
+	BCDTIME time_start;
+	BCDTIME time_end;
+	u16 u16Blocks;
+
+} VDRMultiAckEvt;
 
 #endif /* QEVENT_H_ */
 

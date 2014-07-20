@@ -24,6 +24,7 @@
 #include <error.h>
 #include <exception.h>
 #include "type.h"
+#include "trace.h"
 
 Q_DEFINE_THIS_MODULE("qgps.c")
 

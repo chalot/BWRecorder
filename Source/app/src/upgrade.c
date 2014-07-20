@@ -223,6 +223,7 @@ BOOL UPG_TransferBlocks2Flash(u16 curBlockId) {
  */
 u32 UPG_GetBlocksAmount() {
 //	return tUpdInfo.u32BlockAmount;
+	return 0;
 }
 
 /**

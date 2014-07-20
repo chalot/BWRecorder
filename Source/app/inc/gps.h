@@ -12,6 +12,7 @@
 #include <stm32f2xx_conf.h>
 #include "stm32_gpio.h"
 #include "type.h"
+#include "protocol.h"
 
 /*=====     GPS信息定义    =====*/
 #define		_GPSINFO_GPS_VALID					0x01		//GPS有效
@@ -83,6 +84,7 @@ BOOL GPS_IsLocated();	//是否定位成功
 void TRACE_GPSINFO(/*_tGPSInfo *pGpsInfo*/); //打印GPS信息
 void GPS_DumpInfo();	//存储GPS数据
 void GPS_Lowlevel_Init();
+void GPS_ParseMsg(u8* pcFrame, u32 u32FrameSize);
 
 /**盲区定位数据读写*/
 int GPS_BlindGpsInfo_PageSave();	///盲区数据保存，满页写

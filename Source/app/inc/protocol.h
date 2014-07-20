@@ -686,7 +686,8 @@ typedef struct {
 
 #ifdef JTT808_Ver_2013
 typedef struct {
-	tTerminalType tType;	///终端类型 WORD
+//	tTerminalType tType;	///终端类型 WORD
+	u16 tType;	///终端类型 WORD
 	u8 factoryId[5];	///制造商ID BYTE[5] 5 个字节，终端制造商编码。
 	u8 class[20];		///终端型号 此终端型号由制造商自行定义，位数不足时，后补“0X00”。
 	u8 tid[7];			///终端ID 由大写字母和数字组成，此终端ID 由制造商自行定义，位数不足时，后补“0X00”。
@@ -1174,12 +1175,12 @@ typedef struct {
 	u8 u8InfoType;				///信息类型
 	u16 u16InfoNameLength;		///信息名称长度
 	u8 aInfoName[0];			///信息名称
-} _tMSGODMENUITEM;
+} tMSGODMENUITEMHEAD;
 
 typedef struct {
 	u8 u8InfoOrderSetType;		///信息点播菜单设置类型
 	u8 u8SetCount;				///设置总数
-	tMSGODMENUITEM tInfoOrderItem[0];	///信息点播菜单
+	tMSGODMENUITEMHEAD tInfoOrderItem[0];	///信息点播菜单
 } tMsg_SCMD_InfoOrder;
 
 /** 8.29 信息点播/取消 ID：0x0303 *********************************************/

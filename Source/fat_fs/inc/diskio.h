@@ -9,6 +9,12 @@
 
 #include "integer.h"
 #include "usbh_msc_core.h"
+//#include "stm32_eval_sdio.h"
+
+#define ATA		2
+#define MMC		1
+#define USB		0
+
 
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;
@@ -34,6 +40,22 @@ DRESULT disk_read (BYTE, BYTE*, DWORD, BYTE);
 DRESULT disk_write (BYTE, const BYTE*, DWORD, BYTE);
 #endif
 DRESULT disk_ioctl (BYTE, BYTE, void*);
+
+DSTATUS USB_disk_initialize (BYTE);
+DSTATUS USB_disk_status (BYTE);
+DRESULT USB_disk_read (BYTE, BYTE*, DWORD, BYTE);
+#if	_READONLY == 0
+DRESULT USB_disk_write (BYTE, const BYTE*, DWORD, BYTE);
+#endif
+DRESULT USB_disk_ioctl (BYTE, BYTE, void*);
+
+DSTATUS SD_disk_initialize (BYTE);
+DSTATUS SD_disk_status (BYTE);
+DRESULT SD_disk_read (BYTE, BYTE*, DWORD, BYTE);
+#if	_READONLY == 0
+DRESULT SD_disk_write (BYTE, const BYTE*, DWORD, BYTE);
+#endif
+DRESULT SD_disk_ioctl (BYTE, BYTE, void*);
 
 
 

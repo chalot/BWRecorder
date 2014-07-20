@@ -100,7 +100,7 @@ typedef struct _QSESSION
 {
 	u8		IsActive;		///是否活动状态，1=被占用，0=空闲
 	u8 		u8SessionType;	///查询类型
-	u8		id;				//查询索引号，循环递增，用于区别是否是当前查询
+	u8		u8Cmd;			//查询命令
 	FIL		file;  			//打开文件句柄
 //	char 	fn_Start[SESSION_FILE_LEN];	//第一条记录所在文件名
 	u32 	u32Offset_Start;///第一条记录在文件中的偏移量
@@ -117,23 +117,25 @@ typedef struct _QSESSION
 	TIME 	t_End;			//查询参数结束时间
 	TIME 	t_Cur;			//当前查找时间
 	u8 		bAllBlocksFinishedReadout;///所有数据读取完毕标志
+	u16 	u16BlocksToTrans;	///待传输数据总块数
+	u16		u16BlocksTransed;	///已待传输数据总块数
 
 } T_QSESSION;
 
 /*写会话*/
-typedef struct _WSESSION
-{
-	FIL	*file;  	//文件句柄
-	char fn_cur[20];	//当前查询文件名
-
-} T_WSESSION;
+//typedef struct _WSESSION
+//{
+//	FIL	*file;  	//文件句柄
+//	char fn_cur[20];	//当前查询文件名
+//
+//} T_WSESSION;
 
 /**
  * @Func	SD卡初始化
  * @Param	无
  * @Ret		0=成功，否则为错误代码(RC)
  */
-int SDCard_Init();
+//int SDCard_Init();
 
 /**
  * @Func	存储原始帧
@@ -151,7 +153,7 @@ int SDCard_Init();
  * 			rId				[in]	有效查询索引号
  * @Ret		0=成功；否则失败，返回错误代码（RC）
   */
-int SD_StartNewQuery(eLOGCLASS class, TIME *tick_Begin, TIME *tick_End/*, u8 *rId*/);
+//int SD_StartNewQuery(eLOGCLASS class, TIME *tick_Begin, TIME *tick_End/*, u8 *rId*/);
 
 /**
  * @Func 	读取帧块数据，根据查询索引ID来唯一确定查询请求，可能对同一索引ID执行多次查询请求，这发生
@@ -161,7 +163,7 @@ int SD_StartNewQuery(eLOGCLASS class, TIME *tick_Begin, TIME *tick_End/*, u8 *rI
  * 			u16MsgBufSize	[in]	接收缓区长度
  * @Ret		u16，实际读取字节数，=0说明读取结束
  */
-u16 SD_RetrieveFrameBlock(eLOGCLASS class, u8 *pMsgBuf, u16 u16MsgBufSize);
+//u16 SD_RetrieveFrameBlock(eLOGCLASS class, u8 *pMsgBuf, u16 u16MsgBufSize);
 
 /**
  * @Func	通知车辆启动或开始充电状态，依据协议要求，视为开始一个新的驾驶循环或充电循环，
@@ -169,7 +171,7 @@ u16 SD_RetrieveFrameBlock(eLOGCLASS class, u8 *pMsgBuf, u16 u16MsgBufSize);
  * @Param	time			[in]	当前时刻，可以作为文件名命名依据
  * @Ret		无
  */
-void SD_NotifyDriveOrChargeSessionStart(TIME *time);
+//void SD_NotifyDriveOrChargeSessionStart(TIME *time);
 
 /**
  * @Func	通知车辆停车或结束充电状态，依据协议要求，视为一个驾驶循环或充电循环结束，
@@ -177,7 +179,7 @@ void SD_NotifyDriveOrChargeSessionStart(TIME *time);
  * @Param	time			[in]	当前时刻
  * @Ret		无
  */
-void SD_NotifyDriveOrChargeSessionTerminal(TIME *time);
+//void SD_NotifyDriveOrChargeSessionTerminal(TIME *time);
 
 /**
  * @Func	存储GPS数据
@@ -185,21 +187,21 @@ void SD_NotifyDriveOrChargeSessionTerminal(TIME *time);
  * @Ret		0=成功，否则为错误代码(RC)
  */
 //int SD_DumpGpsInfo(_tGPSSaveInfo* pGpsInfo);
-int SD_DumpGpsInfo(_tGPSInfo* pGpsInfo);
+//int SD_DumpGpsInfo(_tGPSInfo* pGpsInfo);
 
 /**
  * @Func	请求存储原始帧，注意在接收到一帧后，应立即调用该过程
  * @Param	pNode			[in]	节点
  * @Ret		无
  */
-void SD_RequestDumpFrame(DATANODE* pNode);
+//void SD_RequestDumpFrame(DATANODE* pNode);
 
 /**
  * @Func	存储原始帧
  * @Param	pFrame			[in]	帧数据
  * @Ret		0=成功，否则为错误代码(RC)
  */
-void SD_DoDumpFrame();
+//void SD_DoDumpFrame();
 
 /**
  * @Func	返回SD卡空闲容量

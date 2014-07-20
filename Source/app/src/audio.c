@@ -2,6 +2,7 @@
 #include <stm32f2xx_conf.h>
 #include <board.h>
 #include <qp_port.h>
+#include <utility.h>
 
 //VS10XX默认设置参数
 _vs10xx_obj vsset = { 220,	//音量:220

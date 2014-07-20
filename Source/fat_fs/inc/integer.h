@@ -9,6 +9,7 @@
 #else
 
 #include "usb_conf.h"
+#include <type.h>
 
 /* These types must be 16-bit, 32-bit or larger integer */
 typedef int				INT;
@@ -32,12 +33,12 @@ typedef unsigned long	DWORD;
 
 /* Boolean type */
 // typedef enum { FALSE = 0, TRUE } BOOL;
-#include <stdbool.h>
-typedef bool BOOL;
-#ifndef FALSE
-#define FALSE false
-#define TRUE true
-#endif
+//#include <stdbool.h>
+//typedef bool BOOL;
+//#ifndef FALSE
+//#define FALSE false
+//#define TRUE true
+//#endif
 
 
 #endif

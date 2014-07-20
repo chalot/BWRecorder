@@ -102,7 +102,7 @@
 //
 ////IO操作函数
 //#define IIC_SCL    PBout(10) //SCL//#define IIC_SDA    PBout(11) //SDA//#define READ_SDA   PBin(11)  //输入SDA
-#if 0//IIC所有操作函数
+#if 1//IIC所有操作函数
 void IIC_Init(void);     //初始化IIC的IO口
 void IIC_Start(void);	//发送IIC开始信号
 void IIC_Stop(void);	  //发送IIC停止信号

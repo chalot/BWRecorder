@@ -48,11 +48,14 @@
      </initial_glyph>
     </initial>
     <state name="detecting">
-     <entry>me-&gt;is_Ready = ADXL345_Detecting();
+     <entry>static const QEvt ok_evt = {IN_SIG_DET_OK_SIG, 0};
+static const QEvt err_evt = {IN_SIG_DET_ERR_SIG, 0};
+
+me-&gt;is_Ready = ADXL345_Detecting();
 if(me-&gt;is_Ready == 0)
-    QACTIVE_POST(AO_3DSensor, IN_SIG_DET_OK_SIG, NULL);
+    QACTIVE_POST(AO_3DSensor, (QEvt*)&amp;ok_evt, NULL);
 else
-    QACTIVE_POST(AO_3DSensor, IN_SIG_DET_ERR_SIG, NULL);
+    QACTIVE_POST(AO_3DSensor, (QEvt*)&amp;err_evt, NULL);
 </entry>
      <tran trig="IN_SIG_DET_ERR" target="../../2">
       <tran_glyph conn="18,18,3,3,42">
@@ -1932,16 +1935,298 @@ ClearSysSleepState(MODULE_SLEEP_STATE_GPS);//清除模块休眠态</action>
    </statechart>
   </class>
   <class name="QVDR" superclass="qpc::QActive">
+   <attribute name="m_SDCardState" type="uint8_t" visibility="0x00" properties="0x00">
+    <documentation>SD卡插入状态，0=未插入，1=已插入</documentation>
+   </attribute>
+   <attribute name="m_BlocksToTrans" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>待传输数据块数</documentation>
+   </attribute>
+   <attribute name="m_AckTimer" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+   <attribute name="m_iRet" type="int32_t" visibility="0x00" properties="0x00"/>
+   <attribute name="m_recordBuf[300]" type="uint8_t" visibility="0x00" properties="0x00"/>
+   <attribute name="m_recordLen" type="uint16_t" visibility="0x00" properties="0x00"/>
+   <attribute name="m_SpeedLogTimer" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+   <attribute name="m_PositionLogTimer" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+   <attribute name="m_AccidentLogTimer" type="QTimeEvt" visibility="0x00" properties="0x00">
+    <documentation>事故疑点记录</documentation>
+   </attribute>
+   <attribute name="m_accidentLogCnt" type="uint16_t" visibility="0x00" properties="0x00">
+    <documentation>事故疑点记录计数器</documentation>
+   </attribute>
    <statechart>
     <initial target="../1">
-     <initial_glyph conn="8,8,5,0,12,5">
+     <initial_glyph conn="4,4,5,0,8,6">
       <action box="0,-2,6,2"/>
      </initial_glyph>
     </initial>
-    <state name="state1">
-     <state_glyph node="12,13,47,20"/>
+    <state name="initializing">
+     <documentation>SD卡检测，或USB设备插入检测</documentation>
+     <entry>int ret;
+static const QEvt sd_evt = {VDR_SDCARD_ATTACHED_SIG, 0};
+
+ret = VDR_SDInit();
+if(ret &lt; 0) {
+    me-&gt;m_SDCardState = 1;
+    QACTIVE_POST(AO_VDR, (QEvt*)&amp;sd_evt, (void*)0);
+}
+
+//ret = VDR_USBDevice_Detect();
+//if(ret == 1) {
+//    static const QEvt usb_evt = {VDR_USBDEV_ATTACHED_SIG, 0};
+//    QACTIVE_POST(me, (QEvt*)&amp;usb_evt, (void*)0);
+//}
+</entry>
+     <tran trig="VDR_SDCARD_ATTACHED" target="../../3">
+      <tran_glyph conn="4,18,3,0,22,6">
+       <action box="0,-2,19,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="4,10,31,10">
+      <entry box="1,2,5,2"/>
+     </state_glyph>
     </state>
-    <state_diagram size="80,50"/>
+    <state name="USB_Handling">
+     <entry>TIME time;
+int ret;
+
+static const QEvt err_evt = {VDR_USB_DUMPERR_SIG, 0};
+static const QEvt ok_evt = {VDR_USB_DUMPOK_SIG, 0};
+
+me-&gt;m_iRet = VDR_InitUSBDEV();
+
+RTC_Get(&amp;time);
+ret = VDR_DumpFiles2USBStorage(&amp;time);
+if(ret &lt; 0) {
+    TRACE_(QS_USER, NULL, &quot;VDR_DumpAccidentInfo failed!&quot;);
+    QACTIVE_POST(AO_VDR, (QEvt*)&amp;err_evt, (void*)0);
+}
+
+QACTIVE_POST(AO_VDR, (QEvt*)&amp;ok_evt, (void*)0);
+
+</entry>
+     <tran trig="VDR_USB_DUMPERR" target="../../3">
+      <tran_glyph conn="66,38,3,1,42,13,-54">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="VDR_USB_DUMPOK" target="../../3">
+      <tran_glyph conn="66,33,3,1,44,20,-56">
+       <action box="0,-2,15,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="VDR_USBDEV_DETACHED" target="../../3">
+      <tran_glyph conn="66,42,3,1,40,7,-52">
+       <action box="0,-2,21,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="66,20,36,26">
+      <entry box="1,2,5,2"/>
+     </state_glyph>
+    </state>
+    <state name="LOG_Handling">
+     <documentation>日志处理</documentation>
+     <entry>QTimeEvt_postEvery(&amp;me-&gt;m_SpeedLogTimer, &amp;me-&gt;super, TIMEOUT_LOG_SPEED);
+QTimeEvt_postEvery(&amp;me-&gt;m_PositionLogTimer, &amp;me-&gt;super, TIMEOUT_LOG_POSITION);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_SpeedLogTimer);
+QTimeEvt_disarm(&amp;me-&gt;m_PositionLogTimer);</exit>
+     <initial target="../5">
+      <initial_glyph conn="50,44,4,1,3,-6">
+       <action box="0,-2,6,2"/>
+      </initial_glyph>
+     </initial>
+     <tran trig="LOG_SPEED_TIMEOUT">
+      <action>TIME time;
+int ret;
+
+RTC_Get(&amp;time);
+ret = VDR_DumpSpeedInfo(&amp;time);
+if(ret &lt; 0) {
+    TRACE_(QS_USER, NULL, &quot;VDR_DumpSpeedInfo failed!&quot;);
+}</action>
+      <tran_glyph conn="4,37,3,-1,20">
+       <action box="0,-2,17,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="LOG_POSITION_TIMEOUT">
+      <action>TIME time;
+int ret;
+
+RTC_Get(&amp;time);
+ret = VDR_DumpPositionInfo(&amp;time);
+if(ret &lt; 0) {
+    TRACE_(QS_USER, NULL, &quot;VDR_DumpPositionInfo failed!&quot;);
+}</action>
+      <tran_glyph conn="4,42,3,-1,20">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="VDR_LOG_ACCIDENT" target="../6">
+      <action>TRACE_(QS_USER, NULL, &quot;[VDR] Accident recording ...&quot;);
+QTimeEvt_postEvery(&amp;me-&gt;m_AckTimer, &amp;me-&gt;super, TIMEOUT_COMM_ACK);</action>
+      <tran_glyph conn="4,73,3,0,18,3">
+       <action box="0,-2,17,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="VDR_USBDEV_ATTACHED" target="../../2">
+      <action>TRACE_(QS_USER, NULL, &quot;[VDR] USB Dev detected&quot;);</action>
+      <tran_glyph conn="4,33,3,3,54,-10,8">
+       <action box="0,-2,21,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="COM_Idle">
+      <entry>me-&gt;m_iRet = 0;</entry>
+      <tran trig="VDR_ACK_SINGLEPACK">
+       <action>///单帧应答
+VDRAckEvt *pe = (VDRAckEvt*)e;
+VDR_Comm_SendSingleAckFrame(pe);</action>
+       <tran_glyph conn="10,57,3,-1,17">
+        <action box="0,-2,17,2"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="VDR_ACK_MULTIPACK">
+       <action>///多包传输，创建一个查询会话
+VDRMultiAckEvt *pe;
+
+pe = (VDRMultiAckEvt *)e;
+me-&gt;m_iRet = VDR_NewQuerySession(&amp;qSession, pe);
+</action>
+       <choice target="../../../../4">
+        <guard>me-&gt;m_iRet == 0</guard>
+        <choice_glyph conn="27,62,5,3,34,7,3">
+         <action box="1,-2,14,2"/>
+        </choice_glyph>
+       </choice>
+       <choice target="../..">
+        <guard>else</guard>
+        <action>///查询会话创建失败，返回错误应答帧
+VDRAckEvt *pe;
+
+TRACE_(QS_USER, NULL, &quot;Query Session Create failed!&quot;);
+
+pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG);
+pe-&gt;cmd = VDR_CMD_GET_ERR_ACK;
+pe-&gt;resCmd = qSession.u8Cmd;
+
+VDR_Comm_SendSingleAckFrame(pe);</action>
+        <choice_glyph conn="27,62,4,1,4,21,-2,-4">
+         <action box="1,2,6,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="10,62,3,-1,17">
+        <action box="0,-2,17,2"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="VDR_FRAME_READY">
+       <action>///命令帧提取并处理，消息直接来自于串口接收ISR
+TRACE_(QS_USER, NULL, &quot;[VDR] Get Message, handling...&quot;);
+VDR_Comm_doProcMessage((VDRRetrieveEvt *)e);</action>
+       <tran_glyph conn="10,52,3,-1,17">
+        <action box="0,-2,17,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="10,45,34,23">
+       <entry box="1,2,5,2"/>
+      </state_glyph>
+     </state>
+     <state name="LOG_Accident">
+      <documentation>写记录</documentation>
+      <entry>me-&gt;m_accidentLogCnt = 0;
+QTimeEvt_postEvery(&amp;me-&gt;m_AccidentLogTimer, &amp;me-&gt;super, TIMEOUT_LOG_ACCIDENT);</entry>
+      <exit>QTimeEvt_disarm(&amp;me-&gt;m_AccidentLogTimer);</exit>
+      <tran trig="LOG_ACCIDENT_TIMEOUT">
+       <action>TIME time;
+int ret;
+
+RTC_Get(&amp;time);
+ret = VDR_DumpAccidentInfo(&amp;time);
+if(ret &lt; 0) {
+    TRACE_(QS_USER, NULL, &quot;VDR_DumpAccidentInfo failed!&quot;);
+}
+
+me-&gt;m_accidentLogCnt ++;</action>
+       <choice target="../../../5">
+        <guard>me-&gt;m_accidentLogCnt &gt; LOG_ACCIDENT_COUNTS</guard>
+        <action>TRACE_(QS_USER, NULL, &quot;[VDR] Accident recording finished.&quot;);</action>
+        <choice_glyph conn="27,85,5,2,22,-11,-9,-6">
+         <action box="1,-4,21,4"/>
+        </choice_glyph>
+       </choice>
+       <choice>
+        <guard>else</guard>
+        <choice_glyph conn="27,85,4,-1,5,10">
+         <action box="1,3,6,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="10,85,3,-1,17">
+        <action box="0,-2,18,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="10,76,36,16">
+       <entry box="1,2,5,2"/>
+       <exit box="1,4,5,2"/>
+      </state_glyph>
+     </state>
+     <state_glyph node="4,24,50,70">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state name="COM_Transfering">
+     <entry>///打开数据发送定时器
+QTimeEvt_postEvery(&amp;me-&gt;m_AckTimer, &amp;me-&gt;super, TIMEOUT_COMM_ACK);</entry>
+     <exit>QTimeEvt_disarm(&amp;me-&gt;m_AckTimer);
+
+///清除查询会话状态
+VDR_ClearQuerySession(qSession);</exit>
+     <tran trig="COM_ACK_TIMEOUT">
+      <action>me-&gt;m_iRet = VDR_Comm_GetSingleAckRecord(qSession, me-&gt;m_recordBuf, &amp;me-&gt;m_recordLen);
+</action>
+      <choice target="../../../3">
+       <guard>else</guard>
+       <action>///记录提取失败，返回错误应答帧
+VDRAckEvt *pe;
+
+TRACE_(QS_USER, NULL, &quot;Record block retrieve failed!&quot;);
+
+pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG);
+pe-&gt;cmd = VDR_CMD_GET_ERR_ACK;
+pe-&gt;resCmd = qSession.u8Cmd;
+QACTIVE_POST(AO_VDR, (QEvt* )pe, NULL);</action>
+       <choice_glyph conn="79,76,4,1,4,-25">
+        <action box="0,1,6,2"/>
+       </choice_glyph>
+      </choice>
+      <choice>
+       <guard>me-&gt;m_iRet == 0</guard>
+       <action>VDR_UART_WriteData(me-&gt;m_recordBuf, me-&gt;m_recordLen);
+qSession.u16BlocksTransed ++;
+</action>
+       <choice target="../../../../3">
+        <guard>qSession.u16BlocksTransed &gt;= qSession.u16BlocksToTrans</guard>
+        <choice_glyph conn="85,81,5,1,25,-23,-56">
+         <action box="2,-2,20,5"/>
+        </choice_glyph>
+       </choice>
+       <choice>
+        <guard>else</guard>
+        <choice_glyph conn="85,81,4,-1,4,7">
+         <action box="1,2,6,2"/>
+        </choice_glyph>
+       </choice>
+       <choice_glyph conn="79,76,5,-1,6,5">
+        <action box="2,-2,11,2"/>
+       </choice_glyph>
+      </choice>
+      <tran_glyph conn="64,76,3,-1,15">
+       <action box="0,-2,18,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="64,64,42,24">
+      <entry box="1,2,5,2"/>
+      <exit box="1,4,5,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="115,97"/>
    </statechart>
   </class>
   <operation name="QGprs_ctor" type="void" visibility="0x00" properties="0x00">
@@ -2050,7 +2335,12 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QSpeedPulse_initial));</code>
   </operation>
   <operation name="QVDR_ctor" type="void" visibility="0x00" properties="0x00">
    <code>QVDR *me = &amp;l_QVDR;
-QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QVDR_initial));</code>
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;QVDR_initial));
+
+QTimeEvt_ctor(&amp;me-&gt;m_AckTimer, COM_ACK_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_SpeedLogTimer, LOG_SPEED_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_PositionLogTimer, LOG_POSITION_TIMEOUT_SIG);
+QTimeEvt_ctor(&amp;me-&gt;m_AccidentLogTimer, LOG_ACCIDENT_TIMEOUT_SIG);</code>
   </operation>
  </package>
  <package name="EVTs" stereotype="0x02">
@@ -2214,6 +2504,7 @@ $define(AOs::QLCD)</text>
 #include &quot;qevents.h&quot;
 #include &quot;bsp.h&quot;
 #include &quot;type.h&quot;
+#include &quot;adxl345.h&quot;
 
 Q_DEFINE_THIS_MODULE(&quot;qsensors.c&quot;)
 
@@ -2223,7 +2514,7 @@ Q_DEFINE_THIS_MODULE(&quot;qsensors.c&quot;)
 
 ///内部消息
 enum {
-    IN_SIG_DET_OK_SIG = 0,
+    IN_SIG_DET_OK_SIG = MAX_SIG,
     IN_SIG_DET_ERR_SIG,
 
 };
@@ -2563,6 +2854,7 @@ $define(AOs::QUpgrade)</text>
 #include &lt;error.h&gt;
 #include &lt;exception.h&gt;
 #include &quot;type.h&quot;
+#include &quot;trace.h&quot;
 
 Q_DEFINE_THIS_MODULE(&quot;qgps.c&quot;)
 
@@ -2777,9 +3069,33 @@ $define(AOs::QSpeedPulse)</text>
 #include &quot;utility.h&quot;
 #include &quot;error.h&quot;
 #include &quot;type.h&quot;
+#include &quot;vdr.h&quot;
+#include &quot;trace.h&quot;
 
 Q_DEFINE_THIS_MODULE(&quot;qvdr.c&quot;)
 
+
+static T_QSESSION qSession;    //查询SESION，同一时刻系统只能有一个SESSION有效
+static u8 record[300];
+
+#define TIMEOUT_COMM_ACK            (BSP_TICKS_PER_SEC / 20) //串口应答数据发送周期
+#define TIMEOUT_LOG_SPEED           (BSP_TICKS_PER_SEC)     //记录速度信息
+#define TIMEOUT_LOG_POSITION           (BSP_TICKS_PER_SEC * 60) //记录位置信息
+#define TIMEOUT_LOG_ACCIDENT        (BSP_TICKS_PER_SEC / 5)    //事故疑点记录周期
+#define TIMEOUT_LOG_SpeedState        (BSP_TICKS_PER_SEC)    //事故疑点记录周期
+
+enum {
+    COM_ACK_TIMEOUT_SIG = MAX_SIG, /*Q_USER_SIG,*/
+    LOG_SPEED_TIMEOUT_SIG,
+    LOG_POSITION_TIMEOUT_SIG,
+    LOG_ACCIDENT_TIMEOUT_SIG,
+    LOG_SPEEDSTATE_TIMEOUT_SIG,
+    VDR_USB_DUMPERR_SIG,
+    VDR_USB_DUMPOK_SIG,
+
+};
+
+#define LOG_ACCIDENT_COUNTS    100    //事故疑点记录条数
 
 /* Active object class -----------------------------------------------------*/
 $declare(AOs::QVDR)

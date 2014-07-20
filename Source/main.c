@@ -230,10 +230,10 @@ int main(void) {
 
 #ifdef SENSOR
 	/**LCD屏状态机初始化 */
-	QSensors_ctor();
+	Q3DSensor_ctor();
 
 	/**启动状态机*/
-	QActive_start(AO_Sensors, AO_PRIO_SENSOR, l_SENSORQueueSto,
+	QActive_start(AO_3DSensor, AO_PRIO_SENSOR, l_SENSORQueueSto,
 			Q_DIM(l_SENSORQueueSto), (void *) 0, 0U, (QEvt *) 0);
 #endif
 

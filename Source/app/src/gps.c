@@ -812,8 +812,7 @@ u16 GPS_GetSegmentResponseCode(u8 u8StartIndex, u8 u8EndIndex) {
 		nLen = strlen_(GPS_ResponseString[nResCode]);
 
 		//比较响应字符串是否已知的字符串
-		if (memcmp_((char*) rpcGPSMessage, GPS_ResponseString[nResCode],
-				nLen)) {
+		if (memcmp_(rpcGPSMessage, (u8*)GPS_ResponseString[nResCode], nLen)) {
 			//找到响应字符串，代码=ResCode
 			break;
 		}
@@ -1601,7 +1600,7 @@ BOOL GPS_IsLocated() {
 
 //同步系统时间
 void GPS_SyncSystemTime() {
-	SYSTIMER timer;
+	TIME timer;
 
 	timer.year = tGpsInfo.u16Year - 2000;
 	timer.month = tGpsInfo.u8Month;
@@ -1610,7 +1609,7 @@ void GPS_SyncSystemTime() {
 	timer.minute = tGpsInfo.u8Minute;
 	timer.second = tGpsInfo.u8Second;
 
-	SysTimer_Set(&timer);
+	SysTick_Set(&timer);
 
 	TRACE_(QS_USER, NULL, "[GPS] Sync time: %d-%d-%d:%d-%d-%d", timer.year,
 			timer.month, timer.day, timer.hour, timer.minute, timer.second);
@@ -1703,7 +1702,7 @@ void GPS_Lowlevel_Init() {
  * @return 0 = 成功，否则错误代码
  */
 int GPS_BlindGpsInfo_Save() {
-
+#if 0
 	tBLINDPOSITEM tPosItem;
 	u16 u16Len = 0;
 	_eERRType ret;
@@ -1740,6 +1739,7 @@ int GPS_BlindGpsInfo_Save() {
 			}
 		}
 	}
+#endif
 
 	return 0;
 }

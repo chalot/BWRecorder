@@ -19,6 +19,7 @@
 #include "qevents.h"
 #include "bsp.h"
 #include "type.h"
+#include "adxl345.h"
 
 Q_DEFINE_THIS_MODULE("qsensors.c")
 
@@ -28,7 +29,7 @@ Q_DEFINE_THIS_MODULE("qsensors.c")
 
 ///内部消息
 enum {
-    IN_SIG_DET_OK_SIG = 0,
+    IN_SIG_DET_OK_SIG = MAX_SIG,
     IN_SIG_DET_ERR_SIG,
 
 };
@@ -84,11 +85,14 @@ static QState Q3DSensor_detecting(Q3DSensor * const me, QEvt const * const e) {
     switch (e->sig) {
         /* @(/1/2/8/1) */
         case Q_ENTRY_SIG: {
+            static const QEvt ok_evt = {IN_SIG_DET_OK_SIG, 0};
+            static const QEvt err_evt = {IN_SIG_DET_ERR_SIG, 0};
+
             me->is_Ready = ADXL345_Detecting();
             if(me->is_Ready == 0)
-                QACTIVE_POST(AO_3DSensor, IN_SIG_DET_OK_SIG, NULL);
+                QACTIVE_POST(AO_3DSensor, (QEvt*)&ok_evt, NULL);
             else
-                QACTIVE_POST(AO_3DSensor, IN_SIG_DET_ERR_SIG, NULL);
+                QACTIVE_POST(AO_3DSensor, (QEvt*)&err_evt, NULL);
 
             status_ = Q_HANDLED();
             break;

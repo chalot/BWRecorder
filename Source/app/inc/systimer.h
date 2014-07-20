@@ -16,15 +16,15 @@
 #pragma pack(1)
 
 /*系统时间，BCD码表示*/
-typedef struct {
-	u8 year;
-	u8 month;
-	u8 day;
-	u8 hour;
-	u8 minute;
-	u8 second;
-
-} SYSTIMER;
+//typedef struct {
+//	u8 year;
+//	u8 month;
+//	u8 day;
+//	u8 hour;
+//	u8 minute;
+//	u8 second;
+//
+//} SYSTIMER;
 
 /*日期格式*/
 typedef struct _TIME {
@@ -36,19 +36,29 @@ typedef struct _TIME {
 	u8 second;
 } TIME, *PTIMER;
 
+/*时间日期，BCD码*/
+typedef struct {
+	u8 year;
+	u8 month;
+	u8 day;
+	u8 hour;
+	u8 minute;
+	u8 second;
+}/*tTIME,*/BCDTIME;
+
 /*系统时钟*/
 void
 SysTick_Init();
 void
-SysTimer_Set(SYSTIMER *time);
+SysTick_Set(TIME *time);
 void
-SysTimer_Get(SYSTIMER *time);
+SysTick_Get(BCDTIME *time);
 void
-SysTimer_GetRaw(TIME *time);
+SysTick_GetRaw(TIME *time);
 void
-SysTimer_refreshPerSecond();
+SysTick_refreshPerSecond();
 void
-SysTimer_UpdateAdditionalSeconds(u32 seconds);
+SysTick_UpdateAdditionalSeconds(u32 seconds);
 
 #pragma pack()
 

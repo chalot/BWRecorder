@@ -36,6 +36,7 @@
 #include "misc.h"
 #include "stm32f2xx_syscfg.h"
 #include "stm32_eval.h"
+#include "board.h"
 
 /** @addtogroup Utilities
   * @{

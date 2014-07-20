@@ -226,11 +226,12 @@
 #define KEY_DET_PIN     			GPIO_Pin_8	///ADC3_IN6
 #define KEY_DET_GPIO_PORT     		GPIOF
 #define KEY_DET_GPIO_CLK      		RCC_AHB1Periph_GPIOF
+#endif
 
 #define PWR_DET_PIN     			GPIO_Pin_9
 #define PWR_DET_GPIO_PORT     		GPIOF
 #define PWR_DET_GPIO_CLK      		RCC_AHB1Periph_GPIOF
-#endif
+
 
 
 /**
@@ -591,6 +592,7 @@ typedef enum {
 	COM_DEBUG,   //!< COM_DEBUG
 
 } COM_TypeDef;
+
 
 typedef struct {
 	USART_TypeDef* UART;				//USART1

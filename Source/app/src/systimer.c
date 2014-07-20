@@ -11,7 +11,7 @@
 #include "bsp.h"
 #include <mutex.h>
 
-static SYSTIMER systimer; //系统时钟
+static TIME systimer; //系统时钟
 
 /*声明互斥量*/
 DECLARE_MUTEX(mux)
@@ -33,9 +33,9 @@ void SysTick_Init() {
  *
  * @param timer
  */
-void SysTimer_Set(SYSTIMER *timer) {
+void SysTick_Set(TIME *timer) {
 	MUTEX_LOCK(mux);
-	memcpy_((u8*) &systimer, (u8*) timer, sizeof(SYSTIMER));
+	memcpy_((u8*) &systimer, (u8*) timer, sizeof(TIME));
 	MUTEX_UNLOCK(mux);
 }
 
@@ -44,10 +44,10 @@ void SysTimer_Set(SYSTIMER *timer) {
  * @Param	time		[in]	存储
  * @Ret		无
  */
-void SysTimer_Get(SYSTIMER *time) {
+void SysTick_Get(BCDTIME *time) {
 	MUTEX_LOCK(mux);
 
-	time->year = ((systimer.year / 10) << 4) + (systimer.year % 10);
+	time->year = (((systimer.year - 2000) / 10) << 4) + ((systimer.year - 2000) % 10);
 	time->month = ((systimer.month / 10) << 4) + (systimer.month % 10);
 	time->day = ((systimer.day / 10) << 4) + (systimer.day % 10);
 	time->hour = ((systimer.hour / 10) << 4) + (systimer.hour % 10);
@@ -62,7 +62,7 @@ void SysTimer_Get(SYSTIMER *time) {
  * @Param	time		[in]	存储
  * @Ret		无
  */
-void SysTimer_GetRaw(TIME *time) {
+void SysTick_GetRaw(TIME *time) {
 	MUTEX_LOCK(mux);
 
 	time->year = systimer.year;
@@ -78,7 +78,7 @@ void SysTimer_GetRaw(TIME *time) {
 /**
  * 秒更新
  */
-void SysTimer_refreshPerSecond() {
+void SysTick_refreshPerSecond() {
 	MUTEX_LOCK(mux);
 
 	u8 u8DaysofMonth = 0;
@@ -122,11 +122,11 @@ void SysTimer_refreshPerSecond() {
  *
  * @param seconds
  */
-void SysTimer_UpdateAdditionalSeconds(u32 seconds) {
+void SysTick_UpdateAdditionalSeconds(u32 seconds) {
 	MUTEX_LOCK(mux);
 
 	while (seconds-- > 0) {
-		SysTimer_refreshPerSecond();
+		SysTick_refreshPerSecond();
 	}
 
 	MUTEX_UNLOCK(mux);

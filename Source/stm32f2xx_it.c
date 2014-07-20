@@ -29,6 +29,9 @@
 #include <qp_port.h>
 #include <key.h>
 #include <type.h>
+#include <qevents.h>
+#include <trace.h>
+#include <stm32_eval_sdio_sd.h>
 
 //#include "ir.h"
 //#include "gps.h"
@@ -470,7 +473,7 @@ void  ADC_IRQHandler(void)
 	{
 		ADC_ClearITPendingBit(ADC3,ADC_IT_AWD);
 
-		ISR_ADC_Key();
+//		ISR_ADC_Key();
 	}
 }
 

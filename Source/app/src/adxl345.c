@@ -3,6 +3,7 @@
 #include "utility.h"
 #include <myiic.h>
 #include <type.h>
+#include <error.h>
 
 /*本地函数声明******************************************************************************/
 static void ADXL345_WR_Reg(u8 addr, u8 val);	//写ADXL345寄存器
@@ -238,7 +239,7 @@ short ADXL345_Get_Angle(float x, float y, float z, u8 dir) {
 	return res * 1800 / 3.14;
 }
 
-#if 1
+#if 0
 /**测试代码**************************************************************************/
 int main(void)
 {

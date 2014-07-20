@@ -39,6 +39,8 @@
 #include <stm32_eval.h>
 #include <trace.h>
 #include <type.h>
+#include <board.h>
+#include <qevents.h>
 
 Q_DEFINE_THIS_FILE
 
@@ -200,7 +202,7 @@ void BSP_USART_Init(void) {
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
-	STM_EVAL_COMInit(COM1, &USART_InitStructure);
+//	STM_EVAL_COMInit(0, &USART_InitStructure);
 }
 /*..........................................................................*/
 void BSP_EXTI_Init(void) {
@@ -216,7 +218,7 @@ void BSP_EXTI_Init(void) {
 
 /*..........................................................................*/
 void QF_onStartup(void) {
-    NVIC_InitTypeDef nvic_init, nvic_eth_init;
+    NVIC_InitTypeDef nvic_init;
 
     /* assing all priority bits for preemption-prio. and none to sub-prio. */
     NVIC_SetPriorityGrouping(0U);
@@ -439,7 +441,7 @@ void SetACCState(u8 state)
 }
 
 
-static tTIME rtc;
+static BCDTIME rtc;
 
 /**
  * È¡RTCÊ±¼ä
@@ -447,12 +449,12 @@ static tTIME rtc;
  * @param pTime
  */
 void RTC_Get(TIME *pTime) {
-	pTime->year = rtc.u8Year;
-	pTime->month = rtc.u8Month;
-	pTime->day = rtc.u8Day;
-	pTime->hour = rtc.u8Hour;
-	pTime->minute = rtc.u8Minute;
-	pTime->second = rtc.u8Second;
+	pTime->year = rtc.year;
+	pTime->month = rtc.month;
+	pTime->day = rtc.day;
+	pTime->hour = rtc.hour;
+	pTime->minute = rtc.minute;
+	pTime->second = rtc.second;
 }
 
 /**
@@ -461,12 +463,12 @@ void RTC_Get(TIME *pTime) {
  * @param pTime
  */
 void RTC_Set(TIME *pTime) {
-	rtc.u8Year =pTime->year;
-	rtc.u8Month = pTime->month;
-	rtc.u8Day = pTime->day;
-	rtc.u8Hour = pTime->hour;
-	rtc.u8Minute = pTime->minute;
-	rtc.u8Second = pTime->second;
+	rtc.year =pTime->year;
+	rtc.month = pTime->month;
+	rtc.day = pTime->day;
+	rtc.hour = pTime->hour;
+	rtc.minute = pTime->minute;
+	rtc.second = pTime->second;
 }
 
 /**

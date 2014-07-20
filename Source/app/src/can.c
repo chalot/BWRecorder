@@ -40,14 +40,11 @@ Q_DEFINE_THIS_MODULE("can.c")
 /*编译开关，打开显示SD卡存储信息*/
 #define		DEBUG_SD
 
-////LED指示灯闪烁
-//#define CAN_FLASH_LED  \
-//                            GPIO_WriteBit(GPIOC, GPIOC_CAN_LED,   \
-//                            (BitAction)(1-(GPIO_ReadOutputDataBit(GPIOC, GPIOC_CAN_LED))))
 
-#define NODE_MAX	100  //帧缓冲大小typedef struct {u16 read;	//读指针
-u16 write;	//写指针
-void* NodeList[NODE_MAX];	//节点数组
+#define NODE_MAX	100  //帧缓冲大小
+typedef struct {	u16 read;	//读指针
+	u16 write;	//写指针
+	void* NodeList[NODE_MAX];	//节点数组
 } NODELIST; //节点数组
 
 static NODELIST nodeList; //节点存储，静态变量
@@ -60,8 +57,8 @@ static NODELIST nodeList; //节点存储，静态变量
  * @Ret		无
  */
 void CAN_SendRawFrame(u32 id, u8 *data, u8 len) {
-/*调用底层库执行物理发送，未处理返回值*/
-CAN_Send_Msg(id, CAN_ID_STD, data, len);
+	/*调用底层库执行物理发送，未处理返回值*/
+	CAN_Send_Msg(id, CAN_ID_STD, data, len);
 }
 
 /**
@@ -70,14 +67,14 @@ CAN_Send_Msg(id, CAN_ID_STD, data, len);
  * @Ret		无
  */
 void CAN_SendFrame(CANRAWFRAME *pFrame) {
-BOOL bret;
-//打印原始帧内容
-#ifdef TRACERAWFRAMEINFO
-//	TRACE_CANRawFrameInfo();
-#endif
+	BOOL bret;
+	//打印原始帧内容
+	#ifdef TRACERAWFRAMEINFO
+	//	TRACE_CANRawFrameInfo();
+	#endif
 
-/*调用底层库执行物理发送，未处理返回值*/
-bret = CAN_Send_Msg(pFrame->id, CAN_ID_STD, pFrame->data, pFrame->len);
+	/*调用底层库执行物理发送，未处理返回值*/
+	bret = CAN_Send_Msg(pFrame->id, CAN_ID_STD, pFrame->data, pFrame->len);
 //
 //	//设置及清除CAN发送故障
 //	if(!bret)
@@ -99,34 +96,34 @@ bret = CAN_Send_Msg(pFrame->id, CAN_ID_STD, pFrame->data, pFrame->len);
  * @Ret		无
  */
 void CAN_ReceiveFrame(CANRAWFRAME *pFrame) {
-static CanRxMsg RxMessage;
-u8 i;
-TIME time;
+	static CanRxMsg RxMessage;
+	u8 i;
+	TIME time;
 
-/*清空临时变量*/
-ZeroMem((u8*) &RxMessage, sizeof(CanRxMsg));
+	/*清空临时变量*/
+	ZeroMem((u8*) &RxMessage, sizeof(CanRxMsg));
 
-/*物理接收CAN帧*/
-CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
+	/*物理接收CAN帧*/
+	CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);
 
-/*CAN ID*/
-if (RxMessage.IDE == CAN_ID_EXT) {
-	pFrame->id = RxMessage.ExtId;
-}
-else {
-	pFrame->id = RxMessage.StdId;
-}
+	/*CAN ID*/
+	if (RxMessage.IDE == CAN_ID_EXT) {
+		pFrame->id = RxMessage.ExtId;
+	}
+	else {
+		pFrame->id = RxMessage.StdId;
+	}
 
-/*保存数据*/
-for (i = 0; i < 8; i++) {
-	pFrame->data[i] = RxMessage.Data[i];
-}
+	/*保存数据*/
+	for (i = 0; i < 8; i++) {
+		pFrame->data[i] = RxMessage.Data[i];
+	}
 
-SysTimer_Get(&time); //取系统时间
+	SysTick_Get(&time); //取系统时间
 
-/*填充帧附加信息*/
-pFrame->dir = 1; /*接收方向*/
-pFrame->tick = (time.minute * 60 + time.second) * 1000 + (GetCurTicks() * 10); /*当前时刻*/
+	/*填充帧附加信息*/
+	pFrame->dir = 1; /*接收方向*/
+	pFrame->tick = (time.minute * 60 + time.second) * 1000 + (GetCurTicks() * 10); /*当前时刻*/
 }
 
 /**
@@ -135,28 +132,28 @@ pFrame->tick = (time.minute * 60 + time.second) * 1000 + (GetCurTicks() * 10); /
  * @Ret		无
  */
 void ISR_CANRecvFrame() {
-CANRAWFRAME *pFrame;
-DATANODE *pNode;
-static const QEvent msgEvt = { CAN_NEWRECVMSG_SIG, 0 };
+	CANRAWFRAME *pFrame;
+	DATANODE *pNode;
+	static const QEvent msgEvt = { CAN_NEWRECVMSG_SIG, 0 };
 
-/*申请内存节点*/
-pNode = MP_AllocNode();
-if (pNode) /*申请到一个空闲内存节点，可以保存帧数据*/
-{
-	/*读取原始帧，并转换成存储格式*/
-	pFrame = (CANRAWFRAME*) pNode->data;
+	/*申请内存节点*/
+	pNode = MP_AllocNode();
+	if (pNode) /*申请到一个空闲内存节点，可以保存帧数据*/
+	{
+		/*读取原始帧，并转换成存储格式*/
+		pFrame = (CANRAWFRAME*) pNode->data;
 
-	/* ----- 物理层函数，接收原始帧 ----- */
-	CAN_ReceiveFrame(pFrame);
+		/* ----- 物理层函数，接收原始帧 ----- */
+		CAN_ReceiveFrame(pFrame);
 
-	nodeList.NodeList[nodeList.write++] = pNode;	//节点入缓区
-	if (nodeList.write >= NODE_MAX)
-		nodeList.write = 0;
+		nodeList.NodeList[nodeList.write++] = pNode;	//节点入缓区
+		if (nodeList.write >= NODE_MAX)
+			nodeList.write = 0;
 
-	pNode->reference++; //增加存储引用计数
-//		SD_RequestDumpFrame(pNode);
-	QACTIVE_POST(AO_Can, (QEvt* ) &msgEvt, (void*) 0); //发送新帧到达消息，使用静态事件，减少事件池容量
-}
+		pNode->reference++; //增加存储引用计数
+	//		SD_RequestDumpFrame(pNode);
+		QACTIVE_POST(AO_Can, (QEvt* ) &msgEvt, (void*) 0); //发送新帧到达消息，使用静态事件，减少事件池容量
+	}
 }
 
 #if 0

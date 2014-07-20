@@ -1,15 +1,23 @@
-#include <vdr.h>
+#include "vdr.h"
 #include <utility.h>
 #include <stm32f2xx_conf.h>
 #include <qactiveobjs.h>
 #include <qp_port.h>
 #include <comm.h>
 #include <nandflash.h>
+#include <qevents.h>
+#include <error.h>
+#include <fram.h>
+#include <parameter.h>
+#include <trace.h>
 
-Q_DEFINE_THIS_MODULE("vdr.c")
+#include "usbh_core.h"
+#include "usbh_usr.h"
+#include "usbh_msc_core.h"
+#include "usb_bsp.h"
 
-/*日志，速度*/
-//tSPEEDLOGHEAD tSpeedLogHead;
+Q_DEFINE_THIS_FILE
+
 
 //串口收发缓区
 #define RX_BUF_SIZE		1024
@@ -34,7 +42,7 @@ enum {
 };
 
 //接收数据帧处理缓区
-#define FRAME_MAX_LEN 	1024
+#define FRAME_MAX_LEN 	1048
 static u8 aFrameBuf[FRAME_MAX_LEN];
 static u8 eVdrCommRecvStatus = eCOMM_RECV_IDLE;	///串口帧接收状态
 
@@ -54,13 +62,13 @@ static const VDR_PARAM_ST tParamConf[] = {
 				.u16Size = sizeof(tCARINFO_ST)},
 		{.u32Addr = FRAM_ADDR_VDR_PARAM_INSTALLTIME,
 				.ptr = (u8*)&tVDRParam_St.tInstData_St,
-				.u16Size = sizeof(tTIME_ST)},
+				.u16Size = sizeof(BCDTIME_ST)},
 		{.u32Addr = FRAM_ADDR_VDR_PARAM_STATECONFIG,
 				.ptr = (u8*)&tVDRParam_St.tStateConf_St,
 				.u16Size = sizeof(tSTATECONFIG_ST)},
 		{.u32Addr = FRAM_ADDR_VDR_PARAM_RTC,
 				.ptr = (u8*)&tVDRParam_St.tRTC_St,
-				.u16Size = sizeof(tTIME_ST)},
+				.u16Size = sizeof(BCDTIME_ST)},
 		{.u32Addr = FRAM_ADDR_VDR_PARAM_PULSE,
 				.ptr = (u8*)&tVDRParam_St.tPulse_St,
 				.u16Size = sizeof(tPULSE_ST)},
@@ -75,20 +83,70 @@ static const VDR_PARAM_ST tParamConf[] = {
 				.u16Size = sizeof(tUNIQID_ST)},
 };
 
+#define VDR_USB_BLOCK_AMOUNT	16
+
+const VDR_USBBLOCKINFO  VDR_BLOCK[VDR_USB_BLOCK_AMOUNT] = {
+	{VDR_USB_CODE_VERSION, "执行标准版本年号"},		///见表A.6
+	{VDR_USB_CODE_DRIVERINFO, "当前驾驶人信息"},	/// 见表A.7
+	{VDR_USB_CODE_RTC, "实时时间"}, 				/// 见表A.8
+	{VDR_USB_CODE_DIST, "累计行驶里程"},			///  见表A.9
+	{VDR_USB_CODE_PULSE, "脉冲系数"},		 		/// 见表A.10
+	{VDR_USB_CODE_CARINFO, "车辆信息"},			///  见表A.11
+	{VDR_USB_CODE_CONFIG, "状态信号配置信息"},		///  见表A.12
+	{VDR_USB_CODE_UNIQID, "记录仪唯一性编号"},	 	/// 见表A.14
+	{VDR_USB_CODE_SPEED,"行驶速度记录"},			///08H  见表A.16
+	{VDR_USB_CODE_POSITION,	"位置信息记录"},		//09H  见表A.18
+	{VDR_USB_CODE_ACCIDENT,"事故疑点记录"},		//10H  见表A.21 全部记录
+	{VDR_USB_CODE_OTDRIVE,"超时驾驶记录"},			//11H  见表A.23 全部记录
+	{VDR_USB_CODE_DRIVERLOG,"驾驶人身份记录"},		//12H  见表A.25 全部记录
+	{VDR_USB_CODE_POWER,"外部供电记录"},			//13H  见表A.26 全部记录
+	{VDR_USB_CODE_PARAMCHG,"参数修改记录"},		//14H  见表A.29 全部记录
+	{VDR_USB_CODE_SPEEDSTATUS,"速度状态日志"},		//15H  见表A.31 全部记录
+};
+
+static BOOL VDR_Comm_CheckFrame(u8 *aFrameBuf, u16 u16FrameLen);
+static void	UART_COMM_StartTransmit(void);
+static u16 VDR_Comm_FormSingleAckFrame(VDRAckEvt *pAckEvt, u8 *pFrameBuf);
+
+extern tPARAM_RUNTIME *ptParam_Runtime;
+extern u16 RECORD_SIZE[];
+
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
+    #pragma data_alignment=4
+  #endif
+#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
+__ALIGN_BEGIN USB_OTG_CORE_HANDLE      USB_OTG_Core __ALIGN_END;
+
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+  #if defined ( __ICCARM__ ) /*!< IAR Compiler */
+    #pragma data_alignment=4
+  #endif
+#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
+__ALIGN_BEGIN USBH_HOST                USB_Host __ALIGN_END;
 
 /**
  * 命令帧处理
  *
+ * 从接收缓区中提取出命令帧，解析并处理
+ *
  * @param u16BeginPtr		帧数据在缓区中的起始位置
  * @param u16EndPtr			帧数据在缓区中的结尾位置
  */
-void VDR_Comm_doProcMessage(u16 u16BeginPtr, u16 u16EndPtr) {
+void VDR_Comm_doProcMessage(VDRRetrieveEvt *pe) {
 	u8* pFrame;
 	u16 u16FrameLen;
 	tFRAMEHEAD *ptHead = NULL;
 	BOOL bResult = TRUE;
 	u8 u8Cmd = 0;
 	int ret;
+	TIME begin, end;
+	eLOGCLASS eClass;
+	u16 u16BeginPtr;
+	u16 u16EndPtr;
+
+	u16BeginPtr = pe->u16BeginPtr;
+	u16EndPtr = pe->u16EndPtr;
 
 	/*从接收缓区提取一帧，帧起始和结束位置已指定*/
 	u16FrameLen = VDR_Comm_doRetrieveMessage(aFrameBuf, u16BeginPtr, u16EndPtr);
@@ -105,10 +163,10 @@ void VDR_Comm_doProcMessage(u16 u16BeginPtr, u16 u16EndPtr) {
 	//pFrame指向数据
 	pFrame = aFrameBuf + sizeof(tFRAMEHEAD);
 
-	switch (ptHead->u8Cmd) {
 	/**
 	 * 采集数据命令字定义
 	 */
+	switch(ptHead->u8Cmd) {
 	case VDR_CMD_GET_VERSION:	///0x00	//采集记录仪版本
 	case VDR_CMD_GET_DRIVERINFO:	///0x01	///驾驶人信息
 	case VDR_CMD_GET_RTC:	///0x02	///时间
@@ -116,67 +174,169 @@ void VDR_Comm_doProcMessage(u16 u16BeginPtr, u16 u16EndPtr) {
 	case VDR_CMD_GET_PULSE:	///0x04	///脉冲系数
 	case VDR_CMD_GET_CARINFO:	///0x05	///车辆信息
 	case VDR_CMD_GET_STATECONFIG_INFO:	///0x06	///状态信号配置信息
-	case VDR_CMD_GET_ID:	///0x07	///唯一性ID
+	case VDR_CMD_GET_ID: ///0x07	///唯一性ID
 	{
 		VDRAckEvt *pe;
-		pe = Q_NEW(VDRAckEvt, VDR_ACK_READY_SIG);
+
+		if(ptHead->u8Cmd == VDR_CMD_GET_VERSION) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_VERSION ");
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_DRIVERINFO) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_DRIVERINFO" );
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_RTC) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_RTC" );
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_DISTANCE) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_DISTANCE" );
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_PULSE) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_PULSE" );
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_CARINFO) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_CARINFO" );
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_STATECONFIG_INFO) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_STATECONFIG_INFO" );
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_GET_ID) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_ID" );
+		}
+
+		pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG/*VDR_ACK_SINGLEPACK_SIG*/);
 		pe->cmd = ptHead->u8Cmd;
 		pe->ret = TRUE;
 		QACTIVE_POST(AO_VDR, (QEvt* )pe, NULL);
+		break;
 	}
-		break;
+	/**
+	 * 多包响应类命令
+	 */
 	case VDR_CMD_GET_SPEED:	///0x08	///行驶速度
-
-		break;
 	case VDR_CMD_GET_POSITION:	///0x09 	///位置
-
-		break;
 	case VDR_CMD_GET_ACCIDENT:	///0x10	///事故疑点
-
-		break;
 	case VDR_CMD_GET_OVERTIME_DRIVING:	///0x11	///超时驾驶
-
-		break;
 	case VDR_CMD_GET_DRIVER_LOG_INFO:	///0x12	///登入签出
-
-		break;
 	case VDR_CMD_GET_POWER:	///0x13	///供电
-
-		break;
 	case VDR_CMD_GET_PARAM_CHANGE:	///0x14	///参数修改
-
-		break;
 	case VDR_CMD_GET_SPEED_STATUS_LOG:	///0x15	///速度状态日志
+	{
+		tCMD_SPEED *pCmd;
+		VDRMultiAckEvt *pe;
 
+		///0x08	///行驶速度
+		if(ptHead->u8Cmd == VDR_CMD_GET_SPEED) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_PULSE, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x09 	///位置
+		else if(ptHead->u8Cmd == VDR_CMD_GET_POSITION) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_POSITION, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x10	///事故疑点
+		else if(ptHead->u8Cmd == VDR_CMD_GET_ACCIDENT) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_ACCIDENT, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x11	///超时驾驶
+		else if(ptHead->u8Cmd == VDR_CMD_GET_OVERTIME_DRIVING) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_OVERTIME_DRIVING, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x12	///登入签出
+		else if(ptHead->u8Cmd == VDR_CMD_GET_DRIVER_LOG_INFO) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_DRIVER_LOG_INFO, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x13	///供电
+		else if(ptHead->u8Cmd == VDR_CMD_GET_POWER) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_POWER, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x14	///参数修改
+		else if(ptHead->u8Cmd == VDR_CMD_GET_PARAM_CHANGE) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_PARAM_CHANGE, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+		///0x15	///速度状态日志
+		else if(ptHead->u8Cmd == VDR_CMD_GET_SPEED_STATUS_LOG) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_GET_SPEED_STATUS_LOG, Blocks = %d", pCmd->u16PackAmt);
+			eClass = eLOG_Speed;
+		}
+
+		pCmd = (tCMD_SPEED*)pFrame;
+		ENDIAN_U16(pCmd->u16PackAmt);
+
+		TRACE_(QS_USER, NULL, "[VDR] Query { SPEED } info , Blocks = %d", pCmd->u16PackAmt);
+		TRACE_(QS_USER, NULL, "BEGIN : %d-%d-%d:%d-%d-%d",
+				pCmd->time_Begin.year, pCmd->time_Begin.month, pCmd->time_Begin.day,
+				pCmd->time_Begin.hour, pCmd->time_Begin.minute, pCmd->time_Begin.second);
+		TRACE_(QS_USER, NULL, "END : %d-%d-%d:%d-%d-%d",
+				pCmd->time_End.year, pCmd->time_End.month, pCmd->time_End.day,
+				pCmd->time_End.hour, pCmd->time_End.minute, pCmd->time_End.second);
+
+		/**多包传输，需启动一个会话*/
+		pe = Q_NEW(VDRMultiAckEvt, VDR_ACK_MULTIPACK_SIG);
+		BCDTIME_CPY(&pe->time_start, &pCmd->time_Begin);
+		BCDTIME_CPY(&pe->time_end, &pCmd->time_End);
+		pe->u16Blocks = pCmd->u16PackAmt;
+		pe->u8Cmd = ptHead->u8Cmd;
+		QACTIVE_POST(AO_VDR, (QEvt* )pe, NULL);
+	}
 		break;
 
 		/**
 		 * 设置参数类
 		 */
 	case VDR_CMD_SET_VECHICLE_INFO:	///0x82	///车辆信息
-		ret = VDR_SaveParam(VDR_PARAM_CARINFO, pFrame, u16FrameLen);
-		break;
-
 	case VDR_CMD_SET_FIRST_INSTLL_DATA:	///0x83	///初次安装日期
-		ret = VDR_SaveParam(VDR_PARAM_INSTALLTIME, pFrame, u16FrameLen);
-		break;
-
 	case VDR_CMD_SET_STATUS_CONFIG_INFO:	///0x84	///状态量配置信息
-		ret = VDR_SaveParam(VDR_PARAM_STATECONFIG, pFrame, u16FrameLen);
-		break;
-
 	case VDR_CMD_SET_TIME:	///0xC2	///时间
-		ret = VDR_SaveParam(VDR_PARAM_RTC, pFrame, u16FrameLen);
-		break;
-
 	case VDR_CMD_SET_PULSE:	///0xC3	///脉冲系数
-		ret = VDR_SaveParam(VDR_PARAM_PULSE, pFrame, u16FrameLen);
-		break;
-
 	case VDR_CMD_SET_INITIALDIST:	///0xC4	///初始里程
-		ret = VDR_SaveParam(VDR_PARAM_INITDIST, pFrame, u16FrameLen);
-		break;
+	{
+		VDRAckEvt *pe;
 
+		if(ptHead->u8Cmd == VDR_CMD_SET_VECHICLE_INFO) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_SET_VECHICLE_INFO" );
+			ret = VDR_SaveParam(VDR_PARAM_CARINFO, pFrame, u16FrameLen);
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_SET_FIRST_INSTLL_DATA) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_SET_FIRST_INSTLL_DATA" );
+			ret = VDR_SaveParam(VDR_PARAM_INSTALLTIME, pFrame, u16FrameLen);
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_SET_STATUS_CONFIG_INFO) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_SET_STATUS_CONFIG_INFO" );
+			ret = VDR_SaveParam(VDR_PARAM_STATECONFIG, pFrame, u16FrameLen);
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_SET_TIME) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_SET_TIME" );
+			ret = VDR_SaveParam(VDR_PARAM_RTC, pFrame, u16FrameLen);
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_SET_PULSE) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_SET_PULSE" );
+			ret = VDR_SaveParam(VDR_PARAM_PULSE, pFrame, u16FrameLen);
+		}
+		else if(ptHead->u8Cmd == VDR_CMD_SET_INITIALDIST) {
+			TRACE_(QS_USER, NULL, "[VDR] CMD: VDR_CMD_SET_INITIALDIST" );
+			ret = VDR_SaveParam(VDR_PARAM_INITDIST, pFrame, u16FrameLen);
+		}
+
+		if(ret < 0) {
+			pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG);
+			pe->cmd = VDR_CMD_GET_ERR_ACK;
+			pe->resCmd = ptHead->u8Cmd;
+			QACTIVE_POST(AO_VDR, (QEvt* )pe, NULL);
+		}
+		else {
+			pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG);
+			pe->cmd = ptHead->u8Cmd;
+			pe->resCmd = ptHead->u8Cmd;
+			QACTIVE_POST(AO_VDR, (QEvt* )pe, NULL);
+		}
+	}
+		break;
 	default:
 		break;
 	}
@@ -187,6 +347,62 @@ void VDR_Comm_doProcMessage(u16 u16BeginPtr, u16 u16EndPtr) {
 }
 
 
+
+/**
+ * 取多包数据查询的单条记录
+ *
+ * @param qSession			查询会话
+ * @param pBuf				记录缓区
+ * @param pu16DataLen		记录长度
+ * @return	0=成功，否则错误代码
+ */
+int VDR_Comm_GetSingleAckRecord(T_QSESSION *qSession, u8 *pBuf, u16 *pu16DataLen) {
+	int ret;
+
+	*pu16DataLen = RECORD_SIZE[qSession->u8SessionType];
+
+	switch(qSession->u8SessionType){
+	case	VDR_USB_CODE_POSITION:		//09H 位置信息记录 见表A.18
+		ret = VDR_RetrieveSingleRecordForward(qSession, pBuf);
+		break;
+	case	VDR_USB_CODE_SPEED:			///08H 行驶速度记录 见表A.16
+	case	VDR_USB_CODE_ACCIDENT:		//10H 事故疑点记录 见表A.21 全部记录
+	case	VDR_USB_CODE_OTDRIVE:		//11H 超时驾驶记录 见表A.23 全部记录
+	case	VDR_USB_CODE_DRIVERLOG:		//12H 驾驶人身份记录 见表A.25 全部记录
+	case	VDR_USB_CODE_POWER:			//13H 外部供电记录 见表A.26 全部记录
+	case	VDR_USB_CODE_PARAMCHG:		//14H 参数修改记录 见表A.29 全部记录
+	case	VDR_USB_CODE_SPEEDSTATUS:	//15H 速度状态日志 见表A.31 全部记录
+		ret = VDR_RetrieveSingleRecordBackward(qSession, pBuf);
+		break;
+	}
+
+	return ret;
+}
+
+
+
+
+/**
+ * 发送应答帧
+ *
+ * @param pAckEvt		应答消息
+ */
+void VDR_Comm_SendSingleAckFrame(VDRAckEvt *pAckEvt) {
+	u16 u16Length = 0;
+
+	u16Length = VDR_Comm_FormSingleAckFrame(pAckEvt, Comm_Tx.pBuf);
+	Q_ASSERT(u16Length > 0);
+
+	//复位读写指针
+	Comm_Tx.read = 0;
+
+	//保存待发送数据长度
+	Comm_Tx.dataSize = u16Length;
+
+	//启动串口发送数据
+	UART_COMM_StartTransmit();
+}
+
 /**
  * 构造应答帧
  *
@@ -194,10 +410,9 @@ void VDR_Comm_doProcMessage(u16 u16BeginPtr, u16 u16EndPtr) {
  * @param pFrameBuf		应答帧缓区
  * @return	应答帧长度
  */
-u16 VDR_Comm_FormAckFrame(VDRAckEvt *pAckEvt, u8 *pFrameBuf) {
+u16 VDR_Comm_FormSingleAckFrame(VDRAckEvt *pAckEvt, u8 *pFrameBuf) {
 	u16 u16FrameLen = 0;
 	tFRAMEHEAD *pHead = NULL;
-	u16 u16FrameLen = 0;
 	u8 *pData = NULL;
 	u16 u16DataLen = 0;
 
@@ -260,12 +475,12 @@ u16 VDR_Comm_FormAckFrame(VDRAckEvt *pAckEvt, u8 *pFrameBuf) {
 	case VDR_CMD_GET_RTC:	///0x02	///时间
 	{
 		tACK_RTC *pRTC = (tACK_RTC *)pData;
-		pRTC->time.u8Year = tVDRParam_St.tRTC_St.time.u8Year;
-		pRTC->time.u8Month = tVDRParam_St.tRTC_St.time.u8Month;
-		pRTC->time.u8Day = tVDRParam_St.tRTC_St.time.u8Day;
-		pRTC->time.u8Hour = tVDRParam_St.tRTC_St.time.u8Hour;
-		pRTC->time.u8Minute = tVDRParam_St.tRTC_St.time.u8Minute;
-		pRTC->time.u8Second = tVDRParam_St.tRTC_St.time.u8Second;
+		pRTC->year = tVDRParam_St.tRTC_St.time.year;
+		pRTC->month = tVDRParam_St.tRTC_St.time.month;
+		pRTC->day = tVDRParam_St.tRTC_St.time.day;
+		pRTC->hour = tVDRParam_St.tRTC_St.time.hour;
+		pRTC->minute = tVDRParam_St.tRTC_St.time.minute;
+		pRTC->second = tVDRParam_St.tRTC_St.time.second;
 
 		u16DataLen = sizeof(tACK_RTC);
 	}
@@ -300,52 +515,18 @@ u16 VDR_Comm_FormAckFrame(VDRAckEvt *pAckEvt, u8 *pFrameBuf) {
 		u16DataLen = sizeof(tACK_UNIQID);
 	}
 		break;
+
+	/**
+	 * 以下几个命令为多包传输，不再此处组织数据
+	 */
 	case VDR_CMD_GET_SPEED:	///0x08	///行驶速度
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_POSITION:	///0x09 	///位置
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_ACCIDENT:	///0x10	///事故疑点
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_OVERTIME_DRIVING:	///0x11	///超时驾驶
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_DRIVER_LOG_INFO:	///0x12	///登入签出
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_POWER:	///0x13	///供电
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_PARAM_CHANGE:	///0x14	///参数修改
-	{
-
-	}
-
-		break;
 	case VDR_CMD_GET_SPEED_STATUS_LOG:	///0x15	///速度状态日志
-	{
-
-	}
 		break;
 
 	/**
@@ -380,7 +561,7 @@ u16 VDR_Comm_FormAckFrame(VDRAckEvt *pAckEvt, u8 *pFrameBuf) {
  * @param u16FrameLen
  * @return
  */
-BOOL VDR_Comm_CheckFrame( aFrameBuf, u16FrameLen) {
+BOOL VDR_Comm_CheckFrame(u8 *aFrameBuf, u16 u16FrameLen) {
 	u8 u8Checksum;
 
 	if (0 == u16FrameLen)
@@ -402,7 +583,7 @@ BOOL VDR_Comm_CheckFrame( aFrameBuf, u16FrameLen) {
 /**
  * VDR数据初始化
  */
-extern void VDR_Comm_MemInit(void) {
+void VDR_Comm_MemInit(void) {
 	/*初始化收发缓区*/
 	Comm_Init(&Comm_Tx, &buf_Tx[0], TX_BUF_SIZE);
 	Comm_Init(&Comm_Rx, &buf_Rx[0], RX_BUF_SIZE);
@@ -615,7 +796,7 @@ u8 BCD2BYTE(u8 u8Bcd) {
  * @param pTime			当前时刻
  * @param pSpeedLog		速度信息
  */
-void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog) {
+void VDR_Log_SaveSpeedInfo(BCDTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog) {
 	u16 u16ItemOffset = 0;
 	_eERRType err;
 	tSPEEDLOGITEM *pSpeedItem;
@@ -626,8 +807,8 @@ void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog) {
 	/*页缓区为空，开始新的存储周期*/
 	if(tSpeedLogHead.bPageEmpty) {
 		ZeroMem(tSpeedLogHead.aPageBuf, 2048);
-		memcpy_(&pSpeedItem->time_Start, pTime, sizeof(tTIME));
-		pSpeedItem->time_Start.u8Second = 0;
+		memcpy_(&pSpeedItem->time_Start, pTime, sizeof(BCDTIME));
+		pSpeedItem->time_Start.second = 0;
 		memcpy_(pSpeedItem->tSpeed[u16ItemOffset], pSpeedLog, sizeof(tSPEEDLOGPERSEC));
 
 		tSpeedLogHead.bPageEmpty = 0;
@@ -637,7 +818,7 @@ void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog) {
 		if(u16TimeElapse <= 8*60) { ///页未满，时间在8分钟内，页内保存，不写FLASH
 			u8 u8ItemNum = u16TimeElapse / 60;
 			pSpeedItem += u8ItemNum;
-			memcpy_(pSpeedItem->tSpeed[pTime->u8Second], pSpeedLog, sizeof(tSPEEDLOGPERSEC));
+			memcpy_(pSpeedItem->tSpeed[pTime->second], pSpeedLog, sizeof(tSPEEDLOGPERSEC));
 		}
 		/*页满，写FLASH，清空页缓区，并初始化第一个存储项*/
 		if(u16TimeElapse >= 8*60) {
@@ -646,7 +827,7 @@ void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog) {
 			if (_NO_ERR_ == err) {
 				/*在页空闲区保存第一个记录的时间*/
 				NF_WriteSpareArea(tSpeedLogHead.u16BlockId_Head, tSpeedLogHead.u8PageId_Head,
-						sizeof(tTIME), (u8*)pTime);
+						sizeof(BCDTIME), (u8*)pTime);
 
 				/*更新下一写位置*/
 				tSpeedLogHead.u8PageId_Head++;
@@ -689,7 +870,7 @@ void VDR_Log_SaveSpeedInfo(tTIME *pTime, tSPEEDLOGPERSEC *pSpeedLog) {
  * @param pTime_End
  * @return 起始数据块页号及页内偏移，结束数据块页号及页内偏移
  */
-int VDR_Log_LocateSpeedInfo(tTIME *pTime_Begin, tTIME *pTime_End) {
+int VDR_Log_LocateSpeedInfo(BCDTIME *pTime_Begin, BCDTIME *pTime_End) {
 	/*先查找内存数据*/
 	if(-1 == TIME_COMPARE(pTime_Begin, &tSpeedLogHead.)) {
 
@@ -765,47 +946,35 @@ u16 GetNextValidBlock(u16 u16BlockId_Start, u16 u16BlockId_Last, u16 u16BlockId_
  * @param pTime2
  * @return	1: t1 > t2; 0:t1=t2; -1:t1<t2
  */
-int TIME_COMPARE(tTIME *pTime1, tTIME *pTime2) {
-	if(pTime1->u8Year > pTime2->u8Year)
+int TIME_COMPARE(BCDTIME *pTime1, BCDTIME *pTime2) {
+	if(pTime1->year > pTime2->year)
 		return 1;
-	else if(pTime1->u8Year < pTime2->u8Year)
+	else if(pTime1->year < pTime2->year)
 		return -1;
-	else if(pTime1->u8Month > pTime2->u8Month)
+	else if(pTime1->month > pTime2->month)
 		return 1;
-	else if(pTime1->u8Month < pTime2->u8Month)
+	else if(pTime1->month < pTime2->month)
 		return -1;
-	else if(pTime1->u8Day > pTime2->u8Day)
+	else if(pTime1->day > pTime2->day)
 		return 1;
-	else if(pTime1->u8Day < pTime2->u8Day)
+	else if(pTime1->day < pTime2->day)
 		return -1;
-	else if(pTime1->u8Hour > pTime2->u8Hour)
+	else if(pTime1->hour > pTime2->hour)
 		return 1;
-	else if(pTime1->u8Hour < pTime2->u8Hour)
+	else if(pTime1->hour < pTime2->hour)
 		return -1;
-	else if(pTime1->u8Minute > pTime2->u8Minute)
+	else if(pTime1->minute > pTime2->minute)
 		return 1;
-	else if(pTime1->u8Minute < pTime2->u8Minute)
+	else if(pTime1->minute < pTime2->minute)
 		return -1;
-	else if(pTime1->u8Second > pTime2->u8Second)
+	else if(pTime1->second > pTime2->second)
 		return 1;
-	else if(pTime1->u8Second < pTime2->u8Second)
+	else if(pTime1->second < pTime2->second)
 		return -1;
 	else
 		return 0;
 }
 
-/**
- * 计算两个时刻相差秒数
- *
- * @param t1
- * @param t2
- * @return
- */
-u16 TIME_ELLAPSED_INSEC(tTIME *t1, tTIME *t2) {
-	u16 u16TimeElapse = 0;
-
-	return 0;
-}
 
 /**
  * 保存记录仪参数
@@ -815,7 +984,7 @@ u16 TIME_ELLAPSED_INSEC(tTIME *t1, tTIME *t2) {
  * @param u16Len	参数长度
  * @return 0=成功，否则错误代码
  */
-int VDR_SaveParam(eVDRPARAM eParam, u8 *pBuf, u16 u16Len) {
+int VDR_SaveParam(u8 eParam, u8 *pBuf, u16 u16Len) {
 	int ret;
 	u8 u8CRC = 0;
 
@@ -838,7 +1007,7 @@ int VDR_SaveParam(eVDRPARAM eParam, u8 *pBuf, u16 u16Len) {
 	*(tParamConf[eParam].ptr + tParamConf[eParam].u16Size - 1) = u8CRC;
 
 	/*保存*/
-	ret = FRAM_WriteBuffer(tParamConf[eParam].ptr, tParamConf[eParam].u16Size);
+	ret = FRAM_WriteBuffer(tParamConf[eParam].u32Addr, tParamConf[eParam].ptr, tParamConf[eParam].u16Size);
 	if(ret < 0)
 		return ret;
 
@@ -861,7 +1030,7 @@ int VDR_LoadParam(void) {
 	u8 u8CRC = 0;
 
 	/*读出参数*/
-	ret = FRAM_ReadBuffer(FRAM_ADDR_VDR_PARAM_START, &tVDRParam_St, sizeof(tVDRPARAM_ST));
+	ret = FRAM_ReadBuffer(FRAM_ADDR_VDR_PARAM_START, (u8*)&tVDRParam_St, sizeof(tVDRPARAM_ST));
 	if(ret < 0)
 		return ret;
 
@@ -886,7 +1055,7 @@ int VDR_LoadParam(void) {
  * @param eParam
  * @return
  */
-u8* VDR_GetParam(eVDRPARAM eParam) {
+u8* VDR_GetParam(u8 eParam) {
 	return tParamConf[eParam].ptr;
 }
 
@@ -899,3 +1068,45 @@ u8* VDR_GetParam(eVDRPARAM eParam) {
 void VDR_Err_Proc(u8 u8Cmd, int ret) {
 
 }
+
+/**
+ * 设置状态信号状态
+ *
+ * @param eSig
+ * @param opt
+ */
+void VDR_SetSignalState(eVDRSIGNAL eSig, eVDRSIGOPT opt) {
+	switch(eSig) {
+	case VDR_SIG_HALT:
+		ptParam_Runtime->tVDR_State.bit_Halt = ((opt == OPERATE) ? 1 : 0);
+		break;
+	case VDR_SIG_LEFT:
+		ptParam_Runtime->tVDR_State.bit_Left = ((opt == OPERATE) ? 1 : 0);
+		break;
+	case VDR_SIG_RIGHT:
+		ptParam_Runtime->tVDR_State.bit_Right = ((opt == OPERATE) ? 1 : 0);
+		break;
+	case VDR_SIG_LIGHTFAR:
+		ptParam_Runtime->tVDR_State.bit_LightFar = ((opt == OPERATE) ? 1 : 0);
+		break;
+	case VDR_SIG_LIGHTNEAR:
+		ptParam_Runtime->tVDR_State.bit_LightNear = ((opt == OPERATE) ? 1 : 0);
+		break;
+	default:
+		break;
+	}
+}
+
+
+/**
+ * 获取状态信息第1字节
+ *
+ * @param pState	OUT		状态信号
+ */
+void VDR_GetSignalState(tSTATE_BYTE1 *pState) {
+	Q_ASSERT(pState != NULL);
+
+	memcpy_((u8*)pState, (u8*)&ptParam_Runtime->tVDR_State, sizeof(tSTATE_BYTE1));
+}
+
+

@@ -40,9 +40,10 @@ static tCOMM Comm_Rx;  //发送缓区
 //接收数据帧处理缓区
 #define BUFFER_LENGTH_GPRSFRAMERx 			1024
 static u8 au8Buffer_GPRSFrameRx[BUFFER_LENGTH_GPRSFRAMERx];
-
-#define CHAR_CR 	0x0D  //回车
-#define CHAR_LF 	0x0A  //换行/*AT命令*/const char* ATCMD[] = {	/*基本配置命令*/
+//回车
+#define CHAR_CR 	0x0D
+//换行
+#define CHAR_LF 	0x0A/*AT命令*/const char* ATCMD[] = {	/*基本配置命令*/
 	"AT\r",							//链路同步
 	"ATE0\r",//取消回显
 
@@ -96,25 +97,24 @@ static u8 au8Buffer_GPRSFrameRx[BUFFER_LENGTH_GPRSFRAMERx];
 
 	//查询系统时间
 	"AT+CCLK=?",
-
 };
 
 /*AT应答格式*/
 const char* ATACK[] = {
-/*基本命令*/
-"OK", "ATE0",
+	/*基本命令*/
+	"OK", "ATE0",
 
-/*标识查询命令应答*/
-"Huawei Technologies", "Manufacturer:", "Revision:", "ESN",
+	/*标识查询命令应答*/
+	"Huawei Technologies", "Manufacturer:", "Revision:", "ESN",
 
-/*安全控制命令应答*/
-"+CPIN: READY",
+	/*安全控制命令应答*/
+	"+CPIN: READY",
 
-/*网络服务接口命令应答*/
-"+CSQ: ", "+CGATT: ",
+	/*网络服务接口命令应答*/
+	"+CSQ: ", "+CGATT: ",
 
-/*数据业务类命令应答*/
-"+CREG: ",
+	/*数据业务类命令应答*/
+	"+CREG: ",
 
 	/*INTERNET服务接口命令应答*/
 	"^SISW:",						//写入数据到缓冲区提示
@@ -1068,7 +1068,7 @@ break;
 
 //系统时间,格式为“yy/MM/dd,hh:mm:ss”
 case _ATACK_SYSTIME: {
-SYSTIMER timer;
+TIME timer;
 
 while (!((*pBuffer >= '0') && (*pBuffer <= '0'))) {
 	pBuffer++;
@@ -1109,7 +1109,7 @@ while ((*pBuffer >= '0') && (*pBuffer <= '0')) {
 	pBuffer++;
 }
 
-SysTimer_Set(&timer);
+SysTick_Set(&timer);
 }
 break;
 
@@ -1550,7 +1550,7 @@ return _ATACK_UNDEFINE;
 
 					//判断接收的数据帧类型
 for (i = 0; i < (u8) _ATACK_END; i++) {
-if (memcmp_(pu8Buffer, (u8*) ATACK[i], strlen_(ATACK[i]))) {
+if (memcmp_(pu8Buffer, (u8*) ATACK[i], strlen_((char*)ATACK[i]))) {
 	break;
 }
 }
@@ -1573,7 +1573,7 @@ static const char cmd[] = "AT+CFUN=0\r";
 TRACE_(QS_USER, NULL, "[UART]Tx: %s", cmd);
 
 					//成功写入数据到发送缓冲区
-GPRS_WriteData(cmd, strlen_(cmd));
+GPRS_WriteData((u8*)cmd, strlen_((char*)cmd));
 }
 
 /**

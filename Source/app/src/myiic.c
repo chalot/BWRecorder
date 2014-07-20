@@ -33,13 +33,13 @@ void Delay_us(unsigned int t)
 */
 void I2C_CtrlPin_Init(void)
 {
-    IO_ConfigPort(I2C_SDA_PORT,I2C_SDA_PIN ,IO_GPIO_MODE);     /*config port */
-    IO_GPIOWriteData(I2C_SDA_PORT,I2C_SDA_PIN,0x0001);        /* Write data   */
-    IO_GPIOConfigPullup(I2C_SDA_PORT,I2C_SDA_PIN,IO_PULLUP_DISCONN); /*pull-up setting */
-
-    IO_ConfigPort(I2C_SCL_PORT,I2C_SCL_PIN,IO_GPIO_MODE);     /*config port */
-    IO_GPIOWriteData(I2C_SCL_PORT,I2C_SCL_PIN,0x0002);        /* Write data   */
-    IO_GPIOConfigPullup(I2C_SCL_PORT,I2C_SCL_PIN,IO_PULLUP_DISCONN); /*pull-up setting */
+//    IO_ConfigPort(I2C_SDA_GPIO_PORT,I2C_SDA_PIN ,IO_GPIO_MODE);     /*config port */
+//    IO_GPIOWriteData(I2C_SDA_GPIO_PORT,I2C_SDA_PIN,0x0001);        /* Write data   */
+//    IO_GPIOConfigPullup(I2C_SDA_GPIO_PORT,I2C_SDA_PIN,IO_PULLUP_DISCONN); /*pull-up setting */
+//
+//    IO_ConfigPort(I2C_SCL_GPIO_PORT,I2C_SCL_PIN,IO_GPIO_MODE);     /*config port */
+//    IO_GPIOWriteData(I2C_SCL_GPIO_PORT,I2C_SCL_PIN,0x0002);        /* Write data   */
+//    IO_GPIOConfigPullup(I2C_SCL_GPIO_PORT,I2C_SCL_PIN,IO_PULLUP_DISCONN); /*pull-up setting */
 
     I2C_SDA_DIR_OUT();
     I2C_SCL_DIR_OUT();
@@ -344,8 +344,7 @@ unsigned char I2C_test(void)
 
 
 
-#if 0
-#define _nop_()      Delay_1us(2)        /*I2C总线延时可以根据自己的MCU运行时钟频率进行适当的调整*/
+#if 1
 
 /**
  * 初始化IIC
@@ -353,8 +352,8 @@ unsigned char I2C_test(void)
 void IIC_Init(void) {
 
 	///使能IO时钟
-	RCC_APB2PeriphClockCmd( I2C_SCL_GPIO_PORT | I2C_SDA_GPIO_PORT, ENABLE );
-
+//	RCC_APB2PeriphClockCmd( I2C_SCL_GPIO_PORT | I2C_SDA_GPIO_PORT, ENABLE );
+	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOF , ENABLE);
 	///SCL=1，SDA=1
 	I2C_SDA_DIR_OUT();
 	I2C_SDA_DAT(1);

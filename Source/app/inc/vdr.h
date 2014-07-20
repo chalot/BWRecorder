@@ -4,11 +4,15 @@
 #include <stm32f2xx_conf.h>
 #include <type.h>
 #include <board.h>
+#include <systimer.h>
+#include "ff.h"
+#include "sdcard_interface.h"
+#include <qevents.h>
 
 #pragma 	pack(1)
 
-#define UART_VDR	USART6
 
+#define UART_VDR	USART6 ///记录仪串口
 
 #define    	VDR_Send_Enable()			{USART_ITConfig(UART_VDR, USART_IT_TXE,ENABLE);}
 #define		VDR_Send_Disable()			{USART_ITConfig(UART_VDR, USART_IT_TXE,DISABLE);}
@@ -104,15 +108,17 @@ typedef struct {
 	u8	u8FixID;
 } tVERSION;		///表A.6
 
-#define tACK_VERSION tVERSION	///应答帧
+typedef tVERSION	tACK_VERSION;///应答帧
 
-#define		VDR_CMD_GET_DRIVERINFO				0x01	///驾驶人信息
+#define		VDR_CMD_GET_DRIVERINFO	0x01	///驾驶人信息
 typedef struct {
 	u8	aDriverLicense[18];
 } tDRIVERLICENSEINFO;	///表A.7
 
-#define tACK_DRIVERLICENSEINFO tDRIVERLICENSEINFO		///应答帧
+//#define tACK_DRIVERLICENSEINFO tDRIVERLICENSEINFO		///应答帧
+typedef tDRIVERLICENSEINFO	tACK_DRIVERLICENSEINFO;
 
+#if 0
 /*时间日期格式*/
 typedef struct {///BCD码
 	u8	u8Year;
@@ -121,30 +127,31 @@ typedef struct {///BCD码
 	u8	u8Hour;
 	u8	u8Minute;
 	u8	u8Second;
-}tTIME;		///表A.8
+}BCDTIME;		///表A.8
+#endif
 
 #define		VDR_CMD_GET_RTC						0x02	///时间
-typedef struct {
-	tTIME	time;
-}tRTC;
 
-#define tACK_RTC	tRTC	///应答帧
+typedef BCDTIME	tRTC;
+typedef BCDTIME	tACK_RTC;	///应答帧
 
 #define		VDR_CMD_GET_DISTANCE				0x03	///里程
 typedef struct {
-	tTIME	time_RTC;
-	tTIME	time_First;
-	u8		aOriginDist[4];
-	u8		aTotalDist[4];
+	BCDTIME	time_RTC;
+	BCDTIME	time_FirstInstall;
+	u8		aOriginDist_BCD[4];
+	u8		aTotalDist_BCD[4];
 }tINITDISTANCE;		///表A.9
-#define tACK_INITDISTANCE	tINITDISTANCE	///应答帧
+//#define tACK_INITDISTANCE	tINITDISTANCE	///应答帧
+typedef tINITDISTANCE	tACK_INITDISTANCE;
 
 #define		VDR_CMD_GET_PULSE					0x04	///脉冲系数
 typedef struct {
-	tTIME	time_RTC;
+	BCDTIME	time_RTC;
 	u16		u16Pulse;
 }tPULSE;	///表A.10
-#define tACK_PULSE	tPULSE	///应答帧
+//#define tACK_PULSE	tPULSE	///应答帧
+typedef tPULSE	tACK_PULSE;
 
 
 #define		VDR_CMD_GET_CARINFO					0x05	///车辆信息
@@ -153,7 +160,8 @@ typedef struct {
 	u8	aLicense[12];		///机动车号牌号码，后3个字节备用
 	u8	aClass[12];
 }tCARINFO;	///表A.11
-#define tACK_CARINFO	tCARINFO	///应答帧
+//#define tACK_CARINFO	tCARINFO	///应答帧
+typedef tCARINFO	tACK_CARINFO;
 
 #define		VDR_CMD_GET_STATECONFIG_INFO		0x06	///状态信号配置信息
 #define 	STATE_CONFIG_AMOUNT		5	///状态配置信号字节个数
@@ -168,8 +176,31 @@ typedef struct {
 	u8		aD7[10];
 } tSTATECONFIG;	///表A.13
 
+/**第1字节状态信号,第1字节的D7表示制动，D6表示左转向，D5表示右转向，D4表示远光，D3表示近光，D2～D0由用户自定义*/
 typedef struct {
-	tTIME	time_RTC;
+	u8	bit_Halt		:	1;	///D7
+	u8	bit_Left		:	1;	///D6
+	u8	bit_Right		:	1;	///D5
+	u8	bit_LightFar	:	1;	///D4
+	u8	bit_LightNear	:	1;	///D3
+	u8	bit_reserved	:	3;	///D2～D0
+} tSTATE_BYTE1;
+
+/**记录仪信号类型*/
+typedef enum {
+	VDR_SIG_HALT = 0,
+	VDR_SIG_LEFT,
+	VDR_SIG_RIGHT,
+	VDR_SIG_LIGHTFAR,
+	VDR_SIG_LIGHTNEAR,
+
+} eVDRSIGNAL;
+
+/**1表示有操作，0表示无操作*/
+typedef enum { OPERATE = 1, NONOPERATE = !OPERATE } eVDRSIGOPT;
+
+typedef struct {
+	BCDTIME	time_RTC;
 	u8		u8Bytes;
 	tSTATECONFIG	tConf[STATE_CONFIG_AMOUNT];
 } tACK_STATECONFIG;	///表A.12
@@ -185,14 +216,15 @@ typedef struct {
 	u32		u32SequenceNum;
 	u8		u8Reserved[5];
 }tVDRID;	///表A.14
-#define tACK_UNIQID	tVDRID
+//#define tACK_UNIQID	tVDRID
+typedef tVDRID	tACK_UNIQID;
 
 #define		VDR_CMD_GET_SPEED					0x08	///行驶速度
 /*命令*/
 typedef struct {
-	tTIME	time_Begin;
-	tTIME	time_End;
-	u16		u16PackAmnt;
+	BCDTIME	time_Begin;
+	BCDTIME	time_End;
+	u16		u16PackAmt;
 }tCMD_SPEED;
 
 typedef struct {
@@ -201,14 +233,15 @@ typedef struct {
 } tITEM_SPEED;
 /*应答*/
 typedef struct {
-	tTIME	time_Start;
+	BCDTIME	time_Start;
 	tITEM_SPEED atItem[60];
 }tACK_SPEED;	///表A.17
 
 
 #define		VDR_CMD_GET_POSITION				0x09 	///位置
 /*命令帧格式同采集速度*/
-#define 	tCMD_POSITION	tCMD_SPEED
+//#define 	tCMD_POSITION	tCMD_SPEED
+typedef tCMD_SPEED	tCMD_POSITION;
 
 typedef struct {
 	u32		u32Long;
@@ -222,13 +255,14 @@ typedef struct {
 }tITEM_POS;
 
 typedef struct {
-	tTIME	time_Start;
+	BCDTIME	time_Start;
 	tITEM_POS	atItem[60];
 }tACK_POS;	///表A.19
 
 #define		VDR_CMD_GET_ACCIDENT				0x10	///事故疑点
 /*命令帧格式同采集速度*/
-#define 	tCMD_ACCIDENT	tCMD_SPEED
+//#define 	tCMD_ACCIDENT	tCMD_SPEED
+typedef 	tCMD_SPEED	tCMD_ACCIDENT;
 
 typedef struct {
 	u8	u8Speed;
@@ -236,7 +270,7 @@ typedef struct {
 }tITEM_ACCIDENT;
 
 typedef struct {
-	tTIME	time_End;
+	BCDTIME	time_End;
 	u8		aLicense[18];
 	tITEM_ACCIDENT	atItem[100];
 	tPOSITION	tLastValidPos;
@@ -244,21 +278,25 @@ typedef struct {
 
 #define		VDR_CMD_GET_OVERTIME_DRIVING		0x11	///超时驾驶
 /*命令帧格式同采集速度*/
-#define 	tCMD_OVERTIME_DRIVING	tCMD_SPEED
+//#define 	tCMD_OVERTIME_DRIVING	tCMD_SPEED
+typedef tCMD_SPEED		tCMD_OVERTIME_DRIVING;
 
 typedef struct {
 	u8		aLicense[18];
-	tTIME	time_Begin;
-	tTIME	time_End;
+	BCDTIME	time_Begin;
+	BCDTIME	time_End;
 	tPOSITION	tPos_Begin;
 	tPOSITION	tPos_End;
 }tACK_OVERTIMEDRIVING;	///表A.24
 
 
 #define		VDR_CMD_GET_DRIVER_LOG_INFO			0x12	///登入签出
+/*命令帧格式同采集速度*/
+//#define 	tCMD_DRIVERLOG	tCMD_SPEED
+typedef tCMD_SPEED	tCMD_DRIVERLOG;
 
 typedef struct {
-	tTIME	time;
+	BCDTIME	time;
 	u8		aLicense[18];
 	u8		u8EvtType;	///01:登陆；02：退出
 }tACK_DRIVERLOG;	///表A.26
@@ -266,25 +304,28 @@ typedef struct {
 
 #define		VDR_CMD_GET_POWER					0x13	///供电
 /*命令帧格式同采集速度*/
-#define 	tCMD_POWER	tCMD_SPEED
+//#define 	tCMD_POWER	tCMD_SPEED
+typedef	tCMD_SPEED	tCMD_POWER;
 
 typedef struct {
-	tTIME	time;
+	BCDTIME	time;
 	u8		u8EvtType;	///01:通电；02：断电
 }tACK_POWER;	///表A.28
 
 #define		VDR_CMD_GET_PARAM_CHANGE			0x14	///参数修改
 /*命令帧格式同采集速度*/
-#define 	tCMD_PARAM_CHANGE	tCMD_SPEED
+//#define 	tCMD_PARAM_CHANGE	tCMD_SPEED
+typedef	tCMD_SPEED	tCMD_PARAM_CHANGE;
 
 typedef struct {
-	tTIME	time;
+	BCDTIME	time;
 	u8		u8EvtType;	///为设置参数命令字
 }tACK_PARAMCHANGE;		///表A.30
 
 #define		VDR_CMD_GET_SPEED_STATUS_LOG		0x15	///速度状态日志
 /*命令帧格式同采集速度*/
-#define 	tCMD_SPEED_STATUS_LOG	tCMD_SPEED
+//#define 	tCMD_SPEED_STATUS_LOG	tCMD_SPEED
+typedef	tCMD_SPEED	tCMD_SPEED_STATUS_LOG;
 
 typedef struct {
 	u8		u8Speed_Log;	///记录速度，来自速度传感器
@@ -293,8 +334,8 @@ typedef struct {
 
 typedef struct {
 	u8		u8SpeedState;	///01：正常，02：异常
-	tTIME	time_Begin;
-	tTIME	time_End;
+	BCDTIME	time_Begin;
+	BCDTIME	time_End;
 	tITEM_SPEEDSTATE	tItem[60];	///从开始时间后1分钟内，每秒记录一次
 }tACK_SPEEDSTATUS;		///表A.32
 
@@ -304,33 +345,36 @@ typedef struct {
  */
 #define VDR_CMD_SET_VECHICLE_INFO		0x82	///车辆信息，A.11
 /*命令帧，无应答帧*/
-#define tCMD_SET_VECHICLE_INFO 	tACK_CARINFO
+//#define tCMD_SET_VECHICLE_INFO 	tACK_CARINFO
+typedef tACK_CARINFO	tCMD_SET_VECHICLE_INFO;
 
 #define VDR_CMD_SET_FIRST_INSTLL_DATA	0x83	///初次安装日期	A.8
 /*命令帧，无应答帧*/
-#define tCMD_SET_INSTALL_DATA	tTIME
+//#define tCMD_SET_INSTALL_DATA	BCDTIME
+typedef BCDTIME	tCMD_SET_INSTALL_DATA;
 
 #define VDR_CMD_SET_STATUS_CONFIG_INFO	0x84	///状态量配置信息	A.13
 /*命令帧，无应答帧*/
-#define tCMD_SET_STAUS_CONFIG tITEM_STATECONFIG
+//#define tCMD_SET_STAUS_CONFIG tITEM_STATECONFIG
+typedef tACK_STATECONFIG	tCMD_SET_STAUS_CONFIG;
 
 #define VDR_CMD_SET_TIME				0xC2	///时间	A.8
 /*命令帧，无应答帧*/
-#define tCMD_SET_TIME	tTIME
+//#define tCMD_SET_TIME	BCDTIME
+typedef BCDTIME	tCMD_SET_TIME;
 
 #define VDR_CMD_SET_PULSE				0xC3	///脉冲系数		A.10
 /*命令帧，无应答帧*/
-#define tCMD_SET_PULSE	tACK_PULSE
+//#define tCMD_SET_PULSE	tACK_PULSE
+typedef tACK_PULSE	tCMD_SET_PULSE;
 
 #define VDR_CMD_SET_INITIALDIST			0xC4	///初始里程		A.9
 /*命令帧，无应答帧*/
-#define tCMD_SET_INITIALDIST	tACK_DISTANCE
+//#define tCMD_SET_INITIALDIST	tACK_INITDISTANCE
+typedef tACK_INITDISTANCE	tCMD_SET_INITIALDIST;
 
-
-/**
- * 检定命令字及数据块格式
- */
-#define tCMD_DIAG_ENTER_KEEP			0xE0	///进入检定状态
+/*检定命令字及数据块格式*/
+#define tCMD_DIAG_ENTER_KEEP	0xE0	///进入检定状态
 /*命令帧空，应答帧空*/
 
 #define tCMD_DIAG_DIST_ERR_MEASURE		0xE1	///里程误差测量
@@ -354,18 +398,18 @@ typedef struct {
 
 /*记录仪全局参数*/
 
-/*参数类型*/
-typedef enum {
-	VDR_PARAM_CARINFO = 0,
-	VDR_PARAM_INSTALLTIME,
-	VDR_PARAM_STATECONFIG,
-	VDR_PARAM_RTC,
-	VDR_PARAM_PULSE,
-	VDR_PARAM_INITDIST,
-	VDR_PARAM_LICENSE,
-	VDR_PARAM_ID,
-	VDR_PARAM_END,
-} eVDRPARAM;
+///*参数类型*/
+//typedef enum {
+//	VDR_PARAM_CARINFO = 0,
+//	VDR_PARAM_INSTALLTIME,
+//	VDR_PARAM_STATECONFIG,
+//	VDR_PARAM_RTC,
+//	VDR_PARAM_PULSE,
+//	VDR_PARAM_INITDIST,
+//	VDR_PARAM_LICENSE,
+//	VDR_PARAM_ID,
+//	VDR_PARAM_END,
+//} eVDRPARAM;
 
 ///车辆信息参数
 typedef struct {
@@ -375,9 +419,9 @@ typedef struct {
 
 ///记录仪时间参数
 typedef struct {
-	tTIME 	time;
+	BCDTIME 	time;
 	u8 		u8CRC;
-}tTIME_ST;
+}BCDTIME_ST;
 
 ///状态配置参数
 typedef struct {
@@ -415,9 +459,9 @@ typedef struct {
  */
 typedef struct {
 	tCARINFO_ST			tCarInfo_St;		///车辆信息	A.11
-	tTIME_ST 			tInstData_St;	///安装日期 表A.8
+	BCDTIME_ST 			tInstData_St;	///安装日期 表A.8
 	tSTATECONFIG_ST 	tStateConf_St;		///状态量配置信息  表A.13
-	tTIME_ST 			tRTC_St;		///记录仪时间 表A.8
+	BCDTIME_ST 			tRTC_St;		///记录仪时间 表A.8
 	tPULSE_ST			tPulse_St;			///脉冲系数	 表A.10
 	tINITDISTANCE_ST	tInitDist_St;		///里程  表A.9
 	tLICENSE_ST			tLicense_St;	///驾驶证号码
@@ -430,9 +474,9 @@ typedef struct {
 #define FRAM_ADDR_VDR_PARAM_START		0x3333	///记录仪参数起始偏移地址
 #define FRAM_ADDR_VDR_PARAM_CARINFO		(FRAM_ADDR_VDR_PARAM_START)
 #define FRAM_ADDR_VDR_PARAM_INSTALLTIME	(FRAM_ADDR_VDR_PARAM_CARINFO + sizeof(tCARINFO_ST))
-#define FRAM_ADDR_VDR_PARAM_STATECONFIG	(FRAM_ADDR_VDR_PARAM_INSTALLTIME + sizeof(tTIME_ST))
+#define FRAM_ADDR_VDR_PARAM_STATECONFIG	(FRAM_ADDR_VDR_PARAM_INSTALLTIME + sizeof(BCDTIME_ST))
 #define FRAM_ADDR_VDR_PARAM_RTC			(FRAM_ADDR_VDR_PARAM_STATECONFIG + sizeof(tSTATECONFIG_ST))
-#define FRAM_ADDR_VDR_PARAM_PULSE		(FRAM_ADDR_VDR_PARAM_RTC + sizeof(tTIME_ST))
+#define FRAM_ADDR_VDR_PARAM_PULSE		(FRAM_ADDR_VDR_PARAM_RTC + sizeof(BCDTIME_ST))
 #define FRAM_ADDR_VDR_PARAM_INITDIST	(FRAM_ADDR_VDR_PARAM_PULSE + sizeof(tPULSE_ST))
 #define FRAM_ADDR_VDR_PARAM_LICENSE		(FRAM_ADDR_VDR_PARAM_INITDIST + sizeof(tINITDISTANCE_ST))
 #define FRAM_ADDR_VDR_PARAM_ID			(FRAM_ADDR_VDR_PARAM_LICENSE + sizeof(tLICENSE_ST))
@@ -524,12 +568,16 @@ typedef enum {
 	RECORD_END,
 } eRECORD;
 
+
+
 /**
  *  行驶速度记录，1s间隔持续记录并存储行驶状态，包括时间，平均速度，状态，不少于最近48小时
  *  存储路径： 				/——speed
  *  						 |——— 年_月_日_时1
  *  						 |——— 年_月_日_时2
  *  写周期：一分钟，126B
+ *  存储容量：126*60*48=354K
+ *
  *  存储数据结构：
  *  tSPEEDLOGITEM_1		x x x x x x | d d | d d |... | d d
  *  					年 月  日     时  分   秒   | 1s  | 2s  |    | 60s
@@ -548,7 +596,7 @@ typedef struct {
 
 /*速度记录格式*/
 typedef struct {
-	tTIME time_Start; ///秒=0
+	BCDTIME time_Start; ///秒=0
 	tSPEEDPERSEC tSpeed[60];
 } tRECORD_SPEED;
 
@@ -558,62 +606,116 @@ typedef struct {
  * 判断条件：在行驶状态下，发生如下两种情况时开始记录
  * 情况1:外部供电断开；
  * 情况2：位置10s内无变化
- * 存储容量： 234B*100 = 23400B=23K
+ * 存储容量： 234B
  */
-#define tRECORD_ACCIDENT	tACK_ACCIDENT
+//#define tRECORD_ACCIDENT	tACK_ACCIDENT
+typedef tACK_ACCIDENT	tRECORD_ACCIDENT;
 
 /**
  * 超时驾驶记录格式，不少于100条
  * 存储容量：50B*100 =5000B=5K
  */
 typedef struct {
-	tTIME	time;	///附加的时间，方便检索，实际上传数据要去除
+	BCDTIME	time;	///附加的时间，方便检索，实际上传数据要去除
 	tACK_OVERTIMEDRIVING	tInfo;
 } tRECORD_OVERTIMEDRIVING;
 
 
 /**
  * 位置信息记录格式，1min间隔，360小时,15天
+ * 存储容量： 666B*360=240K
  */
-#define tRECORD_POS		tACK_POS
+//#define tRECORD_POS		tACK_POS
+typedef tACK_POS	tRECORD_POS;
 
 
 /**
  * 驾驶人身份记录，不小于200条
  * 存储容量：25B*200=5000B=5K
  */
-#define tRECORD_DRIVERLOG	tACK_DRIVERLOG
+//#define tRECORD_DRIVERLOG	tACK_DRIVERLOG
+typedef tACK_DRIVERLOG	tRECORD_DRIVERLOG;
 
 /**
  * 里程记录
  */
 //存储容量：4B
-#define tRECORD_DIST	u32
+//#define tRECORD_DIST	u32
+typedef u32	tRECORD_DIST;
 
 /**
- * 安装参数记录
+ * 4.4.1.2.7　安装参数记录，注意在规范中没有给出具体的安装参数记录结构体，自定义，可能不对？？？？
+ *	记录仪应能记录安装时相关参数信息，具体参数包括：机动车号牌号码、机动车号牌分类、车辆识别代码、脉冲系数、记录仪初次安装时间和初始里程。
  */
-#define tRECORD_INSTALLPARAM	NULL
+typedef struct {
+	tCARINFO	tCarInfo;	///机动车号牌号码、机动车号牌分类、车辆识别代码
+	u16		u16Pulse;	///脉冲系数
+	BCDTIME	time_FirstInstall;///记录仪初次安装时间和初始里程。
+	u8		aOriginDist_BCD[4];
+} tRECORD_INSTALLPARAM;
+
 
 /*--------- 日志记录 -------------*/
 /**
  * 外部供电记录，不少于100条
  * 存储容量：7B*100=700B=1K
  */
-#define tRECORD_POWER	tACK_POWER
+//#define tRECORD_POWER	tACK_POWER
+typedef tACK_POWER	tRECORD_POWER;
 
 /**
  * 参数修改记录，不少于100条
  * 存储容量：7B*100=700B=1K
  */
-#define tRECORD_PARAMCHANGE		tACK_PARAMCHANGE
+//#define tRECORD_PARAMCHANGE		tACK_PARAMCHANGE
+typedef tACK_PARAMCHANGE	tRECORD_PARAMCHANGE;
 
 /**
  * 速度状态日志，从开始时间连续60s，不少于10条
  * 每个日历天记录仪判断速度状态一次，同时存储速度状态日志
- * 存储容量：133B*10=1330B=13K
+ * 存储容量：133B*10=1330B=1.3K
  */
-#define tRECORD_SPEEDSTATUS		tACK_SPEEDSTATUS
+//#define tRECORD_SPEEDSTATUS		tACK_SPEEDSTATUS
+typedef tACK_SPEEDSTATUS	tRECORD_SPEEDSTATUS;
+
+/**不同记录类型单条记录长度*/
+//const u16 RECORD_SIZE[] = {
+//		sizeof(tRECORD_SPEED),
+//		sizeof(tRECORD_ACCIDENT),
+//		sizeof(tRECORD_OVERTIMEDRIVING),
+//		sizeof(tRECORD_POS),
+//		sizeof(tRECORD_DRIVERLOG),
+//		sizeof(tRECORD_DIST),
+//		sizeof(tRECORD_INSTALLPARAM),
+//		sizeof(tRECORD_POWER),
+//		sizeof(tRECORD_PARAMCHANGE),
+//		sizeof(tRECORD_SPEEDSTATUS),
+//};
+
+//extern u16 RECORD_SIZE[];
+
+#define VDR_PARAM_CARINFO 			0
+#define VDR_PARAM_INSTALLTIME		1
+#define VDR_PARAM_STATECONFIG		2
+#define VDR_PARAM_RTC				3
+#define VDR_PARAM_PULSE				4
+#define VDR_PARAM_INITDIST			5
+#define VDR_PARAM_LICENSE			6
+#define VDR_PARAM_ID				7
+#define VDR_PARAM_END				8
+
+/*参数类型*/
+//typedef enum {
+//	VDR_PARAM_CARINFO = 0,
+//	VDR_PARAM_INSTALLTIME,
+//	VDR_PARAM_STATECONFIG,
+//	VDR_PARAM_RTC,
+//	VDR_PARAM_PULSE,
+//	VDR_PARAM_INITDIST,
+//	VDR_PARAM_LICENSE,
+//	VDR_PARAM_ID,
+//	VDR_PARAM_END,
+//} eVDRPARAM;
 
 
 /**--------------------------------------------------------------------------------------------------
@@ -630,39 +732,19 @@ typedef struct {
 #define VDR_USB_CODE_CONFIG		0x06	/// 状态信号配置信息 见表A.12
 #define VDR_USB_CODE_UNIQID		0x07 	///记录仪唯一性编号 见表A.14
 #define VDR_USB_CODE_SPEED		0x08	///08H 行驶速度记录 见表A.16
-#define VDR_USB_CODE_POSITION	0x09	//09H 位置信息记录 见表A.18
-#define VDR_USB_CODE_ACCIDENT	0x10	//10H 事故疑点记录 见表A.21 全部记录
-#define VDR_USB_CODE_OTDRIVE	0x11	//11H 超时驾驶记录 见表A.23 全部记录
-#define VDR_USB_CODE_DRIVERLOG	0x12	//12H 驾驶人身份记录 见表A.25 全部记录
-#define VDR_USB_CODE_POWER		0x13	//13H 外部供电记录 见表A.26 全部记录
-#define VDR_USB_CODE_PARAMCHG	0x14	//14H 参数修改记录 见表A.29 全部记录
-#define VDR_USB_CODE_SPEEDSTATUS	0x15	//15H 速度状态日志 见表A.31 全部记录
+#define VDR_USB_CODE_POSITION	0x09	///09H 位置信息记录 见表A.18
+#define VDR_USB_CODE_ACCIDENT	0x10	///10H 事故疑点记录 见表A.21 全部记录
+#define VDR_USB_CODE_OTDRIVE	0x11	///11H 超时驾驶记录 见表A.23 全部记录
+#define VDR_USB_CODE_DRIVERLOG	0x12	///12H 驾驶人身份记录 见表A.25 全部记录
+#define VDR_USB_CODE_POWER		0x13	///13H 外部供电记录 见表A.26 全部记录
+#define VDR_USB_CODE_PARAMCHG	0x14	///14H 参数修改记录 见表A.29 全部记录
+#define VDR_USB_CODE_SPEEDSTATUS	0x15	///15H 速度状态日志 见表A.31 全部记录
 
 typedef struct {
 	u8 code;
 	char* name;
 } VDR_USBBLOCKINFO;
 
-#define VDR_USB_BLOCK_AMOUNT	16
-
-const VDR_USBBLOCKINFO  VDR_BLOCK[VDR_USB_BLOCK_AMOUNT] = {
-	{VDR_USB_CODE_VERSION, "执行标准版本年号"},		///见表A.6
-	{VDR_USB_CODE_DRIVERINFO, "当前驾驶人信息"},	/// 见表A.7
-	{VDR_USB_CODE_RTC, "实时时间"}, 				/// 见表A.8
-	{VDR_USB_CODE_DIST, "累计行驶里程"},			///  见表A.9
-	{VDR_USB_CODE_PULSE, "脉冲系数"},		 		/// 见表A.10
-	{VDR_USB_CODE_CARINFO, "车辆信息"},			///  见表A.11
-	{VDR_USB_CODE_CONFIG, "状态信号配置信息"},		///  见表A.12
-	{VDR_USB_CODE_UNIQID, "记录仪唯一性编号"},	 	/// 见表A.14
-	{VDR_USB_CODE_SPEED,"行驶速度记录"},			///08H  见表A.16
-	{VDR_USB_CODE_POSITION,	"位置信息记录"},		//09H  见表A.18
-	{VDR_USB_CODE_ACCIDENT,"事故疑点记录"},		//10H  见表A.21 全部记录
-	{VDR_USB_CODE_OTDRIVE,"超时驾驶记录"},			//11H  见表A.23 全部记录
-	{VDR_USB_CODE_DRIVERLOG,"驾驶人身份记录"},		//12H  见表A.25 全部记录
-	{VDR_USB_CODE_POWER,"外部供电记录"},			//13H  见表A.26 全部记录
-	{VDR_USB_CODE_PARAMCHG,"参数修改记录"},		//14H  见表A.29 全部记录
-	{VDR_USB_CODE_SPEEDSTATUS,"速度状态日志"},		//15H  见表A.31 全部记录
-};
 
 /**USB数据块结构*/
 typedef struct {
@@ -680,12 +762,12 @@ typedef struct {
 数据块n
 校验值（1个字节）
 */
-typedef struct {
-	u16 u16BlockAmt;
-	VDRUSBBLOCKHEAD	blocks[0];
-	u8 u8Checksum;
-
-};
+//typedef struct {
+//	u16 u16BlockAmt;
+//	VDRUSBBLOCKHEAD	blocks[0];
+//	u8 u8Checksum;
+//
+//};
 
 /**记录提取方向*/
 #define FORWARD		1	///正序
@@ -694,9 +776,9 @@ typedef struct {
 /****************************************************************************************************************
  * 参数读写接口
  ***************************************************************************************************************/
-int VDR_SaveParam(eVDRPARAM eParam, u8 *pBuf, u16 u16Len);
+int VDR_SaveParam(u8 eParam, u8 *pBuf, u16 u16Len);
 int VDR_LoadParam(void);
-u8* VDR_GetParam(eVDRPARAM eParam);
+u8* VDR_GetParam(u8 eParam);
 void VDR_Err_Proc(u8 u8Cmd, int ret);
 
 
@@ -704,11 +786,29 @@ void VDR_Err_Proc(u8 u8Cmd, int ret);
  * 串口及USB存储接口
  ***************************************************************************************************************/
 int VDR_SDInit();
-int VDR_DumpFiles2USBStorage(FIL *f, TIME *pTime);
+int VDR_InitUSBDEV();
+void VDR_Comm_MemInit(void);
+
+int VDR_DumpFiles2USBStorage(TIME *pTime);
 void VDR_ClearQuerySession();
-int VDR_NewQuerySession(eLOGCLASS eClass, TIME *pTime_Start, TIME *pTime_End);
-int VDR_RetrieveSingleRecordForward(u8 *pBuf, u16 bufSize);
-int VDR_RetrieveSingleRecordBackward(u8 *pBuf, u16 bufSize);
+int VDR_NewQuerySession(T_QSESSION *qSession, VDRMultiAckEvt *pe);
+int VDR_RetrieveSingleRecordForward(T_QSESSION *qSession, u8 *pBuf);
+int VDR_RetrieveSingleRecordBackward(T_QSESSION *qSession, u8 *pBuf);
+
+int VDR_DumpSpeedInfo(TIME *pTime);
+int VDR_DumpPositionInfo(TIME *pTime);
+int VDR_DumpAccidentInfo(TIME *pTime);
+int VDR_DumpSpeedStateInfo(TIME *pTime);
+
+void VDR_SetSignalState(eVDRSIGNAL eSig, eVDRSIGOPT opt);
+void VDR_GetSignalState(tSTATE_BYTE1 *pState);
+
+void VDR_Comm_SendSingleAckFrame(VDRAckEvt *pAckEvt);
+
+u16 VDR_Comm_doRetrieveMessage(u8 *pMsg, u16 u16BeginPtr, u16 u16EndPtr);
+
+void TIMECPY(TIME *t1, TIME *t2);
+void BCDTIME_CPY(BCDTIME *pt1, BCDTIME *pt2);
 
 #pragma 	pack()
 

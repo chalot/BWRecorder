@@ -21,20 +21,61 @@
 #include "utility.h"
 #include "error.h"
 #include "type.h"
+#include "vdr.h"
+#include "trace.h"
 
 Q_DEFINE_THIS_MODULE("qvdr.c")
 
+
+static T_QSESSION qSession;    //查询SESION，同一时刻系统只能有一个SESSION有效
+static u8 record[300];
+
+#define TIMEOUT_COMM_ACK            (BSP_TICKS_PER_SEC / 20) //串口应答数据发送周期
+#define TIMEOUT_LOG_SPEED           (BSP_TICKS_PER_SEC)     //记录速度信息
+#define TIMEOUT_LOG_POSITION           (BSP_TICKS_PER_SEC * 60) //记录位置信息
+#define TIMEOUT_LOG_ACCIDENT        (BSP_TICKS_PER_SEC / 5)    //事故疑点记录周期
+#define TIMEOUT_LOG_SpeedState        (BSP_TICKS_PER_SEC)    //事故疑点记录周期
+
+enum {
+    COM_ACK_TIMEOUT_SIG = MAX_SIG, /*Q_USER_SIG,*/
+    LOG_SPEED_TIMEOUT_SIG,
+    LOG_POSITION_TIMEOUT_SIG,
+    LOG_ACCIDENT_TIMEOUT_SIG,
+    LOG_SPEEDSTATE_TIMEOUT_SIG,
+    VDR_USB_DUMPERR_SIG,
+    VDR_USB_DUMPOK_SIG,
+
+};
+
+#define LOG_ACCIDENT_COUNTS    100    //事故疑点记录条数
 
 /* Active object class -----------------------------------------------------*/
 /* @(/1/20) ................................................................*/
 typedef struct QVDRTag {
 /* protected: */
     QActive super;
+
+/* public: */
+    uint8_t m_SDCardState;
+    uint16_t m_BlocksToTrans;
+    QTimeEvt m_AckTimer;
+    int32_t m_iRet;
+    uint8_t m_recordBuf[300];
+    uint16_t m_recordLen;
+    QTimeEvt m_SpeedLogTimer;
+    QTimeEvt m_PositionLogTimer;
+    QTimeEvt m_AccidentLogTimer;
+    uint16_t m_accidentLogCnt;
 } QVDR;
 
 /* protected: */
 static QState QVDR_initial(QVDR * const me, QEvt const * const e);
-static QState QVDR_state1(QVDR * const me, QEvt const * const e);
+static QState QVDR_initializing(QVDR * const me, QEvt const * const e);
+static QState QVDR_USB_Handling(QVDR * const me, QEvt const * const e);
+static QState QVDR_LOG_Handling(QVDR * const me, QEvt const * const e);
+static QState QVDR_COM_Idle(QVDR * const me, QEvt const * const e);
+static QState QVDR_LOG_Accident(QVDR * const me, QEvt const * const e);
+static QState QVDR_COM_Transfering(QVDR * const me, QEvt const * const e);
 
 
 
@@ -49,17 +90,333 @@ QActive * const AO_VDR = &l_QVDR.super; /* "opaque" AO pointer */
 void QVDR_ctor(void) {
     QVDR *me = &l_QVDR;
     QActive_ctor(&me->super, Q_STATE_CAST(&QVDR_initial));
+
+    QTimeEvt_ctor(&me->m_AckTimer, COM_ACK_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_SpeedLogTimer, LOG_SPEED_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_PositionLogTimer, LOG_POSITION_TIMEOUT_SIG);
+    QTimeEvt_ctor(&me->m_AccidentLogTimer, LOG_ACCIDENT_TIMEOUT_SIG);
 }
 /* @(/1/20) ................................................................*/
-/* @(/1/20/0) ..............................................................*/
-/* @(/1/20/0/0) */
+/* @(/1/20/10) .............................................................*/
+/* @(/1/20/10/0) */
 static QState QVDR_initial(QVDR * const me, QEvt const * const e) {
-    return Q_TRAN(&QVDR_state1);
+    return Q_TRAN(&QVDR_initializing);
 }
-/* @(/1/20/0/1) ............................................................*/
-static QState QVDR_state1(QVDR * const me, QEvt const * const e) {
+/* @(/1/20/10/1) ...........................................................*/
+static QState QVDR_initializing(QVDR * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
+        /* @(/1/20/10/1) */
+        case Q_ENTRY_SIG: {
+            int ret;
+            static const QEvt sd_evt = {VDR_SDCARD_ATTACHED_SIG, 0};
+
+            ret = VDR_SDInit();
+            if(ret < 0) {
+                me->m_SDCardState = 1;
+                QACTIVE_POST(AO_VDR, (QEvt*)&sd_evt, (void*)0);
+            }
+
+            //ret = VDR_USBDevice_Detect();
+            //if(ret == 1) {
+            //    static const QEvt usb_evt = {VDR_USBDEV_ATTACHED_SIG, 0};
+            //    QACTIVE_POST(me, (QEvt*)&usb_evt, (void*)0);
+            //}
+
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/1/0) */
+        case VDR_SDCARD_ATTACHED_SIG: {
+            status_ = Q_TRAN(&QVDR_LOG_Handling);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+/* @(/1/20/10/2) ...........................................................*/
+static QState QVDR_USB_Handling(QVDR * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        /* @(/1/20/10/2) */
+        case Q_ENTRY_SIG: {
+            TIME time;
+            int ret;
+
+            static const QEvt err_evt = {VDR_USB_DUMPERR_SIG, 0};
+            static const QEvt ok_evt = {VDR_USB_DUMPOK_SIG, 0};
+
+            me->m_iRet = VDR_InitUSBDEV();
+
+            RTC_Get(&time);
+            ret = VDR_DumpFiles2USBStorage(&time);
+            if(ret < 0) {
+                TRACE_(QS_USER, NULL, "VDR_DumpAccidentInfo failed!");
+                QACTIVE_POST(AO_VDR, (QEvt*)&err_evt, (void*)0);
+            }
+
+            QACTIVE_POST(AO_VDR, (QEvt*)&ok_evt, (void*)0);
+
+
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/2/0) */
+        case VDR_USB_DUMPERR_SIG: {
+            status_ = Q_TRAN(&QVDR_LOG_Handling);
+            break;
+        }
+        /* @(/1/20/10/2/1) */
+        case VDR_USB_DUMPOK_SIG: {
+            status_ = Q_TRAN(&QVDR_LOG_Handling);
+            break;
+        }
+        /* @(/1/20/10/2/2) */
+        case VDR_USBDEV_DETACHED_SIG: {
+            status_ = Q_TRAN(&QVDR_LOG_Handling);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+/* @(/1/20/10/3) ...........................................................*/
+static QState QVDR_LOG_Handling(QVDR * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        /* @(/1/20/10/3) */
+        case Q_ENTRY_SIG: {
+            QTimeEvt_postEvery(&me->m_SpeedLogTimer, &me->super, TIMEOUT_LOG_SPEED);
+            QTimeEvt_postEvery(&me->m_PositionLogTimer, &me->super, TIMEOUT_LOG_POSITION);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3) */
+        case Q_EXIT_SIG: {
+            QTimeEvt_disarm(&me->m_SpeedLogTimer);
+            QTimeEvt_disarm(&me->m_PositionLogTimer);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/0) */
+        case Q_INIT_SIG: {
+            status_ = Q_TRAN(&QVDR_COM_Idle);
+            break;
+        }
+        /* @(/1/20/10/3/1) */
+        case LOG_SPEED_TIMEOUT_SIG: {
+            TIME time;
+            int ret;
+
+            RTC_Get(&time);
+            ret = VDR_DumpSpeedInfo(&time);
+            if(ret < 0) {
+                TRACE_(QS_USER, NULL, "VDR_DumpSpeedInfo failed!");
+            }
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/2) */
+        case LOG_POSITION_TIMEOUT_SIG: {
+            TIME time;
+            int ret;
+
+            RTC_Get(&time);
+            ret = VDR_DumpPositionInfo(&time);
+            if(ret < 0) {
+                TRACE_(QS_USER, NULL, "VDR_DumpPositionInfo failed!");
+            }
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/3) */
+        case VDR_LOG_ACCIDENT_SIG: {
+            TRACE_(QS_USER, NULL, "[VDR] Accident recording ...");
+            QTimeEvt_postEvery(&me->m_AckTimer, &me->super, TIMEOUT_COMM_ACK);
+            status_ = Q_TRAN(&QVDR_LOG_Accident);
+            break;
+        }
+        /* @(/1/20/10/3/4) */
+        case VDR_USBDEV_ATTACHED_SIG: {
+            TRACE_(QS_USER, NULL, "[VDR] USB Dev detected");
+            status_ = Q_TRAN(&QVDR_USB_Handling);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+/* @(/1/20/10/3/5) .........................................................*/
+static QState QVDR_COM_Idle(QVDR * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        /* @(/1/20/10/3/5) */
+        case Q_ENTRY_SIG: {
+            me->m_iRet = 0;
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/5/0) */
+        case VDR_ACK_SINGLEPACK_SIG: {
+            ///单帧应答
+            VDRAckEvt *pe = (VDRAckEvt*)e;
+            VDR_Comm_SendSingleAckFrame(pe);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/5/1) */
+        case VDR_ACK_MULTIPACK_SIG: {
+            ///多包传输，创建一个查询会话
+            VDRMultiAckEvt *pe;
+
+            pe = (VDRMultiAckEvt *)e;
+            me->m_iRet = VDR_NewQuerySession(&qSession, pe);
+
+            /* @(/1/20/10/3/5/1/0) */
+            if (me->m_iRet == 0) {
+                status_ = Q_TRAN(&QVDR_COM_Transfering);
+            }
+            /* @(/1/20/10/3/5/1/1) */
+            else {
+                ///查询会话创建失败，返回错误应答帧
+                VDRAckEvt *pe;
+
+                TRACE_(QS_USER, NULL, "Query Session Create failed!");
+
+                pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG);
+                pe->cmd = VDR_CMD_GET_ERR_ACK;
+                pe->resCmd = qSession.u8Cmd;
+
+                VDR_Comm_SendSingleAckFrame(pe);
+                status_ = Q_TRAN(&QVDR_COM_Idle);
+            }
+            break;
+        }
+        /* @(/1/20/10/3/5/2) */
+        case VDR_FRAME_READY_SIG: {
+            ///命令帧提取并处理，消息直接来自于串口接收ISR
+            TRACE_(QS_USER, NULL, "[VDR] Get Message, handling...");
+            VDR_Comm_doProcMessage((VDRRetrieveEvt *)e);
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QVDR_LOG_Handling);
+            break;
+        }
+    }
+    return status_;
+}
+/* @(/1/20/10/3/6) .........................................................*/
+static QState QVDR_LOG_Accident(QVDR * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        /* @(/1/20/10/3/6) */
+        case Q_ENTRY_SIG: {
+            me->m_accidentLogCnt = 0;
+            QTimeEvt_postEvery(&me->m_AccidentLogTimer, &me->super, TIMEOUT_LOG_ACCIDENT);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/6) */
+        case Q_EXIT_SIG: {
+            QTimeEvt_disarm(&me->m_AccidentLogTimer);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/3/6/0) */
+        case LOG_ACCIDENT_TIMEOUT_SIG: {
+            TIME time;
+            int ret;
+
+            RTC_Get(&time);
+            ret = VDR_DumpAccidentInfo(&time);
+            if(ret < 0) {
+                TRACE_(QS_USER, NULL, "VDR_DumpAccidentInfo failed!");
+            }
+
+            me->m_accidentLogCnt ++;
+            /* @(/1/20/10/3/6/0/0) */
+            if (me->m_accidentLogCnt > LOG_ACCIDENT_COUNTS) {
+                TRACE_(QS_USER, NULL, "[VDR] Accident recording finished.");
+                status_ = Q_TRAN(&QVDR_COM_Idle);
+            }
+            /* @(/1/20/10/3/6/0/1) */
+            else {
+                status_ = Q_HANDLED();
+            }
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QVDR_LOG_Handling);
+            break;
+        }
+    }
+    return status_;
+}
+/* @(/1/20/10/4) ...........................................................*/
+static QState QVDR_COM_Transfering(QVDR * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        /* @(/1/20/10/4) */
+        case Q_ENTRY_SIG: {
+            ///打开数据发送定时器
+            QTimeEvt_postEvery(&me->m_AckTimer, &me->super, TIMEOUT_COMM_ACK);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/4) */
+        case Q_EXIT_SIG: {
+            QTimeEvt_disarm(&me->m_AckTimer);
+
+            ///清除查询会话状态
+            VDR_ClearQuerySession(qSession);
+            status_ = Q_HANDLED();
+            break;
+        }
+        /* @(/1/20/10/4/0) */
+        case COM_ACK_TIMEOUT_SIG: {
+            me->m_iRet = VDR_Comm_GetSingleAckRecord(qSession, me->m_recordBuf, &me->m_recordLen);
+
+            /* @(/1/20/10/4/0/1) */
+            if (me->m_iRet == 0) {
+                VDR_UART_WriteData(me->m_recordBuf, me->m_recordLen);
+                qSession.u16BlocksTransed ++;
+
+                /* @(/1/20/10/4/0/1/0) */
+                if (qSession.u16BlocksTransed >= qSession.u16BlocksToTrans) {
+                    status_ = Q_TRAN(&QVDR_LOG_Handling);
+                }
+                /* @(/1/20/10/4/0/1/1) */
+                else {
+                    status_ = Q_HANDLED();
+                }
+            }
+            /* @(/1/20/10/4/0/0) */
+            else {
+                ///记录提取失败，返回错误应答帧
+                VDRAckEvt *pe;
+
+                TRACE_(QS_USER, NULL, "Record block retrieve failed!");
+
+                pe = Q_NEW(VDRAckEvt, VDR_ACK_SINGLEPACK_SIG);
+                pe->cmd = VDR_CMD_GET_ERR_ACK;
+                pe->resCmd = qSession.u8Cmd;
+                QACTIVE_POST(AO_VDR, (QEvt* )pe, NULL);
+                status_ = Q_TRAN(&QVDR_LOG_Handling);
+            }
+            break;
+        }
         default: {
             status_ = Q_SUPER(&QHsm_top);
             break;
