@@ -8,18 +8,18 @@
   <item name="grid">3</item>
  </group>
  <group name="windows">
-  <item id="AOs::QTTS::SM">395,0,640,480</item>
-  <item id="AOs::QAudio::SM">0,0,640,480</item>
   <item id="AOs::Q3DSensor::SM">0,0,640,480</item>
-  <item id="qmcode::q3dsensor.c">439,3,596,300</item>
-  <item id="qmcode::qextsignals.c">439,0,596,300</item>
+  <item id="qmcode::q3dsensor.c">439,0,596,300</item>
+  <item id="qmcode::qextsignals.c">439,44,596,300</item>
   <item id="AOs::QCAN::SM">0,0,640,480</item>
   <item id="AOs::QACCDetector::SM">395,0,640,480</item>
   <item id="AOs::QVDR::SM">0,0,640,480</item>
   <item id="qmcode::qspeedpulse.c">0,0,596,300</item>
   <item id="qmcode::qvdr.c">439,44,596,300</item>
-  <item id="qmcode::qactiveobjs.h">0,44,596,300</item>
-  <item id="qmcode::qusb.c">0,0,1035,345,*</item>
+  <item id="qmcode::qusb.c">0,0,1035,345</item>
+  <item id="qmcode::qrecorder.c">439,0,596,300</item>
+  <item id="AOs::QRecorder::SM">395,0,640,480</item>
+  <item id="qmcode::qgps.c">0,0,1035,220,*</item>
  </group>
  <group name="search">
   <item name="options">4129280</item>

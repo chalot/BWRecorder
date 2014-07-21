@@ -12,7 +12,7 @@
 
 #include <stm32f2xx_conf.h>
 
-#define DEVKIT1207
+#define DEVKIT1207	///使用开发板硬件配置
 
 /**
  * 板载5V,3.3V电源控制
@@ -28,28 +28,28 @@
 /**
  * IC卡IO口
  */
-#define IC_SW_PIN     				GPIO_Pin_0
+#define IC_SW_PIN     				GPIO_Pin_2
 #define IC_SW_GPIO_PORT             GPIOE
 #define IC_SW_GPIO_CLK              RCC_AHB1Periph_GPIOE
 
-#define IC_RST_PIN     				GPIO_Pin_1
+#define IC_RST_PIN     				GPIO_Pin_4
 #define IC_RST_GPIO_PORT            GPIOE
 #define IC_RST_GPIO_CLK             RCC_AHB1Periph_GPIOE
 
-#define IC_SCK_PIN     				GPIO_Pin_2
+#define IC_SCK_PIN     				GPIO_Pin_3
 #define IC_SCK_GPIO_PORT            GPIOE
 #define IC_SCK_GPIO_CLK             RCC_AHB1Periph_GPIOE
 
-#define IC_DATA_PIN     			GPIO_Pin_3
+#define IC_DATA_PIN     			GPIO_Pin_5
 #define IC_DATA_GPIO_PORT           GPIOE
 #define IC_DATA_GPIO_CLK            RCC_AHB1Periph_GPIOE
 
 /**
  * GPRS模块IO口
  */
-#define GSM_PWR_PIN     			GPIO_Pin_6
-#define GSM_PWR_GPIO_PORT       	GPIOE
-#define GSM_PWR_GPIO_CLK       	 	RCC_AHB1Periph_GPIOE
+#define GSM_PWRCTRL_PIN     		GPIO_Pin_5
+#define GSM_PWRCTRL_GPIO_PORT       GPIOB
+#define GSM_PWRCTRL_GPIO_CLK       	RCC_AHB1Periph_GPIOE
 
 #define GSM_UART_TX_PIN     		GPIO_Pin_6
 #define GSM_UART_TX_PORT    		GPIOB
@@ -60,7 +60,7 @@
 #define GSM_UART_RX_CLK     		RCC_AHB1Periph_GPIOB
 
 #define GSM_DTR_PIN     			GPIO_Pin_12
-#define GSM_DTR_PORT    			GPIOG
+#define GSM_DTR_PORT    			GPIOE
 #define GSM_DTR_CLK     			RCC_AHB1Periph_GPIOG
 
 #define GSM_PWKEY_PIN     			GPIO_Pin_13
@@ -74,7 +74,7 @@
 /**
  * TTS模块IO口
  */
-#define TTS_SHUNT_PIN     			GPIO_Pin_5
+#define TTS_SHUNT_PIN     			GPIO_Pin_13
 #define TTS_SHUNT_GPIO_PORT       	GPIOE
 #define TTS_SHUNT_GPIO_CLK        	RCC_AHB1Periph_GPIOE
 
@@ -93,34 +93,34 @@
 /**
  * 摄像头IO口
  */
-#define VIDEO_CTRL_PIN     			GPIO_Pin_13
-#define VIDEO_CTRL_GPIO_PORT       	GPIOE
+#define VIDEO_CTRL_PIN     			GPIO_Pin_11
+#define VIDEO_CTRL_GPIO_PORT       	GPIOB
 #define VIDEO_CTRL_GPIO_CLK        	RCC_AHB1Periph_GPIOE
 
-/**VIDEO1串口,UART3*/
-#define VIDEO1_UART_TX_PIN     		GPIO_Pin_8
-#define VIDEO1_UART_TX_PORT    		GPIOD
-#define VIDEO1_UART_TX_CLK     		RCC_AHB1Periph_GPIOD
+/**摄像头，两个摄像头共用1个串口，通过2选1分时拍照,UART3*/
+#define VIDEO_UART_TX_PIN     		GPIO_Pin_8
+#define VIDEO_UART_TX_PORT    		GPIOD
+#define VIDEO_UART_TX_CLK     		RCC_AHB1Periph_GPIOD
 
-#define VIDEO1_UART_RX_PIN     		GPIO_Pin_9
-#define VIDEO1_UART_RX_PORT    		GPIOD
-#define VIDEO1_UART_RX_CLK     		RCC_AHB1Periph_GPIOD
+#define VIDEO_UART_RX_PIN     		GPIO_Pin_9
+#define VIDEO_UART_RX_PORT    		GPIOD
+#define VIDEO_UART_RX_CLK     		RCC_AHB1Periph_GPIOD
 
-/**VIDEO2串口,UART4*/
-#define VIDEO2_UART_TX_PIN     		GPIO_Pin_0
-#define VIDEO2_UART_TX_PORT  		GPIOA
-#define VIDEO2_UART_TX_CLK    		RCC_AHB1Periph_GPIOA
+#define VIDEO2_ON_PIN     			GPIO_Pin_10
+#define VIDEO2_ON_GPIO_PORT       	GPIOD
+#define VIDEO2_ON_GPIO_CLK        	RCC_AHB1Periph_GPIOE
 
-#define VIDEO2_UART_RX_PIN     		GPIO_Pin_1
-#define VIDEO2_UART_RX_PORT   		GPIOA
-#define VIDEO2_UART_RX_CLK    		RCC_AHB1Periph_GPIOA
+#define VIDEO1_ON_PIN     			GPIO_Pin_15
+#define VIDEO1_ON_GPIO_PORT       	GPIOB
+#define VIDEO1_ON_GPIO_CLK        	RCC_AHB1Periph_GPIOE
+
 
 /**充电检测IO口*/
 #define CHARGE_CTRL_PIN     		GPIO_Pin_15
 #define CHARGE_CTRL_GPIO_PORT       GPIOE
 #define CHARGE_CTRL_GPIO_CLK        RCC_AHB1Periph_GPIOE
 
-/*I2C2，铁电/3D加速度传感器共用*/
+/**I2C2，铁电*/
 #define I2C_SDA_PIN     			GPIO_Pin_0
 #define I2C_SDA_GPIO_PORT       	GPIOF
 #define I2C_SDA_GPIO_CLK        	RCC_AHB1Periph_GPIOF
@@ -386,8 +386,8 @@
 /**
  * 外部看门狗IO口
  */
-#define WATCHDOG_PIN     			GPIO_Pin_3
-#define WATCHDOG_PORT    			GPIOD
+#define WATCHDOG_PIN     			GPIO_Pin_1
+#define WATCHDOG_PORT    			GPIOE
 #define WATCHDOG_CLK     			RCC_AHB1Periph_GPIOD
 
 /**
